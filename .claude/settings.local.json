@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cargo check:*)",
+      "Bash(cargo clean:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "WebSearch",
+      "Bash(anchor:*)",
+      "Bash(cargo search:*)",
+      "Bash(cargo info:*)",
+      "Bash(mkdir:*)",
+      "Bash(jq:*)",
+      "Bash(cargo build:*)",
+      "Bash(cargo doc:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(rm:*)",
+      "WebFetch(domain:docs.rs)",
+      "WebFetch(domain:www.anchor-lang.com)"
+    ],
+    "deny": [],
+    "ask": [],
+    "additionalDirectories": [
+      "/Users/zhengwei/CursorProjects/raydium-cpi-example/cpmm-cpi",
+      "/Users/zhengwei/CursorProjects/raydium-cpi-example/clmm-cpi"
+    ]
+  }
+}
