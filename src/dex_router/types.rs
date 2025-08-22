@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 use crate::account_resolver::{RaydiumCpmmAccounts, RaydiumClmmAccounts, PumpfunAccounts, PumpswapAccounts};
+use crate::account_derivation::DerivedAccounts;
 use crate::state::DexType;
 
 /// Swap result containing output amount and fees
@@ -15,6 +16,12 @@ pub trait DexSwap<'info> {
     
     fn execute_swap(
         accounts: Self::Accounts,
+        derived: &DerivedAccounts,
+        remaining_accounts: &'info [AccountInfo<'info>],
+        payer: &AccountInfo<'info>,
+        token_program: &AccountInfo<'info>,
+        associated_token_program: &AccountInfo<'info>,
+        system_program: &AccountInfo<'info>,
         user_input_account: &AccountInfo<'info>,
         user_output_account: &AccountInfo<'info>,
         amount_in: u64,

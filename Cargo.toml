@@ -28,7 +28,6 @@ anchor-spl = "=0.30.1"
 # DEX CPI dependencies  
 raydium-cp-swap = { git = "https://github.com/raydium-io/raydium-cp-swap", rev = "34a208a4738b0ac070f32ac51a7c00f0982df764", features = ["no-entrypoint", "cpi"] }
 pumpfun-cpi = "2.0.1"
-pumpswap-sdk = "1.0.2"
 
 # Additional dependencies matching raydium-cpi-example
 solana-program = "^1.17.3"
