@@ -66,7 +66,7 @@ pub use account_resolver::*;
 pub use account_derivation::*;
 pub use dex_router::*;
 
-declare_id!("7R2DEVjE6DQPsQYnLSaFwPQjp1RN5vR8BAfxNhociMxV");
+declare_id!("4ZqQT3aUpSMiAjmyaYj6yHjfJQH6k7v3XBSpgAhWU8uC");
 
 #[program]
 pub mod arbitrage_contract {

@@ -25,7 +25,6 @@ pub struct PathStep {
     pub minimum_amount_out: u64,
 }
 
-// V1（连续切片协议）已删除
 
 /// 协议与参数（V2 indices 协议）
 /// 用途：
