@@ -39,18 +39,21 @@ pub enum DexAccounts<'info> {
 
 /// DEX-specific account requirements and constants
 pub mod constants {
-    // Raydium CPMM requires 12 accounts (from raydium-cpi-example)
-    pub const RAYDIUM_CPMM_ACCOUNT_COUNT: u8 = 12;
+    // CPI/常量集版本号（用于日志与治理）
+    pub const CPI_VERSION: u32 = 1;
+    // 仅客户端传入账户数量（按 indices 协议）
+    // Raydium CPMM：amm_config, pool_state, token0_vault, token1_vault, input_mint, output_mint, observation_state
+    pub const RAYDIUM_CPMM_ACCOUNT_COUNT: u8 = 7;
     
-    // Raydium CLMM base accounts + variable tick arrays 
-    pub const RAYDIUM_CLMM_BASE_ACCOUNT_COUNT: u8 = 12;
-    pub const RAYDIUM_CLMM_MAX_TICK_ARRAYS: u8 = 4;
+    // Raydium CLMM（本实现按 11 个基础账户解析；tick arrays 动态由客户端另行传递到 remaining_accounts 但不在 indices 中计数）
+    pub const RAYDIUM_CLMM_BASE_ACCOUNT_COUNT: u8 = 11;
+    pub const RAYDIUM_CLMM_MAX_TICK_ARRAYS: u8 = 4; // 备用
     
-    // PumpFun requires 8 accounts (estimated)
-    pub const PUMPFUN_ACCOUNT_COUNT: u8 = 8;
+    // PumpFun Bonding（bonding_curve, mint, creator）
+    pub const PUMPFUN_ACCOUNT_COUNT: u8 = 3;
     
-    // PumpSwap requires 8 accounts (estimated)
-    pub const PUMPSWAP_ACCOUNT_COUNT: u8 = 8;
+    // PumpSwap（pool_state, base_mint, quote_mint, coin_creator）
+    pub const PUMPSWAP_ACCOUNT_COUNT: u8 = 4;
 }
 
 /// Helper function to get expected account count for a DEX type

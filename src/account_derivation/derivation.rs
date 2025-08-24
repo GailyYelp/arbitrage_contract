@@ -4,6 +4,52 @@ use crate::state::{DexType, PathStep};
 use super::types::{ProgramIds, FixedAddresses, get_fixed_addresses, pda_seeds};
 use std::collections::HashMap;
 
+/// 账户推导引擎（V2 协议）
+///
+/// 目标：在“最小必需客户端账户（indices + 全局表）”基础上，链上统一推导“可确定”的账户，
+/// 包括用户 ATAs、Token/Token-2022 程序选择、部分固定地址与 PDA，降低客户端负担并提升一致性。
+///
+/// 流程要点：
+/// 1) initialize() 装载固定地址与系统程序；
+/// 2) derive_for_path():
+///    - 基于 remaining_accounts 自动识别每个 mint 的 token program（Token/Token-2022）；
+///    - 为路径涉及的所有 mint 推导用户 ATAs 并缓存；
+///    - 按 DEX 类型推导必要 PDA/固定账户（如 CPMM authority、Pump 系列 PDA 等）。
+/// 3) 执行阶段：从缓存读取用户 ATAs/固定地址，配合 AccountResolver 解析出的 DEX 最小集 + 动态补充账户组装 CPI。
+/// 注意：本模块不负责将账户加入 remaining_accounts，也不做强制校验，仅做推导与缓存（用于定位/日志）。
+///
+/// 每个 DEX 的“链上推导 vs 客户端传入”：
+/// - Raydium CPMM
+///   链上推导：authority（固定地址）、用户 ATAs、每个 mint 的 token program 选择（用于派生 ATA）。
+///   客户端传入（indices）：amm_config、pool_state、token0_vault、token1_vault、input_mint、output_mint、observation_state；
+///   说明：CPI metas 中 token_program 重复位来自外部传入（合约入口的 token_program）。
+///
+/// - Raydium CLMM
+///   链上推导：用户 ATAs、每个 mint 的 token program 选择（用于派生 ATA）。
+///   客户端传入（indices 基础 11 项）：clmm_program、amm_config、pool_state、input_vault、output_vault、
+///     observation_state、token_program、token_program_2022、memo_program、input_vault_mint、output_vault_mint；
+///   客户端追加（不计入 indices）：tick_array_extension、tick arrays（动态）；
+///   合约在 CPI 前按 owner==clmm_program 动态注入上述追加账户到 metas（顺序沿用全局表）。
+///
+/// - PumpFun（Bonding Curve）
+///   链上推导：bonding_curve PDA（mint）、associated_bonding_curve（bonding_curve+mint）、
+///     （可选）creator_vault、（可选）volume accumulators（global/user，买入时）。
+///   客户端传入（indices）：bonding_curve(pool_id)、mint、creator；
+///   客户端追加（全局表）：program、global、fee_recipient、event_authority、rent、associated_bonding_curve 等。
+///
+/// - PumpSwap AMM
+///   链上推导：global_config PDA、pool/user 双边 ATAs、fee_recipient_ata、creator_vault_authority PDA 及其 ATA、
+///     每个 mint 的 token program 选择（用于派生 ATA）。
+///   客户端传入（indices）：pool_state、base_mint、quote_mint、coin_creator；
+///   客户端追加（全局表）：program、global_config、fee_recipient、fee_recipient_ata、event_authority、amm_program、
+///     creator_vault_ata 等。
+///
+/// 缓存策略（单次指令内存级）：
+/// - user_token_accounts: mint -> user_ata；
+/// - token_programs: mint -> token_program_id（mint.owner 自动识别后缓存）；
+/// - 各 DEX 推导缓存（如 Pump 系列 PDA）与 fixed_addresses；
+/// - 执行时从缓存取 Pubkey，再在 remaining_accounts 中查找 AccountInfo 参与 CPI。
+
 /// 完整的账户推导引擎
 pub struct DerivedAccounts {
     // 基础缓存
@@ -63,27 +109,39 @@ impl DerivedAccounts {
         Ok(ata)
     }
 
-    /// 获取token program (目前默认使用Token Program)
+    /// 获取 token program（带缓存；未命中时默认使用 Token Program）
     pub fn get_token_program_for_mint(&mut self, mint: &Pubkey, program_ids: &ProgramIds) -> Pubkey {
         if let Some(cached) = self.token_programs.get(mint) {
             return *cached;
         }
         
-        // TODO: 实际实现中需要检查mint账户的owner来判断是Token还是Token2022
         program_ids.token_program
     }
 
-    // ================================================================
-    // Raydium CPMM 账户推导 - 需要的账户:
-    // 1. authority (固定地址)
-    // 2. user_input_ata  
-    // 3. user_output_ata
-    // 4. input_vault (客户端提供)
-    // 5. output_vault (客户端提供)
-    // 6. pool_id (客户端提供)
-    // 7. amm_config (客户端提供)
-    // 8. observation_account (客户端提供)
-    // ================================================================
+    /// 从 remaining_accounts 检测并缓存某 mint 的 token program（Token 或 Token-2022）
+    pub fn detect_and_cache_token_program_for_mint(
+        &mut self,
+        mint: &Pubkey,
+        program_ids: &ProgramIds,
+        remaining_accounts: &[AccountInfo],
+    ) {
+        // 若已缓存则跳过
+        if self.token_programs.get(mint).is_some() { return; }
+        if let Some(ai) = remaining_accounts.iter().find(|ai| ai.key() == *mint) {
+            let owner = ai.owner;
+            let detected = if owner == &program_ids.token_program {
+                program_ids.token_program
+            } else if owner == &program_ids.token_2022_program {
+                program_ids.token_2022_program
+            } else {
+                // 未识别，退回默认 Token Program
+                program_ids.token_program
+            };
+            self.token_programs.insert(*mint, detected);
+            msg!("[TokenDetect] mint={} program_id={} (cached)", mint, detected);
+        }
+    }
+
 
     /// 推导Raydium CPMM authority (固定地址)
     pub fn derive_raydium_cpmm_authority(&mut self) -> Result<Pubkey> {
@@ -99,88 +157,6 @@ impl DerivedAccounts {
         self.raydium_accounts.insert(key, authority);
         Ok(authority)
     }
-
-    /// 组装Raydium CPMM完整账户
-    pub fn assemble_raydium_cpmm_accounts(
-        &mut self,
-        user: &Pubkey,
-        input_mint: &Pubkey,
-        output_mint: &Pubkey,
-        program_ids: &ProgramIds,
-    ) -> Result<RaydiumCpmmAccounts> {
-        let authority = self.derive_raydium_cpmm_authority()?;
-        let user_input_ata = self.derive_user_ata(user, input_mint, program_ids)?;
-        let user_output_ata = self.derive_user_ata(user, output_mint, program_ids)?;
-        let input_token_program = self.get_token_program_for_mint(input_mint, program_ids);
-        let output_token_program = self.get_token_program_for_mint(output_mint, program_ids);
-
-        Ok(RaydiumCpmmAccounts {
-            payer: *user,
-            authority,
-            user_input_ata,
-            user_output_ata,
-            input_token_program,
-            output_token_program,
-            input_mint: *input_mint,
-            output_mint: *output_mint,
-        })
-    }
-
-    // ================================================================
-    // Raydium CLMM 账户推导 - 需要的账户:
-    // 1. payer (用户)
-    // 2. amm_config (客户端提供)
-    // 3. pool_id (客户端提供)
-    // 4. user_input_ata
-    // 5. user_output_ata  
-    // 6. input_vault (客户端提供)
-    // 7. output_vault (客户端提供)
-    // 8. observation_account (客户端提供)
-    // 9. tickarray_bitmap_extension (客户端提供)
-    // 10. tick_array_accounts (客户端提供，动态数量)
-    // ================================================================
-
-    /// 组装Raydium CLMM完整账户
-    pub fn assemble_raydium_clmm_accounts(
-        &mut self,
-        user: &Pubkey,
-        input_mint: &Pubkey,
-        output_mint: &Pubkey,
-        program_ids: &ProgramIds,
-    ) -> Result<RaydiumClmmAccounts> {
-        let user_input_ata = self.derive_user_ata(user, input_mint, program_ids)?;
-        let user_output_ata = self.derive_user_ata(user, output_mint, program_ids)?;
-        let input_token_program = self.get_token_program_for_mint(input_mint, program_ids);
-        let output_token_program = self.get_token_program_for_mint(output_mint, program_ids);
-
-        Ok(RaydiumClmmAccounts {
-            payer: *user,
-            user_input_ata,
-            user_output_ata,
-            input_token_program,
-            output_token_program,
-            input_mint: *input_mint,
-            output_mint: *output_mint,
-        })
-    }
-
-    // ================================================================
-    // PumpFun Bonding Curve 账户推导 - 需要的账户:
-    // 1. global (固定地址)
-    // 2. fee_recipient (固定地址) 
-    // 3. mint (参数)
-    // 4. bonding_curve (PDA: [b"bonding-curve", mint])
-    // 5. associated_bonding_curve (bonding_curve的ATA)
-    // 6. user_token_ata (用户的代币ATA)
-    // 7. user (签名者)
-    // 8. system_program
-    // 9. token_program
-    // 10. creator_vault (PDA: [b"creator-vault", creator])
-    // 11. event_authority (固定地址)
-    // 12. program_id
-    // 13. global_volume_accumulator (PDA: [b"global_volume_accumulator"]) - 仅买入时需要
-    // 14. user_volume_accumulator (PDA: [b"user_volume_accumulator", user]) - 仅买入时需要
-    // ================================================================
 
     /// 推导PumpFun bonding curve PDA
     pub fn derive_pumpfun_bonding_curve(&mut self, mint: &Pubkey, program_ids: &ProgramIds) -> Result<Pubkey> {
@@ -265,73 +241,6 @@ impl DerivedAccounts {
         Ok(pda)
     }
 
-    /// 组装PumpFun完整账户
-    pub fn assemble_pumpfun_accounts(
-        &mut self,
-        user: &Pubkey,
-        mint: &Pubkey,
-        creator: &Pubkey,
-        is_buy: bool,
-        program_ids: &ProgramIds,
-    ) -> Result<PumpFunAccounts> {
-        // 先推导所有需要的账户
-        let bonding_curve = self.derive_pumpfun_bonding_curve(mint, program_ids)?;
-        let associated_bonding_curve = self.derive_pumpfun_associated_bonding_curve(&bonding_curve, mint, program_ids)?;
-        let user_token_ata = self.derive_user_ata(user, mint, program_ids)?;
-        let creator_vault = self.derive_pumpfun_creator_vault(creator, program_ids)?;
-
-        // 买入时需要volume accumulator账户
-        let volume_accumulators = if is_buy {
-            Some(PumpFunVolumeAccumulators {
-                global: self.derive_pumpfun_global_volume_accumulator(program_ids)?,
-                user: self.derive_pumpfun_user_volume_accumulator(user, program_ids)?,
-            })
-        } else {
-            None
-        };
-        
-        // 获取固定地址
-        let fixed_addrs = self.fixed_addresses.as_ref()
-            .ok_or_else(|| error!(crate::errors::ArbitrageError::AccountNotFound))?;
-
-        Ok(PumpFunAccounts {
-            global_account: fixed_addrs.pumpfun_global_account,
-            fee_recipient: fixed_addrs.pumpfun_fee_recipient,
-            mint: *mint,
-            bonding_curve,
-            associated_bonding_curve,
-            user_token_ata,
-            user: *user,
-            creator_vault,
-            event_authority: fixed_addrs.pumpfun_event_authority,
-            token_program: self.get_token_program_for_mint(mint, program_ids),
-            system_program: program_ids.system_program,
-            volume_accumulators,
-        })
-    }
-
-    // ================================================================
-    // PumpSwap AMM 账户推导 - 需要的账户:
-    // 1. pool_id (参数)
-    // 2. user (签名者)
-    // 3. global_config (PDA: [b"global_config"])
-    // 4. base_mint (参数)
-    // 5. quote_mint (参数)
-    // 6. user_base_ata
-    // 7. user_quote_ata
-    // 8. pool_base_ata (pool的base代币账户)
-    // 9. pool_quote_ata (pool的quote代币账户)
-    // 10. fee_recipient (固定地址)
-    // 11. fee_recipient_ata
-    // 12. base_token_program
-    // 13. quote_token_program
-    // 14. system_program
-    // 15. associated_token_program
-    // 16. event_authority (固定地址)
-    // 17. amm_program (固定地址)
-    // 18. creator_vault_ata (创建者金库ATA)
-    // 19. creator_vault_authority (PDA: [b"creator_vault", creator] 使用amm_program)
-    // ================================================================
 
     /// 推导PumpSwap global config PDA
     pub fn derive_pumpswap_global_config(&mut self, program_ids: &ProgramIds) -> Result<Pubkey> {
@@ -424,61 +333,14 @@ impl DerivedAccounts {
         Ok(ata)
     }
 
-    /// 组装PumpSwap完整账户
-    pub fn assemble_pumpswap_accounts(
-        &mut self,
-        user: &Pubkey,
-        pool: &Pubkey,
-        base_mint: &Pubkey,
-        quote_mint: &Pubkey,
-        creator: &Pubkey,
-        program_ids: &ProgramIds,
-    ) -> Result<PumpSwapAccounts> {
-        // 先推导所有需要的账户
-        let global_config = self.derive_pumpswap_global_config(program_ids)?;
-        let user_base_ata = self.derive_user_ata(user, base_mint, program_ids)?;
-        let user_quote_ata = self.derive_user_ata(user, quote_mint, program_ids)?;
-        let pool_base_ata = self.derive_pool_token_ata(pool, base_mint, program_ids)?;
-        let pool_quote_ata = self.derive_pool_token_ata(pool, quote_mint, program_ids)?;
-        let creator_vault_authority = self.derive_pumpswap_creator_vault_authority(creator)?;
-        let creator_vault_ata = self.derive_pumpswap_creator_vault_ata(creator, quote_mint, program_ids)?;
-        let fee_recipient_ata = self.derive_pumpswap_fee_recipient_ata(quote_mint, program_ids)?;
-        
-        // 获取固定地址
-        let fixed_addrs = self.fixed_addresses.as_ref()
-            .ok_or_else(|| error!(crate::errors::ArbitrageError::AccountNotFound))?;
-
-        Ok(PumpSwapAccounts {
-            pool: *pool,
-            user: *user,
-            global_config,
-            base_mint: *base_mint,
-            quote_mint: *quote_mint,
-            user_base_ata,
-            user_quote_ata,
-            pool_base_ata,
-            pool_quote_ata,
-            fee_recipient: fixed_addrs.pumpswap_fee_recipient,
-            fee_recipient_ata,
-            creator_vault_authority,
-            creator_vault_ata,
-            event_authority: fixed_addrs.pumpswap_event_authority,
-            amm_program: fixed_addrs.pumpswap_amm_program,
-            base_token_program: self.get_token_program_for_mint(base_mint, program_ids),
-            quote_token_program: self.get_token_program_for_mint(quote_mint, program_ids),
-            system_program: program_ids.system_program,
-            associated_token_program: program_ids.associated_token_program,
-        })
-    }
-
-    // ================================================================
-    // 高级批量处理函数
-    // ================================================================
-
     /// 为整个套利路径推导所有账户
-    pub fn derive_for_path(&mut self, path: &[PathStep], user: &Pubkey, program_ids: &ProgramIds) -> Result<()> {
+    pub fn derive_for_path(&mut self, path: &[PathStep], user: &Pubkey, program_ids: &ProgramIds, remaining_accounts: &[AccountInfo]) -> Result<()> {
         for step in path {
-            // 推导用户的输入输出代币账户
+            // 先尝试从 remaining_accounts 自动识别 token program（Token/Token-2022）
+            self.detect_and_cache_token_program_for_mint(&step.input_mint, program_ids, remaining_accounts);
+            self.detect_and_cache_token_program_for_mint(&step.output_mint, program_ids, remaining_accounts);
+
+            // 再推导用户的输入输出代币账户（使用已缓存的正确 token program）
             self.derive_user_ata(user, &step.input_mint, program_ids)?;
             self.derive_user_ata(user, &step.output_mint, program_ids)?;
             
@@ -488,12 +350,21 @@ impl DerivedAccounts {
                     self.derive_raydium_cpmm_authority()?;
                 }
                 DexType::RaydiumClmm => {
-                    // CLMM主要依赖客户端提供的动态账户，这里只推导用户ATA
+                    // CLMM 主要依赖客户端提供的动态账户，这里仅完成用户 ATA 推导
                 }
                 DexType::PumpFunBondingCurve => {
-                    self.derive_pumpfun_bonding_curve(&step.output_mint, program_ids)?;
+                    // 方向感知：若 output_mint 是 WSOL，则 token_mint= input_mint；否则 token_mint= output_mint
+                    let fixed_addrs = self.fixed_addresses.as_ref()
+                        .ok_or_else(|| error!(crate::errors::ArbitrageError::AccountNotFound))?;
+                    let token_mint = if step.output_mint == fixed_addrs.wrapped_sol_mint {
+                        step.input_mint
+                    } else {
+                        step.output_mint
+                    };
+
+                    self.derive_pumpfun_bonding_curve(&token_mint, program_ids)?;
                     if let Some(bonding_curve) = &step.pool_id {
-                        self.derive_pumpfun_associated_bonding_curve(bonding_curve, &step.output_mint, program_ids)?;
+                        self.derive_pumpfun_associated_bonding_curve(bonding_curve, &token_mint, program_ids)?;
                     }
                 }
                 DexType::PumpSwap => {
@@ -521,86 +392,4 @@ impl DerivedAccounts {
     pub fn get_fixed_addresses(&self) -> Option<&FixedAddresses> {
         self.fixed_addresses.as_ref()
     }
-}
-
-// ================================================================
-// 账户结构体定义
-// ================================================================
-
-/// Raydium CPMM所需账户
-#[derive(Debug, Clone)]
-pub struct RaydiumCpmmAccounts {
-    pub payer: Pubkey,
-    pub authority: Pubkey,
-    pub user_input_ata: Pubkey,
-    pub user_output_ata: Pubkey,
-    pub input_token_program: Pubkey,
-    pub output_token_program: Pubkey,
-    pub input_mint: Pubkey,
-    pub output_mint: Pubkey,
-    // 以下账户需要客户端提供:
-    // pool_id, amm_config, observation_account, input_vault, output_vault
-}
-
-/// Raydium CLMM所需账户
-#[derive(Debug, Clone)]
-pub struct RaydiumClmmAccounts {
-    pub payer: Pubkey,
-    pub user_input_ata: Pubkey,
-    pub user_output_ata: Pubkey,
-    pub input_token_program: Pubkey,
-    pub output_token_program: Pubkey,
-    pub input_mint: Pubkey,
-    pub output_mint: Pubkey,
-    // 以下账户需要客户端提供:
-    // amm_config, pool_id, input_vault, output_vault, observation_account, 
-    // tickarray_bitmap_extension, tick_array_accounts
-}
-
-/// PumpFun Volume Accumulator账户 (仅买入时需要)
-#[derive(Debug, Clone)]
-pub struct PumpFunVolumeAccumulators {
-    pub global: Pubkey,
-    pub user: Pubkey,
-}
-
-/// PumpFun所需账户
-#[derive(Debug, Clone)]
-pub struct PumpFunAccounts {
-    pub global_account: Pubkey,
-    pub fee_recipient: Pubkey,
-    pub mint: Pubkey,
-    pub bonding_curve: Pubkey,
-    pub associated_bonding_curve: Pubkey,
-    pub user_token_ata: Pubkey,
-    pub user: Pubkey,
-    pub creator_vault: Pubkey,
-    pub event_authority: Pubkey,
-    pub token_program: Pubkey,
-    pub system_program: Pubkey,
-    pub volume_accumulators: Option<PumpFunVolumeAccumulators>, // 仅买入时需要
-}
-
-/// PumpSwap所需账户
-#[derive(Debug, Clone)]
-pub struct PumpSwapAccounts {
-    pub pool: Pubkey,
-    pub user: Pubkey,
-    pub global_config: Pubkey,
-    pub base_mint: Pubkey,
-    pub quote_mint: Pubkey,
-    pub user_base_ata: Pubkey,
-    pub user_quote_ata: Pubkey,
-    pub pool_base_ata: Pubkey,
-    pub pool_quote_ata: Pubkey,
-    pub fee_recipient: Pubkey,
-    pub fee_recipient_ata: Pubkey,
-    pub creator_vault_authority: Pubkey,
-    pub creator_vault_ata: Pubkey,
-    pub event_authority: Pubkey,
-    pub amm_program: Pubkey,
-    pub base_token_program: Pubkey,
-    pub quote_token_program: Pubkey,
-    pub system_program: Pubkey,
-    pub associated_token_program: Pubkey,
 }

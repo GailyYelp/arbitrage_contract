@@ -25,13 +25,19 @@ pub struct PathStep {
     pub minimum_amount_out: u64,
 }
 
+// V1（连续切片协议）已删除
+
+/// 协议与参数（V2 indices 协议）
+/// 用途：
+/// - `PathStep` 描述每步的池/DEX与最小产出；
+/// - `PathAccountMappingV2.indices` 为每步指向全局 remaining_accounts 的索引；
+/// - `ArbitrageParams` 汇总整条路径的输入、阈值与映射，供合约入口解析执行。
+/// V2（indices 协议）：指向全局 remaining_accounts 的索引
 #[derive(Clone, Debug, AnchorSerialize, AnchorDeserialize)]
-pub struct PathAccountMapping {
+pub struct PathAccountMappingV2 {
     pub dex_type: DexType,
     pub contract_type: ContractType,
-    pub start_index: u8,           // 对齐字段名
-    pub account_count: u8,
-    pub derived_count: u8,         // 新增字段，表示合约内推导的账户数量
+    pub indices: Vec<u8>,
 }
 
 #[derive(Clone, Debug, AnchorSerialize, AnchorDeserialize)]
@@ -40,5 +46,5 @@ pub struct ArbitrageParams {
     pub min_profit_lamports: u64,
     pub max_slippage_bps: u16,
     pub path_steps: Vec<PathStep>,
-    pub account_mappings: Vec<PathAccountMapping>,
+    pub account_mappings_v2: Vec<PathAccountMappingV2>,
 }
