@@ -51,9 +51,11 @@ pub struct PumpfunAccounts<'info> {
     pub bonding_curve: &'info AccountInfo<'info>,      // 1. bonding_curve地址 (pool_id)
     pub mint: &'info AccountInfo<'info>,               // 2. 代币mint
     pub creator: &'info AccountInfo<'info>,            // 3. 创建者地址
+    // 可选扩展：indices 可追加 fee_recipient（若提供则优先使用）
+    pub fee_recipient_opt: Option<&'info AccountInfo<'info>>, 
     
     // 注意：以下账户不在 indices 最小集中（需客户端追加到全局表，合约仅做期望值定位/校验/日志）：
-    // - program、global_account、fee_recipient、event_authority、rent
+    // - program、global_account、fee_recipient（可选由 indices 指定）、event_authority、rent
     // - associated_bonding_curve（可计算期望值，用于定位 AccountInfo）
     // - creator_vault_pda（可计算期望值，用于定位 AccountInfo）
     // - （买入）global/user volume accumulators（可选存在，尽力定位）
@@ -69,10 +71,14 @@ pub struct PumpswapAccounts<'info> {
     pub base_mint: &'info AccountInfo<'info>,          // 2. 基础代币mint
     pub quote_mint: &'info AccountInfo<'info>,         // 3. 计价代币mint
     pub coin_creator: &'info AccountInfo<'info>,       // 4. 代币创建者
+    // 可选扩展：indices 可追加 fee_recipient 与 fee_recipient_ata（若提供则优先使用）
+    pub fee_recipient_opt: Option<&'info AccountInfo<'info>>,
+    pub fee_recipient_ata_opt: Option<&'info AccountInfo<'info>>,
     
     // 注意：以下账户不在 indices 最小集中：
-    // - global_config、fee_recipient、event_authority、amm_program（客户端追加到全局表；其中 amm_program 需可执行校验）
-    // - fee_recipient_ata、user_base_ata、user_quote_ata、pool_base_ata、pool_quote_ata（客户端追加；合约可通过 owner+mint 扫描定位）
+    // - global_config、event_authority、amm_program（客户端追加到全局表；其中 amm_program 需可执行校验）
+    // - fee_recipient（可选由 indices 追加或客户端在全局表提供）、fee_recipient_ata（同上）
+    // - user_base_ata、user_quote_ata、pool_base_ata、pool_quote_ata（客户端追加；合约可通过 owner+mint 扫描定位）
     // - coin_creator_vault_authority（可计算期望值；在全局表中定位）
     // - coin_creator_vault_ata（客户端追加；或通过 owner+mint 扫描定位）
     // - system_program、token_program、associated_token_program（入口固定账户/全局表提供）

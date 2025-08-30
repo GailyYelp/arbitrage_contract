@@ -14,6 +14,10 @@ no-entrypoint = []
 no-idl = []
 no-log-ix-name = []
 default = []
+# 网络与校验灵活性特性
+# devnet: 使用 devnet 固定地址（如 Raydium CPMM authority），其余保持与客户端传入一致
+devnet = []
+flex = []
 idl-build = ["anchor-lang/idl-build"]
 
 [profile.release]

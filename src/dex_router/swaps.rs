@@ -3,7 +3,7 @@ use anchor_lang::solana_program::instruction::{AccountMeta, Instruction};
 use anchor_lang::solana_program::program::invoke;
 
 use crate::account_derivation::DerivedAccounts;
-use crate::account_derivation::ProgramIds;
+// use crate::account_derivation::ProgramIds;
 use crate::account_derivation::types::instruction_discriminators::{
     RAYDIUM_CPMM_SWAP_BASE_IN,
     RAYDIUM_CLMM_SWAP_V2,
@@ -16,7 +16,7 @@ use crate::account_resolver::{
 };
 use crate::dex_router::types::{DexSwap, SwapResult};
 use crate::errors::ArbitrageError;
-use crate::account_derivation::types::pda_utils;
+use crate::account_derivation::types::{pda_utils, pda_seeds};
 
 // 说明：本文件采用 Anchor+原生 invoke 的混合模式。
 // 作用：按解析出的 DEX 账户，直接构造外部 DEX 指令（discriminator+data+metas），
@@ -97,12 +97,11 @@ impl<'info> DexSwap<'info> for RaydiumCpmmSwap {
         // Resolve Raydium authority from derived fixed addresses, then fetch AccountInfo from remaining_accounts
         let fixed = _derived.get_fixed_addresses().ok_or(ArbitrageError::AccountNotFound)?;
         let authority_ai = find_ai(_remaining_accounts, &fixed.raydium_cpmm_authority)?;
-        // Program account (required by invoke)
-        let program_ids = ProgramIds::default();
-        let cpmm_program_ai = find_ai(_remaining_accounts, &program_ids.raydium_cpmm)?;
-        // 安全校验：外部程序账户需为可执行且与预期 program_id 一致
+        // Program account (required by invoke): derive from state owner to兼容不同网络
+        let cpmm_program_id = *_accounts.amm_config.owner;
+        let cpmm_program_ai = find_ai(_remaining_accounts, &cpmm_program_id)?;
+        // 安全校验：仅要求可执行，具体 program_id 由客户端传入并与状态账户 owner 一致
         require!(cpmm_program_ai.executable, ArbitrageError::InvalidAccount);
-        require!(cpmm_program_ai.key() == program_ids.raydium_cpmm, ArbitrageError::InvalidAccount);
         msg!("[CPMM] program_id={} ok", cpmm_program_ai.key());
 
         // Build instruction data: discriminator + amount_in + minimum_amount_out
@@ -111,8 +110,33 @@ impl<'info> DexSwap<'info> for RaydiumCpmmSwap {
         data.extend_from_slice(&_amount_in.to_le_bytes());
         data.extend_from_slice(&_minimum_amount_out.to_le_bytes());
 
-        // Choose token program for both legs (Token vs Token2022 已由上层选择传入对应 program)
-        let token_prog_ai = _token_program;
+        // 为输入/输出 mint 分别选择 Token/Token-2022 程序（根据 mint.owner 动态判定）
+        let input_prog_pk = *_accounts.input_mint.owner;
+        let output_prog_pk = *_accounts.output_mint.owner;
+        let token_prog_tokenkeg = _token_program.key();
+        let input_token_prog_ai = if input_prog_pk == token_prog_tokenkeg {
+            _token_program.clone()
+        } else {
+            // 例如 Token-2022 程序需从 remaining_accounts 定位
+            find_ai(_remaining_accounts, &input_prog_pk)?.clone()
+        };
+        let output_token_prog_ai = if output_prog_pk == token_prog_tokenkeg {
+            _token_program.clone()
+        } else {
+            find_ai(_remaining_accounts, &output_prog_pk)?.clone()
+        };
+
+        // 根据输入 mint 动态选择 input_vault/output_vault，确保与 input_token_mint/output_token_mint 一致
+        let input_mint_key = _accounts.input_mint.key();
+        let token0_mint = token_account_mint(&_accounts.token0_vault).ok_or(ArbitrageError::InvalidTokenMint)?;
+        let token1_mint = token_account_mint(&_accounts.token1_vault).ok_or(ArbitrageError::InvalidTokenMint)?;
+        let (input_vault_ai, output_vault_ai) = if token0_mint == input_mint_key {
+            (_accounts.token0_vault.clone(), _accounts.token1_vault.clone())
+        } else if token1_mint == input_mint_key {
+            (_accounts.token1_vault.clone(), _accounts.token0_vault.clone())
+        } else {
+            return Err(ArbitrageError::InvalidTokenMint.into());
+        };
 
         // Accounts metas in expected order (参考 Raydium cp-swap swap_base_input)
         let metas = vec![
@@ -122,10 +146,10 @@ impl<'info> DexSwap<'info> for RaydiumCpmmSwap {
             AccountMeta::new(_accounts.pool_state.key(), false),
             AccountMeta::new(_user_input_account.key(), false),
             AccountMeta::new(_user_output_account.key(), false),
-            AccountMeta::new(_accounts.token0_vault.key(), false),
-            AccountMeta::new(_accounts.token1_vault.key(), false),
-            AccountMeta::new_readonly(token_prog_ai.key(), false),
-            AccountMeta::new_readonly(token_prog_ai.key(), false),
+            AccountMeta::new(input_vault_ai.key(), false),
+            AccountMeta::new(output_vault_ai.key(), false),
+            AccountMeta::new_readonly(input_token_prog_ai.key(), false),
+            AccountMeta::new_readonly(output_token_prog_ai.key(), false),
             AccountMeta::new_readonly(_accounts.input_mint.key(), false),
             AccountMeta::new_readonly(_accounts.output_mint.key(), false),
             AccountMeta::new(_accounts.observation_state.key(), false),
@@ -138,10 +162,10 @@ impl<'info> DexSwap<'info> for RaydiumCpmmSwap {
             _accounts.pool_state.clone(),
             _user_input_account.clone(),
             _user_output_account.clone(),
-            _accounts.token0_vault.clone(),
-            _accounts.token1_vault.clone(),
-            token_prog_ai.clone(),
-            token_prog_ai.clone(),
+            input_vault_ai.clone(),
+            output_vault_ai.clone(),
+            input_token_prog_ai.clone(),
+            output_token_prog_ai.clone(),
             _accounts.input_mint.clone(),
             _accounts.output_mint.clone(),
             _accounts.observation_state.clone(),
@@ -149,9 +173,9 @@ impl<'info> DexSwap<'info> for RaydiumCpmmSwap {
             cpmm_program_ai.clone(),
         ];
 
-        // Program id for Raydium CPMM
-        let program_ids = ProgramIds::default();
-        let ix = Instruction { program_id: program_ids.raydium_cpmm, accounts: metas, data };
+        // Program id for Raydium CPMM（使用状态账户的 owner 推导出的程序ID）
+        let program_id = cpmm_program_id;
+        let ix = Instruction { program_id, accounts: metas, data };
 
         // Invoke
         invoke(&ix, &account_infos)?;
@@ -209,10 +233,8 @@ impl<'info> DexSwap<'info> for RaydiumClmmSwap {
             AccountMeta::new_readonly(_accounts.output_vault_mint.key(), false),
         ];
 
-        // 安全校验：CLMM 程序账户（来自 indices）必须可执行且与预期一致
-        let expected = ProgramIds::default().raydium_clmm;
+        // 安全校验：CLMM 程序账户（来自 indices）必须为可执行程序
         require!(_accounts.clmm_program.executable, ArbitrageError::InvalidAccount);
-        require!(_accounts.clmm_program.key() == expected, ArbitrageError::InvalidAccount);
         msg!("[CLMM] program_id={} ok", _accounts.clmm_program.key());
         // 先构建基础 account_infos
         let mut account_infos: Vec<AccountInfo<'info>> = vec![
@@ -279,11 +301,23 @@ impl<'info> DexSwap<'info> for PumpfunSwap {
     ) -> Result<SwapResult> {
         let pre_out = read_token_amount(_user_output_account)?;
 
-        // Fixed addresses
+        // 先确定 pumpfun 程序ID（来自入参账户 owner）
+        let pumpfun_program_id = *_accounts.bonding_curve.owner;
+        // Fixed addresses（从配置加载；若 devnet 值不同，需由配置覆盖并在全局表提供对应账户）
         let fixed = _derived.get_fixed_addresses().ok_or(ArbitrageError::AccountNotFound)?;
-        let global_ai = find_ai(_remaining_accounts, &fixed.pumpfun_global_account)?;
-        let fee_recipient_ai = find_ai(_remaining_accounts, &fixed.pumpfun_fee_recipient)?;
-        let event_ai = find_ai(_remaining_accounts, &fixed.pumpfun_event_authority)?;
+        // 优先用 PDA 派生并在全局表定位（global 与 event_authority），失败再回退到固定地址
+        let (global_key, _) = Pubkey::find_program_address(&[pda_seeds::PUMPFUN_GLOBAL], &pumpfun_program_id);
+        let global_ai = match find_ai(_remaining_accounts, &global_key) {
+            Ok(ai) => ai,
+            Err(_) => find_ai(_remaining_accounts, &fixed.pumpfun_global_account)?,
+        };
+        let (event_key, _) = Pubkey::find_program_address(&[pda_seeds::PUMPFUN_EVENT_AUTHORITY], &pumpfun_program_id);
+        let event_ai = match find_ai(_remaining_accounts, &event_key) {
+            Ok(ai) => ai,
+            Err(_) => find_ai(_remaining_accounts, &fixed.pumpfun_event_authority)?,
+        };
+        // fee_recipient：若可选索引提供则优先，否则回退到固定地址
+        let fee_recipient_ai = if let Some(fr) = _accounts.fee_recipient_opt { fr } else { find_ai(_remaining_accounts, &fixed.pumpfun_fee_recipient)? };
 
         // 通过扫描 token 账户数据在全局表定位所需账户
         let associated_bonding_curve_ai = _remaining_accounts.iter()
@@ -293,10 +327,9 @@ impl<'info> DexSwap<'info> for PumpfunSwap {
             .find(|ai| is_token_account_for(&_payer.key(), &_accounts.mint.key(), ai))
             .ok_or(ArbitrageError::AccountNotFound)?;
 
-        // 追加：creator_vault（PDA）
-        let program_ids = ProgramIds::default();
+        // 追加：creator_vault（PDA）使用“传入的 pumpfun 程序”派生，兼容不同网络
         let creator_key = _accounts.creator.key();
-        let expected_creator_vault = pda_utils::derive_pumpfun_creator_vault(&creator_key, &program_ids.pumpfun)
+        let expected_creator_vault = pda_utils::derive_pumpfun_creator_vault(&creator_key, &pumpfun_program_id)
             .map_err(|_| ArbitrageError::AccountNotFound)?;
         let creator_vault_ai = find_ai(_remaining_accounts, &expected_creator_vault)?;
 
@@ -309,8 +342,8 @@ impl<'info> DexSwap<'info> for PumpfunSwap {
 
         // volume accumulators（仅买入路径尽力追加，不阻塞）
         let (maybe_gva_ai, maybe_uva_ai) = if is_buy {
-            let maybe_gva_key = pda_utils::derive_pumpfun_global_volume_accumulator(&program_ids.pumpfun).ok();
-            let maybe_uva_key = pda_utils::derive_pumpfun_user_volume_accumulator(&_payer.key(), &program_ids.pumpfun).ok();
+            let maybe_gva_key = pda_utils::derive_pumpfun_global_volume_accumulator(&pumpfun_program_id).ok();
+            let maybe_uva_key = pda_utils::derive_pumpfun_user_volume_accumulator(&_payer.key(), &pumpfun_program_id).ok();
             (
                 if let Some(k) = maybe_gva_key { _remaining_accounts.iter().find(|ai| ai.key() == k) } else { None },
                 if let Some(k) = maybe_uva_key { _remaining_accounts.iter().find(|ai| ai.key() == k) } else { None },
@@ -368,7 +401,7 @@ impl<'info> DexSwap<'info> for PumpfunSwap {
             return Err(ArbitrageError::InvalidAccount.into());
         };
 
-        let ix = Instruction { program_id: program_ids.pumpfun, accounts: metas, data };
+        let ix = Instruction { program_id: pumpfun_program_id, accounts: metas, data };
 
         let mut account_infos: Vec<AccountInfo<'info>> = vec![
             global_ai.clone(),
@@ -393,10 +426,9 @@ impl<'info> DexSwap<'info> for PumpfunSwap {
         if let Some(gva) = maybe_gva_ai { account_infos.push(gva.clone()); }
         if let Some(uva) = maybe_uva_ai { account_infos.push(uva.clone()); }
 
-        // Pumpfun 程序账户（invoke 需要程序 AccountInfo）
-        let pumpfun_program_ai = find_ai(_remaining_accounts, &program_ids.pumpfun)?;
+        // Pumpfun 程序账户（invoke 需要程序 AccountInfo）：仅校验可执行
+        let pumpfun_program_ai = find_ai(_remaining_accounts, &pumpfun_program_id)?;
         require!(pumpfun_program_ai.executable, ArbitrageError::InvalidAccount);
-        require!(pumpfun_program_ai.key() == program_ids.pumpfun, ArbitrageError::InvalidAccount);
         msg!("[PumpFun] program_id={} ok", pumpfun_program_ai.key());
         account_infos.push(pumpfun_program_ai.clone());
 
@@ -427,8 +459,6 @@ impl<'info> DexSwap<'info> for PumpswapSwap {
     ) -> Result<SwapResult> {
         let pre_out = read_token_amount(_user_output_account)?;
         let fixed = _derived.get_fixed_addresses().ok_or(ArbitrageError::AccountNotFound)?;
-        let global_cfg_ai = find_ai(_remaining_accounts, &fixed.pumpswap_global_config)?;
-        let fee_recipient_ai = find_ai(_remaining_accounts, &fixed.pumpswap_fee_recipient)?;
 
         let mut data = Vec::with_capacity(8 + 8 + 8);
         data.extend_from_slice(PUMPSWAP_BUY);
@@ -450,21 +480,43 @@ impl<'info> DexSwap<'info> for PumpswapSwap {
         // 期望地址（用于在 remaining_accounts 中查找）：pool 两侧、fee_recipient_ata、creator_vault_*、event_authority、amm_program
         let pool_key = _accounts.pool_state.key();
         
-        let fee_recipient_key = fee_recipient_ai.key();
-        let fixed = _derived.get_fixed_addresses().ok_or(ArbitrageError::AccountNotFound)?;
-        let event_authority_ai = find_ai(_remaining_accounts, &fixed.pumpswap_event_authority)?;
-        let amm_program_ai = find_ai(_remaining_accounts, &fixed.pumpswap_amm_program)?;
+        // AMM 程序账户：仅校验可执行；兼容不同网络的程序ID
+        let amm_program_ai = match find_ai(_remaining_accounts, &fixed.pumpswap_amm_program) {
+            Ok(ai) => ai,
+            Err(_) => {
+                // 若配置中的固定ID未找到，则在 remaining_accounts 中寻找任一可执行账户作为 AMM 程序（宽松）
+                let mut found: Option<&AccountInfo> = None;
+                for ai in _remaining_accounts.iter() {
+                    if ai.executable { found = Some(ai); break; }
+                }
+                found.ok_or(ArbitrageError::AccountNotFound)?
+            }
+        };
         require!(amm_program_ai.executable, ArbitrageError::InvalidAccount);
-        require!(amm_program_ai.key() == fixed.pumpswap_amm_program, ArbitrageError::InvalidAccount);
+        // derive global_config 与 event_authority PDA 并在 remaining_accounts 中定位（失败回退 fixed）
+        let amm_pid = amm_program_ai.key();
+        let (global_cfg_key, _) = Pubkey::find_program_address(&[pda_seeds::PUMPSWAP_GLOBAL_CONFIG], &amm_pid);
+        let global_cfg_ai = match find_ai(_remaining_accounts, &global_cfg_key) {
+            Ok(ai) => ai,
+            Err(_) => find_ai(_remaining_accounts, &fixed.pumpswap_global_config)?,
+        };
+        let (event_auth_key, _) = Pubkey::find_program_address(&[pda_seeds::PUMPSWAP_EVENT_AUTHORITY], &amm_pid);
+        let event_authority_ai = match find_ai(_remaining_accounts, &event_auth_key) {
+            Ok(ai) => ai,
+            Err(_) => find_ai(_remaining_accounts, &fixed.pumpswap_event_authority)?,
+        };
+        // fee_recipient 及其 ATA：若可选索引提供则优先，否则回退 fixed/扫描
+        let fee_recipient_ai = if let Some(fr) = _accounts.fee_recipient_opt { fr } else { find_ai(_remaining_accounts, &fixed.pumpswap_fee_recipient)? };
+        let fee_recipient_key = fee_recipient_ai.key();
         // creator_vault 派生
         let creator_key = _accounts.coin_creator.key();
-        let creator_vault_authority_key = crate::account_derivation::types::pda_utils::derive_pumpswap_creator_vault(&creator_key, &fixed.pumpswap_amm_program)
+        let creator_vault_authority_key = crate::account_derivation::types::pda_utils::derive_pumpswap_creator_vault(&creator_key, &amm_pid)
             .map_err(|_| ArbitrageError::AccountNotFound)?;
         let creator_vault_authority_ai = find_ai(_remaining_accounts, &creator_vault_authority_key)?;
         // 查找池/fee/creator 的 ATAs（通过 owner+mint 扫描找到 AccountInfo）
         let pool_base_ata_ai = find_ata(_remaining_accounts, &pool_key, &base_mint).ok_or(ArbitrageError::AccountNotFound)?;
         let pool_quote_ata_ai = find_ata(_remaining_accounts, &pool_key, &quote_mint).ok_or(ArbitrageError::AccountNotFound)?;
-        let fee_recipient_ata_ai = find_ata(_remaining_accounts, &fee_recipient_key, &quote_mint).ok_or(ArbitrageError::AccountNotFound)?;
+        let fee_recipient_ata_ai = if let Some(fra) = _accounts.fee_recipient_ata_opt { fra } else { find_ata(_remaining_accounts, &fee_recipient_key, &quote_mint).ok_or(ArbitrageError::AccountNotFound)? };
         let creator_vault_ata_ai = find_ata(_remaining_accounts, &creator_vault_authority_key, &quote_mint).ok_or(ArbitrageError::AccountNotFound)?;
 
         // 账户 metas（参照引擎构造顺序）
@@ -512,7 +564,7 @@ impl<'info> DexSwap<'info> for PumpswapSwap {
             creator_vault_authority_ai.clone(),
         ];
         msg!("[PumpSwap] program_id={} ok", amm_program_ai.key());
-        let program_id = fixed.pumpswap_amm_program;
+        let program_id = amm_program_ai.key();
         let ix = Instruction { program_id, accounts: metas, data };
         invoke(&ix, &account_infos)?;
         let post_out = read_token_amount(_user_output_account)?;

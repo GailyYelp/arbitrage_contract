@@ -69,13 +69,17 @@ impl<'info> AccountResolver<'info> {
         mapping: &PathAccountMappingV2,
     ) -> Result<PumpfunAccounts<'info>> {
         let idxs = &mapping.indices;
-        if idxs.len() != 3 {
+        if idxs.len() < 3 || idxs.len() > 4 {
+            msg!("[Resolver] PumpFun indices mismatch: expected 3..=4 got {}", idxs.len());
+            msg!("[Resolver] indices={:?}", idxs);
             return Err(ArbitrageError::InvalidAccountCount.into());
         }
+        let fee_recipient_opt = if idxs.len() >= 4 { Some(self.ai(idxs[3])?) } else { None };
         Ok(PumpfunAccounts {
             bonding_curve: self.ai(idxs[0])?,
             mint: self.ai(idxs[1])?,
             creator: self.ai(idxs[2])?,
+            fee_recipient_opt,
         })
     }
 
@@ -85,14 +89,20 @@ impl<'info> AccountResolver<'info> {
         mapping: &PathAccountMappingV2,
     ) -> Result<PumpswapAccounts<'info>> {
         let idxs = &mapping.indices;
-        if idxs.len() != 4 {
+        if idxs.len() < 4 || idxs.len() > 6 {
+            msg!("[Resolver] PumpSwap indices mismatch: expected 4..=6 got {}", idxs.len());
+            msg!("[Resolver] indices={:?}", idxs);
             return Err(ArbitrageError::InvalidAccountCount.into());
         }
+        let fee_recipient_opt = if idxs.len() >= 5 { Some(self.ai(idxs[4])?) } else { None };
+        let fee_recipient_ata_opt = if idxs.len() >= 6 { Some(self.ai(idxs[5])?) } else { None };
         Ok(PumpswapAccounts {
             pool_state: self.ai(idxs[0])?,
             base_mint: self.ai(idxs[1])?,
             quote_mint: self.ai(idxs[2])?,
             coin_creator: self.ai(idxs[3])?,
+            fee_recipient_opt,
+            fee_recipient_ata_opt,
         })
     }
 
@@ -114,6 +124,20 @@ impl<'info> AccountResolver<'info> {
                         constants::RAYDIUM_CLMM_BASE_ACCOUNT_COUNT,
                         actual_len_u8
                     );
+                    msg!("[Resolver] indices={:?}", mapping.indices);
+                    return Err(ArbitrageError::InvalidAccountCount.into());
+                }
+            }
+            DexType::PumpFunBondingCurve => {
+                if !(3..=4).contains(&actual_len_u8) {
+                    msg!("[Resolver] PumpFun indices mismatch: expected 3..=4 got {}", actual_len_u8);
+                    msg!("[Resolver] indices={:?}", mapping.indices);
+                    return Err(ArbitrageError::InvalidAccountCount.into());
+                }
+            }
+            DexType::PumpSwap => {
+                if !(4..=6).contains(&actual_len_u8) {
+                    msg!("[Resolver] PumpSwap indices mismatch: expected 4..=6 got {}", actual_len_u8);
                     msg!("[Resolver] indices={:?}", mapping.indices);
                     return Err(ArbitrageError::InvalidAccountCount.into());
                 }

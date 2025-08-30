@@ -42,18 +42,22 @@
   - `contract_type: ContractType`（与步一致）
   - `indices: Vec<u8>`（指向“全局去重账户表”的位置）
 
-### 4) 每个 DEX 的 indices 期望数量（仅最小集）
+### 4) 每个 DEX 的 indices 期望数量（仅最小集 + 可选扩展）
 - Raydium CPMM：7（`amm_config, pool_state, token0_vault, token1_vault, input_mint, output_mint, observation_state`）
 - Raydium CLMM：11（`clmm_program, amm_config, pool_state, input_vault, output_vault, observation_state, token_program, token_program_2022, memo_program, input_vault_mint, output_vault_mint`）
   - 额外：`tick arrays/extension` 不计入 indices，必须追加在全局表，链上动态注入
-- PumpFun（Bonding Curve）：3（`bonding_curve, mint, creator`）
-- PumpSwap：4（`pool_state, base_mint, quote_mint, coin_creator`）
+- PumpFun（Bonding Curve）：3..=4（`bonding_curve, mint, creator` [+ 可选 `fee_recipient`]）
+- PumpSwap：4..=6（`pool_state, base_mint, quote_mint, coin_creator` [+ 可选 `fee_recipient, fee_recipient_ata`]）
 
 ### 5) 客户端需要额外“追加到全局表”的账户（常用）
-- CPMM：`raydium_cpmm_program`、`raydium_cpmm_authority`、用户两侧 ATAs
+- CPMM：`raydium_cpmm_program`、（authority 可不固定，合约按 `owner == cpmm_program` 扫描定位）、用户两侧 ATAs
 - CLMM：`tick_array_extension`、若干 `tick arrays`（owner=clmm_program 的数据账户）
-- PumpFun：`program`、`global`、`fee_recipient`、`event_authority`、`associated_bonding_curve`、`creator_vault`、（买入）`global/user volume accumulators`
-- PumpSwap：`program(amm_program)`、`global_config`、`fee_recipient`、`fee_recipient_ata`、`event_authority`、用户与池双方 ATAs、`creator_vault_authority/creator_vault_ata`
+- PumpFun：`program`、`associated_bonding_curve`、`creator_vault`、（买入）`global/user volume accumulators`
+  - `global/event_authority`：合约以“传入 program”PDA 派生后在全局表定位（无需固定常量）
+  - `fee_recipient`：可通过可选 indices 显式传入；未传时需在全局表提供（链上仅做一致性校验）
+- PumpSwap：`program(amm_program)`、用户与池双方 ATAs、`creator_vault_authority/creator_vault_ata`
+  - `global_config/event_authority`：合约以“传入 AMM program”PDA 派生后在全局表定位
+  - `fee_recipient/fee_recipient_ata`：可通过可选 indices 显式传入；未传时需在全局表提供（或由链上扫描定位其 ATA）
 
 ---
 
@@ -80,8 +84,8 @@
 ### 账户解析（`account_resolver/`）
 - `accounts.rs`：定义四类 DEX 的“最小账户集”（indices 所指向的 AccountInfo 组）。
 - `resolver.rs`：
-  - `resolve_*_by_indices(...)`：把 `indices` 转为类型化的 `...Accounts<'info>`；
-  - `validate_indices_for_dex(...)`：数量/越界/重复检查，并打印“角色+W/S”提示；
+  - `resolve_*_by_indices(...)`：把 `indices` 转为类型化的 `...Accounts<'info>`；PumpFun/PumpSwap 支持可选索引（`fee_recipient[,_ata]`）。
+  - `validate_indices_for_dex(...)`：数量/越界/重复检查，并打印“角色+W/S”提示；PumpFun 接受 3..=4，PumpSwap 接受 4..=6。
   - 注：仅解析，不派生/不补账户。
 
 ### 账户推导与缓存（`account_derivation/derivation.rs`）
@@ -102,22 +106,22 @@
 
 #### Raydium CPMM（示例）
 - metas 典型顺序：`payer, authority, amm_config, pool_state, user_in, user_out, token0_vault, token1_vault, token_program×2, input_mint, output_mint, observation_state`。
-- program 账户：`raydium_cpmm_program` 需在全局表中存在，并校验 `executable` 与 program_id 一致。
+- program 账户：从 `amm_config.owner` 确定，需在全局表中存在，并校验 `executable`。
 
 #### Raydium CLMM
 - indices 提供基础 11 个；`tick arrays/extension` 追加在全局表后，链上按 `owner == clmm_program` 动态注入到 metas/account_infos。
-- program 账户：`clmm_program` 必须在基础 11 个中（indices[0]），并做一致性校验。
+- program 账户：`clmm_program` 必须在基础 11 个中（indices[0]），并校验 `executable`。
 
-#### PumpFun（Bonding Curve）
 - 链上根据用户输入/输出 ATA 的 mint 与 `wrapped_sol_mint` 自动判定 BUY/SELL，并使用对应 discriminator 与参数顺序：
   - BUY：`[BUY, token_amount=min_out, max_sol_cost=amount_in]`；
   - SELL：`[SELL, token_amount=amount_in, min_sol_output=min_out]`。
 - metas 典型：`global, fee_recipient, mint, bonding_curve, associated_bonding_curve, user_ata, user, system, (BUY: token_program, creator_vault, event) / (SELL: creator_vault, token_program, event), [opt volume accumulators]`。
-- program 账户：`pumpfun_program` 需在全局表中存在并通过一致性校验。
+- program 账户：来自 `bonding_curve.owner`，需在全局表中存在并校验 `executable`。
+- 账户定位与回退：`global/event_authority` 通过“传入 program”PDA 派生后在全局表定位；`fee_recipient` 支持可选 indices 显式传入，未传则从全局表取（链上仅做一致性校验）。
 
 #### PumpSwap
-- 通过 owner+mint 扫描定位 `user/pool` 两侧 ATAs、`fee_recipient_ata`、`creator_vault_ata`；`creator_vault_authority` 由 PDA 期望值推导后在全局表定位。
-- program 账户：`amm_program` 需可执行且与预期一致。
+- 通过 owner+mint 扫描定位 `user/pool` 两侧 ATAs、`creator_vault_ata`；`creator_vault_authority` 由“传入 AMM program”PDA 派生后在全局表定位。
+- program 账户：`amm_program` 需可执行；`global_config/event_authority` 优先 PDA 派生定位；`fee_recipient/fee_recipient_ata` 支持可选 indices 显式传入，未传则从全局表取或扫描出其 ATA。
 
 ---
 

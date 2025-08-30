@@ -19,13 +19,34 @@ pub struct ProgramIds {
 
 impl Default for ProgramIds {
     fn default() -> Self {
+        // 允许通过环境变量覆盖（构建期通过 RUSTFLAGS/anchor/env 注入）
+        fn env_pk(name: &str, default: &str) -> Pubkey {
+            if let Ok(v) = std::env::var(name) { Pubkey::from_str(&v).unwrap_or(Pubkey::from_str(default).unwrap()) }
+            else { Pubkey::from_str(default).unwrap() }
+        }
+        // mainnet 默认，允许 ENV 覆盖
+        let is_devnet = cfg!(feature = "devnet");
+        let (cpmm_def, clmm_def, pumpfun_def, pumpswap_def) = if is_devnet {
+            (
+                "CPMDWBwJDtYax9qW7AyRuVC19Cc4L4Vcy4n2BHAbHkCW",
+                "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
+                "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P",
+                "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA",
+            )
+        } else {
+            (
+                "CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C",
+                "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
+                "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P",
+                "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA",
+            )
+        };
         Self {
-            // Core DEX Programs
-            raydium_cpmm: Pubkey::from_str("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C").unwrap(),
-            raydium_clmm: Pubkey::from_str("CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK").unwrap(),
-            pumpfun: Pubkey::from_str("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P").unwrap(),
-            pumpswap: Pubkey::from_str("pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA").unwrap(),
-            
+            // Core DEX Programs（可被 ENV 覆盖）
+            raydium_cpmm: env_pk("PROGRAM_ID_RAYDIUM_CPMM", cpmm_def),
+            raydium_clmm: env_pk("PROGRAM_ID_RAYDIUM_CLMM", clmm_def),
+            pumpfun: env_pk("PROGRAM_ID_PUMPFUN", pumpfun_def),
+            pumpswap: env_pk("PROGRAM_ID_PUMPSWAP", pumpswap_def),
             // System Programs
             token_program: Pubkey::from_str("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA").unwrap(),
             token_2022_program: Pubkey::from_str("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb").unwrap(),
@@ -60,8 +81,11 @@ impl ProgramIds {
 /// 固定账户地址常量 - 仅包含4个核心DEX的地址
 pub mod fixed_addresses {
     // ==============================================
-    // Raydium CPMM 固定地址
+    // Raydium CPMM 固定地址（按网络切换，ENV 可覆盖）
     // ==============================================
+    #[cfg(feature = "devnet")]
+    pub const RAYDIUM_CPMM_AUTHORITY: &str = "7rQ1QFNosMkUCuh7Z7fPbTHvh73b68sQYdirycEzJVuw";
+    #[cfg(not(feature = "devnet"))]
     pub const RAYDIUM_CPMM_AUTHORITY: &str = "GpMZbSM2GgvTKHJirzeGfMFoaZ8UR2X7F4v8vHTvxFbL";
     
     // ==============================================
@@ -77,7 +101,7 @@ pub mod fixed_addresses {
     pub const PUMPFUN_EVENT_AUTHORITY: &str = "Ce6TQqeHC9p8KetsN6JsjHK7UTZk7nasjjnr7XxXp9F1";
     
     // ==============================================
-    // PumpSwap AMM 固定地址
+    // PumpSwap AMM 固定地址（若 devnet 不同，请用 ENV 覆盖）
     // ==============================================
     pub const PUMPSWAP_GLOBAL_CONFIG: &str = "ADyA8hdefvWN2dbGGWFotbzWxrAvLW83WG6QCVXvJKqw";
     pub const PUMPSWAP_FEE_RECIPIENT: &str = "62qc2CNXwrYqQScmEdiZFFAnJR262PxWEuNQtxfafNgV";
@@ -139,21 +163,27 @@ pub fn get_fixed_addresses() -> Result<FixedAddresses> {
         };
     }
     
+    // 允许通过 ENV 覆盖固定地址（例如在 devnet 下）
+    fn env_or(name: &str, default_addr: &str) -> Result<Pubkey> {
+        if let Ok(v) = std::env::var(name) { return Ok(Pubkey::from_str(&v).map_err(|_| ArbitrageError::InvalidPublicKey)?); }
+        Ok(Pubkey::from_str(default_addr).map_err(|_| ArbitrageError::InvalidPublicKey)?)
+    }
+
     Ok(FixedAddresses {
         // Raydium CPMM
-        raydium_cpmm_authority: parse_pubkey!(fixed_addresses::RAYDIUM_CPMM_AUTHORITY),
+        raydium_cpmm_authority: env_or("ADDR_RAYDIUM_CPMM_AUTHORITY", fixed_addresses::RAYDIUM_CPMM_AUTHORITY)?,
         
         // PumpFun
-        pumpfun_global_account: parse_pubkey!(fixed_addresses::PUMPFUN_GLOBAL_ACCOUNT),
-        pumpfun_fee_recipient: parse_pubkey!(fixed_addresses::PUMPFUN_FEE_RECIPIENT),
-        pumpfun_event_authority: parse_pubkey!(fixed_addresses::PUMPFUN_EVENT_AUTHORITY),
+        pumpfun_global_account: env_or("ADDR_PUMPFUN_GLOBAL", fixed_addresses::PUMPFUN_GLOBAL_ACCOUNT)?,
+        pumpfun_fee_recipient: env_or("ADDR_PUMPFUN_FEE_RECIPIENT", fixed_addresses::PUMPFUN_FEE_RECIPIENT)?,
+        pumpfun_event_authority: env_or("ADDR_PUMPFUN_EVENT_AUTHORITY", fixed_addresses::PUMPFUN_EVENT_AUTHORITY)?,
         
         // PumpSwap
-        pumpswap_global_config: parse_pubkey!(fixed_addresses::PUMPSWAP_GLOBAL_CONFIG),
-        pumpswap_fee_recipient: parse_pubkey!(fixed_addresses::PUMPSWAP_FEE_RECIPIENT),
-        pumpswap_fee_recipient_ata: parse_pubkey!(fixed_addresses::PUMPSWAP_FEE_RECIPIENT_ATA),
-        pumpswap_event_authority: parse_pubkey!(fixed_addresses::PUMPSWAP_EVENT_AUTHORITY),
-        pumpswap_amm_program: parse_pubkey!(fixed_addresses::PUMPSWAP_AMM_PROGRAM),
+        pumpswap_global_config: env_or("ADDR_PUMPSWAP_GLOBAL_CONFIG", fixed_addresses::PUMPSWAP_GLOBAL_CONFIG)?,
+        pumpswap_fee_recipient: env_or("ADDR_PUMPSWAP_FEE_RECIPIENT", fixed_addresses::PUMPSWAP_FEE_RECIPIENT)?,
+        pumpswap_fee_recipient_ata: env_or("ADDR_PUMPSWAP_FEE_RECIPIENT_ATA", fixed_addresses::PUMPSWAP_FEE_RECIPIENT_ATA)?,
+        pumpswap_event_authority: env_or("ADDR_PUMPSWAP_EVENT_AUTHORITY", fixed_addresses::PUMPSWAP_EVENT_AUTHORITY)?,
+        pumpswap_amm_program: env_or("ADDR_PUMPSWAP_AMM_PROGRAM", fixed_addresses::PUMPSWAP_AMM_PROGRAM)?,
         
         // 代币
         wrapped_sol_mint: parse_pubkey!(fixed_addresses::WRAPPED_SOL_MINT),
