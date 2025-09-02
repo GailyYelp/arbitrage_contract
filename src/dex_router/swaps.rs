@@ -94,15 +94,50 @@ impl<'info> DexSwap<'info> for RaydiumCpmmSwap {
     ) -> Result<SwapResult> {
         let pre_out = read_token_amount(_user_output_account)?;
 
-        // Resolve Raydium authority from derived fixed addresses, then fetch AccountInfo from remaining_accounts
-        let fixed = _derived.get_fixed_addresses().ok_or(ArbitrageError::AccountNotFound)?;
-        let authority_ai = find_ai(_remaining_accounts, &fixed.raydium_cpmm_authority)?;
-        // Program account (required by invoke): derive from state owner to兼容不同网络
+        // Program account (required by invoke): derive from state owner 以兼容不同网络
         let cpmm_program_id = *_accounts.amm_config.owner;
         let cpmm_program_ai = find_ai(_remaining_accounts, &cpmm_program_id)?;
         // 安全校验：仅要求可执行，具体 program_id 由客户端传入并与状态账户 owner 一致
         require!(cpmm_program_ai.executable, ArbitrageError::InvalidAccount);
         msg!("[CPMM] program_id={} ok", cpmm_program_ai.key());
+
+        // Resolve Raydium authority：必须显式传入（不写死、不派生）
+        // 识别规则：非可执行、数据长度为 0 的 PDA，且不等于已知 state 账户；按 remaining_accounts 顺序取首个
+        let authority_dynamic = {
+            let avoid_keys = [
+                _accounts.amm_config.key(),
+                _accounts.pool_state.key(),
+                _accounts.observation_state.key(),
+            ];
+            let mut found: Option<&AccountInfo> = None;
+            for ai in _remaining_accounts.iter() {
+                if !ai.executable && ai.data_len() == 0 {
+                    let k = ai.key();
+                    if avoid_keys.iter().any(|x| *x == k) { continue; }
+                    found = Some(ai);
+                    break;
+                }
+            }
+            found
+        };
+        let authority_ai = authority_dynamic.ok_or(ArbitrageError::AccountNotFound)?;
+        // Debug logs for runtime alignment
+        msg!(
+            "[CPMM][debug] remain_len={} cpmm_program_id={} program_ai={} exec={}",
+            _remaining_accounts.len(),
+            cpmm_program_id,
+            cpmm_program_ai.key(),
+            cpmm_program_ai.executable
+        );
+        msg!(
+            "[CPMM][debug] selected_authority={} len={} exec={}",
+            authority_ai.key(),
+            authority_ai.data_len(),
+            authority_ai.executable
+        );
+        for (i, ai) in _remaining_accounts.iter().take(8).enumerate() {
+            msg!("[CPMM][remain_head][{}]={}", i, ai.key());
+        }
 
         // Build instruction data: discriminator + amount_in + minimum_amount_out
         let mut data = Vec::with_capacity(8 + 8 + 8);
@@ -211,7 +246,7 @@ impl<'info> DexSwap<'info> for RaydiumClmmSwap {
         data.extend_from_slice(RAYDIUM_CLMM_SWAP_V2);
         data.extend_from_slice(&_amount_in.to_le_bytes());
         data.extend_from_slice(&_minimum_amount_out.to_le_bytes());
-        data.extend_from_slice(&u128::MAX.to_le_bytes()); // sqrt_price_limit
+        data.extend_from_slice(&0u128.to_le_bytes()); // sqrt_price_limit
         data.push(1); // is_base_input
 
         // Prefer token program from accounts
