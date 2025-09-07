@@ -1,4 +1,6 @@
 use anchor_lang::prelude::*;
+use anchor_spl::token::Token;
+use anchor_spl::token_2022::Token2022;
 
 /// 部署/升级必要命令
 ///
@@ -19,32 +21,34 @@ use anchor_lang::prelude::*;
 /// 4) 升级
 ///    anchor upgrade <ProgramID> target/deploy/arbitrage_contract.so
 
-pub mod instructions;
-pub mod state;
 pub mod errors;
-pub mod account_resolver;
-pub mod account_derivation;
-pub mod dex_router;
-pub use instructions::*;
+pub mod instructions;
+pub mod protocal;
+pub mod state;
+
 pub use state::*;
 
 declare_id!("4ZqQT3aUpSMiAjmyaYj6yHjfJQH6k7v3XBSpgAhWU8uC");
 
+#[derive(Accounts)]
+pub struct ExecuteArbitrage<'info> {
+    #[account(mut)]
+    pub user: Signer<'info>,
+    // 顺序按规范：system -> associated_token -> token -> token_2022
+    pub system_program: Program<'info, System>,
+    pub associated_token_program: Program<'info, anchor_spl::associated_token::AssociatedToken>,
+    pub token_program: Program<'info, Token>,
+    pub token_2022_program: Program<'info, Token2022>,
+}
+
 #[program]
 pub mod arbitrage_contract {
     use super::*;
-    
+
     pub fn execute_arbitrage<'info>(
         ctx: Context<'_, '_, 'info, 'info, ExecuteArbitrage<'info>>,
-        params: ArbitrageParams,
+        params: SwapArbParams,
     ) -> Result<()> {
         instructions::execute_arbitrage::execute_arbitrage(ctx, params)
-    }
-
-    pub fn execute_arbitrage_v4<'info>(
-        ctx: Context<'_, '_, 'info, 'info, ExecuteArbitrageV4<'info>>,
-        params: V4ArbParams,
-    ) -> Result<()> {
-        instructions::execute_arbitrage_v4::execute_arbitrage_v4(ctx, params)
     }
 }
