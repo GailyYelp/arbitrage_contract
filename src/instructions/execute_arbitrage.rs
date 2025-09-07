@@ -23,7 +23,7 @@ use crate::state::SwapArbParams;
 // ==============================================================================================
 
 pub fn execute_arbitrage<'info>(
-    ctx: Context<'_, '_, 'info, 'info, ExecuteArbitrage<'info>>,
+    ctx: Context<'_, '_, 'info, 'info, ExecuteArbitrage>,
     params: SwapArbParams,
 ) -> Result<()> {
     // 1) 基础校验
@@ -53,9 +53,17 @@ pub fn execute_arbitrage<'info>(
 
     // 2) 三段切分：mints[M]、user_accounts[M]、step_accounts（剩余）
     let remaining_accounts = ctx.remaining_accounts;
-    let mints = &remaining_accounts[0..m];
-    let user_accounts = &remaining_accounts[m..2 * m];
-
+    // payer
+    let payer = &remaining_accounts[0];
+    // program accounts
+    let system_program = &remaining_accounts[1];
+    let associated_token_program = &remaining_accounts[2];
+    let token_program = &remaining_accounts[3];
+    let token_2022_program = &remaining_accounts[4];
+    // mints
+    let mints = &remaining_accounts[5..m+5];
+    // user_accounts
+    let user_accounts = &remaining_accounts[m+5..2 * m+5];
 
     // 3) 逐步推导闭环的输入/输出 mint 与用户账户，并切分每步账户组，随后路由执行
     let mut current_amount = params.input_amount;
@@ -77,15 +85,15 @@ pub fn execute_arbitrage<'info>(
             .get(out_idx)
             .ok_or(ArbitrageError::InvalidAccountIndex)?;
 
-        let in_mint_program_ai = if in_mint_ai.owner.key() == ctx.accounts.token_program.key() {
-            ctx.accounts.token_program.as_ref()
+        let in_mint_program_ai = if in_mint_ai.owner.key() == token_program.key() {
+            token_program
         } else {
-            ctx.accounts.token_2022_program.as_ref()
+            token_2022_program
         };
-        let out_mint_program_ai = if out_mint_ai.owner.key() == ctx.accounts.token_program.key() {
-            ctx.accounts.token_program.as_ref()
+        let out_mint_program_ai = if out_mint_ai.owner.key() == token_program.key() {
+            token_program
         } else {
-            ctx.accounts.token_2022_program.as_ref()
+            token_2022_program
         };
 
         // 切分本步账户组
@@ -100,7 +108,7 @@ pub fn execute_arbitrage<'info>(
                 require!(step_slice.len() >= 7, ArbitrageError::InvalidAccountCount);
                 let account_infos = RaydiumCpmmAccounts {
                     program: &step_slice[0],
-                    payer: &ctx.accounts.user.as_ref(),
+                    payer: payer,
                     authority: &step_slice[1],
                     amm_config: &step_slice[2],
                     pool_state: &step_slice[3],
@@ -120,7 +128,7 @@ pub fn execute_arbitrage<'info>(
                 require!(step_slice.len() >= 8, ArbitrageError::InvalidAccountCount);
                 let account_infos = RaydiumClmmAccounts {
                     program: &step_slice[0],
-                    payer: ctx.accounts.user.as_ref(),
+                    payer: payer,
                     amm_config: &step_slice[1],
                     pool_state: &step_slice[2],
                     input_token_account: user_in_ai,
@@ -128,8 +136,8 @@ pub fn execute_arbitrage<'info>(
                     input_vault: &step_slice[3],
                     output_vault: &step_slice[4],
                     observation_state: &step_slice[5],
-                    token_program: ctx.accounts.token_program.as_ref(),
-                    token_program_2022: ctx.accounts.token_2022_program.as_ref(),
+                    token_program: token_program,
+                    token_program_2022: token_2022_program,
                     memo_program: &step_slice[6],
                     input_mint: &in_mint_ai,
                     output_mint: &out_mint_ai,
@@ -142,14 +150,14 @@ pub fn execute_arbitrage<'info>(
                 require!(step_slice.len() >= 5, ArbitrageError::InvalidAccountCount);
                 let account_infos = RaydiumPoolV4Accounts {
                     program: &step_slice[0],
-                    token_program: ctx.accounts.token_program.as_ref(),
+                    token_program: token_program,
                     pool_state: &step_slice[1],
                     amm_authority_info: &step_slice[2],
                     coin_vault: &step_slice[3],
                     pc_vault: &step_slice[4],
                     input_token_account: user_in_ai,
                     output_token_account: user_out_ai,
-                    payer: ctx.accounts.user.as_ref(),
+                    payer: payer,
                 };
                 raydium_pool_v4_swap(account_infos, current_amount, 0)
             }
@@ -184,7 +192,7 @@ pub fn execute_arbitrage<'info>(
                     )
                 };
                 let account_infos = RaydiumLaunchpadAccounts {
-                    payer: ctx.accounts.user.as_ref(),
+                    payer: payer,
                     authority: &step_slice[1],
                     global_config: &step_slice[2],
                     platform_config: &step_slice[3],
@@ -221,8 +229,8 @@ pub fn execute_arbitrage<'info>(
                     pool_id: &step_slice[3],
                     token_vault0: &step_slice[4],
                     user_token_account: user_token_account,
-                    payer: ctx.accounts.user.as_ref(),
-                    system_program: ctx.accounts.system_program.as_ref(),
+                    payer: payer,
+                    system_program: system_program,
                     creator_vault: &step_slice[5],
                     token_program: token_program,
                     event_authority: &step_slice[6],
@@ -265,7 +273,7 @@ pub fn execute_arbitrage<'info>(
                 let account_infos = PumpFunAmmAccounts {
                     program: &step_slice[0],
                     pool_state: &step_slice[1],
-                    payer: ctx.accounts.user.as_ref(),
+                    payer: payer,
                     global_config: &step_slice[2],
                     base_mint: base_mint,
                     quote_mint: quote_mint,
@@ -277,8 +285,8 @@ pub fn execute_arbitrage<'info>(
                     fee_recipient_ata: &step_slice[6],
                     base_token_program: base_token_program,
                     quote_token_program: quote_token_program,
-                    system_program: ctx.accounts.system_program.as_ref(),
-                    associated_token_program: ctx.accounts.associated_token_program.as_ref(),
+                    system_program: system_program,
+                    associated_token_program: associated_token_program,
                     event_authority: &step_slice[7],
                     coin_creator_vault_ata: &step_slice[8],
                     coin_creator_vault_authority: &step_slice[9],
