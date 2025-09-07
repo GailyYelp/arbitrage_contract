@@ -45,7 +45,7 @@ pub fn execute_arbitrage<'info>(
         .steps
         .iter()
         .fold(0usize, |acc, s| acc.saturating_add(s.accounts_len as usize));
-    let actual_steps_len = remaining_accounts_len.saturating_sub(2 * m);
+    let actual_steps_len = remaining_accounts_len.saturating_sub(2 * m + 5);
     require!(
         actual_steps_len == declared_steps_len,
         ArbitrageError::InvalidAccountCount
@@ -67,7 +67,7 @@ pub fn execute_arbitrage<'info>(
 
     // 3) 逐步推导闭环的输入/输出 mint 与用户账户，并切分每步账户组，随后路由执行
     let mut current_amount = params.input_amount;
-    let mut cursor = 2 * m;
+    let mut cursor = 2 * m + 5;
     for (i, step) in params.steps.iter().enumerate() {
         // 闭环：第 i 步 (mints[i], mints[(i+1)%M])
         let in_idx = i;
