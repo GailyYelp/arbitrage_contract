@@ -100,7 +100,7 @@ pub fn execute_arbitrage<'info>(
                 require!(step_slice.len() >= 7, ArbitrageError::InvalidAccountCount);
                 let account_infos = RaydiumCpmmAccounts {
                     program: &step_slice[0],
-                    payer: &ctx.accounts.user.to_account_info(),
+                    payer: &ctx.accounts.user.as_ref(),
                     authority: &step_slice[1],
                     amm_config: &step_slice[2],
                     pool_state: &step_slice[3],
@@ -135,7 +135,8 @@ pub fn execute_arbitrage<'info>(
                     output_mint: &out_mint_ai,
                     remaining_accounts: step_slice[7..].to_vec(),
                 };
-                raydium_clmm_swap(account_infos, current_amount, 0)
+                let is_base_input = step.direction == 0;
+                raydium_clmm_swap(account_infos, current_amount, 0, is_base_input)
             }
             Protocol::RaydiumPoolV4 => {
                 require!(step_slice.len() >= 5, ArbitrageError::InvalidAccountCount);
