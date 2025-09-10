@@ -1,23 +1,25 @@
 use anchor_lang::prelude::*;
 
-/// 部署/升级必要命令
+/// devnet 部署命令
 ///
-/// 1) 生成/查看 Program ID
-///    solana-keygen new -o target/deploy/arbitrage_contract-devnet-keypair.json -s --no-bip39-passphrase --force
-///    solana-keygen pubkey target/deploy/arbitrage_contract-devnet-keypair.json
-///
-/// 2) 配置（三处一致）
+/// 0) 前置：三处 Program ID 一致
 ///    - src/lib.rs: declare_id!("<ProgramID>")
-///    - Anchor.toml: [programs.<cluster>].arbitrage_contract = "<ProgramID>"
+///    - Anchor.toml: [programs.devnet].arbitrage_contract = "<ProgramID>"
 ///    - 客户端常量：ARBITRAGE_CONTRACT_ID = "<ProgramID>"
 ///
-/// 3) 构建/部署（示例：devnet）
-///    solana config set --url devnet
-///    anchor build -- --features devnet    // 切换 ProgramIds 到 devnet
+/// 1) 显式切换到 devnet 与钱包
+///    solana config set --url https://api.devnet.solana.com
+///    solana config set -k /Users/zhengwei/Desktop/wallet-keypair.json
+///
+/// 2) 构建（带 devnet 特性）
+///    anchor build -- --features devnet
+///
+/// 3) 部署
 ///    anchor deploy
 ///
-/// 4) 升级
-///    anchor upgrade <ProgramID> target/deploy/arbitrage_contract.so
+/// 4) 验证（可选）
+///    solana program show 4ZqQT3aUpSMiAjmyaYj6yHjfJQH6k7v3XBSpgAhWU8uC
+///
 pub mod errors;
 pub mod instructions;
 pub mod protocal;
