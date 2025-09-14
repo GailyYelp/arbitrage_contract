@@ -250,22 +250,22 @@ pub fn execute_arbitrage<'info>(
                 ) = if step.direction == 0 {
                     // buy
                     (
-                        out_mint_ai,
                         in_mint_ai,
-                        user_out_ai,
+                        out_mint_ai,
                         user_in_ai,
-                        out_mint_program_ai,
+                        user_out_ai,
                         in_mint_program_ai,
+                        out_mint_program_ai,
                     )
                 } else {
                     // sell
                     (
-                        in_mint_ai,
                         out_mint_ai,
-                        user_in_ai,
+                        in_mint_ai,
                         user_out_ai,
-                        in_mint_program_ai,
+                        user_in_ai,
                         out_mint_program_ai,
+                        in_mint_program_ai,
                     )
                 };
     

@@ -99,13 +99,15 @@ pub fn pumpfun_amm_swap<'info>(
 
     // 构造 data
     let mut data = Vec::with_capacity(8 + 8 + 8);
-    data.extend_from_slice(if direction == 0 {
-        PUMPFUN_AMM_BUY_DISCRIMINATOR
+    if direction == 0 {
+        data.extend_from_slice(PUMPFUN_AMM_BUY_DISCRIMINATOR);
+        data.extend_from_slice(&minimum_amount_out.to_le_bytes()); // amount_out
+        data.extend_from_slice(&amount_in.to_le_bytes()); // max_sol_cost
     } else {
-        PUMPFUN_AMM_SELL_DISCRIMINATOR
-    });
-    data.extend_from_slice(&amount_in.to_le_bytes());
-    data.extend_from_slice(&minimum_amount_out.to_le_bytes());
+        data.extend_from_slice(PUMPFUN_AMM_SELL_DISCRIMINATOR);
+        data.extend_from_slice(&amount_in.to_le_bytes()); // amount_in
+        data.extend_from_slice(&minimum_amount_out.to_le_bytes()); // min_sol_output
+    }
 
     let program_id = accounts.program.key();
     let ix = Instruction {

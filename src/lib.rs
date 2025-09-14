@@ -16,6 +16,7 @@ use anchor_lang::prelude::*;
 ///
 /// 3) 部署
 ///    anchor deploy
+///    anchor deploy --program-name arbitrage_contract --program-keypair /Users/springbugs/.solana/accounts/program-keypair.json
 ///
 /// 4) 验证（可选）
 ///    solana program show 4ZqQT3aUpSMiAjmyaYj6yHjfJQH6k7v3XBSpgAhWU8uC
@@ -47,7 +48,7 @@ pub mod state;
 
 pub use state::*;
 
-declare_id!("ANYwnC5Jk27GoBS483ZqtAU928AE1wocfaDXdq2f3DJD");
+declare_id!("9Vj7SrxY3mQdw48xZ29r53ZA2rjNiniTA7KNsjH8ubkK");
 
 #[derive(Accounts)]
 pub struct ExecuteArbitrage {}

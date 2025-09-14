@@ -11,7 +11,7 @@ members = ["."]
 arbitrage_contract = "7R2DEVjE6DQPsQYnLSaFwPQjp1RN5vR8BAfxNhociMxV"
 
 [programs.devnet]
-arbitrage_contract = "4ZqQT3aUpSMiAjmyaYj6yHjfJQH6k7v3XBSpgAhWU8uC"
+arbitrage_contract = "9Vj7SrxY3mQdw48xZ29r53ZA2rjNiniTA7KNsjH8ubkK"
 
 [programs.mainnet]
 arbitrage_contract = "ANYwnC5Jk27GoBS483ZqtAU928AE1wocfaDXdq2f3DJD"
@@ -20,8 +20,8 @@ arbitrage_contract = "ANYwnC5Jk27GoBS483ZqtAU928AE1wocfaDXdq2f3DJD"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "mainnet"
-wallet = "/Users/zhengwei/Desktop/wall-keypair-mainnet.json"
+cluster = "devnet"
+wallet = "/Users/springbugs/.solana/accounts/BaGpW18zBa1qTwy5WoFdZ1bo6UDxJk4DXCNJRPszY4cc.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
