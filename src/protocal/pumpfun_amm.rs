@@ -88,7 +88,11 @@ pub fn pumpfun_amm_swap<'info>(
 
     // 动态补充：从 remaining_accounts 追加与 PumpFunAMM 程序相关且不在基础集中的账户（例如 global_volume_accumulator + user_volume_accumulator)
     for ai in accounts.remaining_accounts {
-        metas.push(AccountMeta::new(ai.key(), false));
+        if ai.is_writable {
+            metas.push(AccountMeta::new(ai.key(), false));
+        } else {
+            metas.push(AccountMeta::new_readonly(ai.key(), false));
+        }
         account_infos.push(ai);
     }
     account_infos.push(accounts.program.clone());

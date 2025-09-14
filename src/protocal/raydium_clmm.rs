@@ -69,7 +69,11 @@ pub fn raydium_clmm_swap<'info>(
 
     // 动态补充：从 remaining_accounts 追加与 CLMM 程序相关且不在基础集中的账户（例如 extension / tick arrays)
     for ai in accounts.remaining_accounts {
-        metas.push(AccountMeta::new(ai.key(), false));
+        if ai.is_writable {
+            metas.push(AccountMeta::new(ai.key(), false));
+        } else {
+            metas.push(AccountMeta::new_readonly(ai.key(), false));
+        }
         account_infos.push(ai);
     }
     // CLMM 程序账户
