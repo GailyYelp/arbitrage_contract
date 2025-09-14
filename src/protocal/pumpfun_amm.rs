@@ -39,7 +39,7 @@ pub fn pumpfun_amm_swap<'info>(
     amount_in: u64,
     minimum_amount_out: u64,
 ) -> Result<SwapResult> {
-    let  output_token_account = if direction == 0 {
+    let output_token_account = if direction == 0 {
         accounts.user_quote_token_account // sell
     } else {
         accounts.user_base_token_account // buy
@@ -104,15 +104,17 @@ pub fn pumpfun_amm_swap<'info>(
 
     // 构造 data
     let mut data = Vec::with_capacity(8 + 8 + 8);
-    if direction == 0 { // sell
+    if direction == 0 {
+        // sell
         data.extend_from_slice(PUMPFUN_AMM_SELL_DISCRIMINATOR);
         data.extend_from_slice(&amount_in.to_le_bytes()); // amount_in
         data.extend_from_slice(&minimum_amount_out.to_le_bytes()); // min_sol_output
-    } else { // buy
-        let minimum_amount_out2 = 45000000000_u64;
+    } else {
+        // buy
         data.extend_from_slice(PUMPFUN_AMM_BUY_DISCRIMINATOR);
-        data.extend_from_slice(&minimum_amount_out2.to_le_bytes()); // amount_out
-        // data.extend_from_slice(&minimum_amount_out.to_le_bytes()); // amount_out
+        // let minimum_amount_out2 = 45000000000_u64;
+        // data.extend_from_slice(&minimum_amount_out2.to_le_bytes()); // amount_out
+        data.extend_from_slice(&minimum_amount_out.to_le_bytes()); // amount_out
         data.extend_from_slice(&amount_in.to_le_bytes()); // max_sol_cost
     }
 
@@ -133,15 +135,3 @@ pub fn pumpfun_amm_swap<'info>(
         fee_amount: 0,
     })
 }
-
-// pub fn simulate_pumpfun_amm_buy<'info>(
-//     accounts: PumpFunSwapAccounts<'info>,
-//     amount_in: u64,
-//     minimum_amount_out: u64,
-// ) -> Result<SwapResult> {
-//     let pre_out = read_token_amount(accounts.user_token_account)?;
-//     Ok(SwapResult {
-//         amount_out: pre_out,
-//         fee_amount: 0,
-//     })
-// }

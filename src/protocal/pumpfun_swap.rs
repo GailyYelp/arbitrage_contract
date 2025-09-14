@@ -33,7 +33,7 @@ pub fn pumpfun_swap_swap<'info>(
 ) -> Result<SwapResult> {
     let pre_out = if direction == 0 {
         // sell
-        accounts.payer.lamports()
+        accounts.payer.try_lamports()?
     } else {
         // buy
         read_token_amount(accounts.user_token_account)?
@@ -68,11 +68,12 @@ pub fn pumpfun_swap_swap<'info>(
         accounts.event_authority.clone(),
         accounts.program.clone(),
     ];
-    if direction == 0 {  // sell
+    if direction == 0 {
+        // sell
         // buy: token_program 在 creator_vault 之前
         // sell: creator_vault 在 token_program 之前
         metas[8] = AccountMeta::new(accounts.creator_vault.key(), false);
-        metas[9] = AccountMeta::new(accounts.token_program.key(), false);
+        metas[9] = AccountMeta::new_readonly(accounts.token_program.key(), false);
         account_infos[8] = accounts.creator_vault.clone();
         account_infos[9] = accounts.token_program.clone();
     }
@@ -100,6 +101,8 @@ pub fn pumpfun_swap_swap<'info>(
     } else {
         // BUY: data = [BUY, token_amount, max_sol_cost] → 使用 min_out 作为 token_amount，上界用 amount_in
         data.extend_from_slice(PUMPFUN_AMM_BUY_DISCRIMINATOR);
+        // let minimum_amount_out2 = 3400000000_u64;
+        // data.extend_from_slice(&minimum_amount_out2.to_le_bytes()); // token_amount
         data.extend_from_slice(&minimum_amount_out.to_le_bytes()); // token_amount
         data.extend_from_slice(&amount_in.to_le_bytes()); // max_sol_cost
     };
@@ -117,14 +120,14 @@ pub fn pumpfun_swap_swap<'info>(
     // 读取执行后余额并计算真实产出
     let post_out = if direction == 0 {
         // sell
-        accounts.payer.lamports()
+        accounts.payer.try_lamports()?
     } else {
         // buy
         read_token_amount(accounts.user_token_account)?
     };
     let amount_out = post_out.saturating_sub(pre_out);
-    // TODO
-    msg!("amount_out: {}", amount_out);
+    // TODO 上线上链需删除
+    msg!("amount_out: {} pre_out: {} post_out: {}",  amount_out, pre_out, post_out);
     Ok(SwapResult {
         amount_out,
         fee_amount: 0,
