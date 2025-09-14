@@ -143,8 +143,7 @@ pub fn execute_arbitrage<'info>(
                     output_mint: &out_mint_ai,
                     remaining_accounts: step_slice[7..].to_vec(),
                 };
-                let is_base_input = step.direction == 0;
-                raydium_clmm_swap(account_infos, current_amount, 0, is_base_input)
+                raydium_clmm_swap(account_infos, current_amount, 0)
             }
             Protocol::RaydiumPoolV4 => {
                 require!(step_slice.len() >= 5, ArbitrageError::InvalidAccountCount);

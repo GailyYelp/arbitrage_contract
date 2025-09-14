@@ -31,7 +31,6 @@ pub fn raydium_clmm_swap<'info>(
     accounts: RaydiumClmmAccounts<'info>,
     amount_in: u64,
     minimum_amount_out: u64,
-    is_base_input: bool,
 ) -> Result<SwapResult> {
     let pre_out = read_token_amount(accounts.output_token_account)?;
 
@@ -82,7 +81,7 @@ pub fn raydium_clmm_swap<'info>(
     data.extend_from_slice(&amount_in.to_le_bytes());
     data.extend_from_slice(&minimum_amount_out.to_le_bytes());
     data.extend_from_slice(&0u128.to_le_bytes()); // sqrt_price_limit
-    data.push(if is_base_input { 1 } else { 0 }); // is_base_input
+    data.push(1_u8); // is_base_input
 
     // Instruction
     let program_id = accounts.program.key();

@@ -27,29 +27,31 @@ pub fn raydium_pool_v4_swap<'info>(
     let pre_out = read_token_amount(accounts.output_token_account)?;
 
     let metas = vec![
-        AccountMeta::new_readonly(accounts.token_program.key(), false), // 1: tokenProgram
-        AccountMeta::new_readonly(accounts.pool_state.key(), false),    // 2: amm_info
-        AccountMeta::new_readonly(accounts.amm_authority_info.key(), false), // 3: amm_authority_info
-        AccountMeta::new_readonly(accounts.pool_state.key(), false), // 4: amm_open_orders_info
-        AccountMeta::new(accounts.coin_vault.key(), false),          // 5: amm_coin_vault_info
-        AccountMeta::new(accounts.pc_vault.key(), false),            // 6: amm_pc_vault_info
-        AccountMeta::new(accounts.pool_state.key(), false),          // 7: market_program_info
-        AccountMeta::new(accounts.pool_state.key(), false),          // 8: market_info
-        AccountMeta::new(accounts.pool_state.key(), false),          // 9: market_bids_info
-        AccountMeta::new(accounts.pool_state.key(), false),          // 10: market_asks_info
-        AccountMeta::new(accounts.pool_state.key(), false),          // 11: market_event_queue_info
-        AccountMeta::new(accounts.pool_state.key(), false),          // 12: market_coin_vault_info
-        AccountMeta::new(accounts.pool_state.key(), false),          // 13: market_pc_vault_info
-        AccountMeta::new(accounts.pool_state.key(), false),          // 14: market_vault_signer
-        AccountMeta::new(accounts.input_token_account.key(), false),                // 15: user_source_info
-        AccountMeta::new(accounts.output_token_account.key(), false),               // 16: user_destination_info
-        AccountMeta::new_readonly(accounts.payer.key(), true),                      // 17: user_source_owner
+        AccountMeta::new_readonly(accounts.token_program.key(), false), // 0: tokenProgram
+        AccountMeta::new(accounts.pool_state.key(), false),             // 1: pool_info
+        AccountMeta::new_readonly(accounts.amm_authority_info.key(), false), // 2: amm_authority_info
+        AccountMeta::new(accounts.pool_state.key(), false), // 3: amm_open_orders_info
+        AccountMeta::new(accounts.pool_state.key(), false), // 4: amm_open_orders_info
+        AccountMeta::new(accounts.coin_vault.key(), false), // 5: amm_coin_vault_info
+        AccountMeta::new(accounts.pc_vault.key(), false),   // 6: amm_pc_vault_info
+        AccountMeta::new_readonly(accounts.pool_state.key(), false), // 7: market_program_info
+        AccountMeta::new(accounts.pool_state.key(), false), // 8: market_info
+        AccountMeta::new(accounts.pool_state.key(), false), // 9: market_bids_info
+        AccountMeta::new(accounts.pool_state.key(), false), // 10: market_asks_info
+        AccountMeta::new(accounts.pool_state.key(), false), // 11: market_event_queue_info
+        AccountMeta::new(accounts.pool_state.key(), false), // 12: market_coin_vault_info
+        AccountMeta::new(accounts.pool_state.key(), false), // 13: market_pc_vault_info
+        AccountMeta::new_readonly(accounts.pool_state.key(), false), // 14: market_vault_signer
+        AccountMeta::new(accounts.input_token_account.key(), false), // 15: user_source_info
+        AccountMeta::new(accounts.output_token_account.key(), false), // 16: user_destination_info
+        AccountMeta::new_readonly(accounts.payer.key(), true), // 17: user_source_owner
     ];
 
     let account_infos: Vec<AccountInfo<'info>> = vec![
         accounts.token_program.clone(),
         accounts.pool_state.clone(),
         accounts.amm_authority_info.clone(),
+        accounts.pool_state.clone(),
         accounts.pool_state.clone(),
         accounts.coin_vault.clone(),
         accounts.pc_vault.clone(),
