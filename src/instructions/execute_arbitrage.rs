@@ -214,7 +214,7 @@ pub fn execute_arbitrage<'info>(
             }
             Protocol::PumpFunSwap => {
                 require!(step_slice.len() >= 7, ArbitrageError::InvalidAccountCount);
-                let (mint, user_token_account, token_program) = if step.direction == 0 {
+                let (mint, user_token_account, token_program) = if step.direction == 1 {
                     (out_mint_ai, user_out_ai, out_mint_program_ai) // buy
                 } else {
                     (in_mint_ai, user_in_ai, in_mint_program_ai) // sell
@@ -248,7 +248,7 @@ pub fn execute_arbitrage<'info>(
                     base_token_program,
                     quote_token_program,
                 ) = if step.direction == 0 {
-                    // buy
+                    // sell
                     (
                         in_mint_ai,
                         out_mint_ai,
@@ -258,7 +258,7 @@ pub fn execute_arbitrage<'info>(
                         out_mint_program_ai,
                     )
                 } else {
-                    // sell
+                    // buy
                     (
                         out_mint_ai,
                         in_mint_ai,

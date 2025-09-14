@@ -31,7 +31,13 @@ pub fn pumpfun_swap_swap<'info>(
     amount_in: u64,
     minimum_amount_out: u64,
 ) -> Result<SwapResult> {
-    let pre_out = read_token_amount(accounts.user_token_account)?;
+    let pre_out = if direction == 0 {
+        // sell
+        accounts.payer.lamports()
+    } else {
+        // buy
+        read_token_amount(accounts.user_token_account)?
+    };
 
     let mut metas = vec![
         AccountMeta::new_readonly(accounts.global_account.key(), false),
@@ -62,7 +68,7 @@ pub fn pumpfun_swap_swap<'info>(
         accounts.event_authority.clone(),
         accounts.program.clone(),
     ];
-    if direction != 0 {
+    if direction == 0 {  // sell
         // buy: token_program 在 creator_vault 之前
         // sell: creator_vault 在 token_program 之前
         metas[8] = AccountMeta::new(accounts.creator_vault.key(), false);
@@ -73,23 +79,29 @@ pub fn pumpfun_swap_swap<'info>(
 
     // 动态补充剩余账户
     for ai in accounts.remaining_accounts {
-        metas.push(AccountMeta::new(ai.key(), false));
+        if ai.is_writable {
+            metas.push(AccountMeta::new(ai.key(), false));
+        } else {
+            metas.push(AccountMeta::new_readonly(ai.key(), false));
+        }
         account_infos.push(ai);
     }
     account_infos.push(accounts.program.clone());
 
     // 构造 data 与账户顺序（严格按 BUY/SELL 对齐）
     let mut data = Vec::with_capacity(8 + 8 + 8);
+    // mint --> sol_mint == sell == 0
+    // sol_mint --> mint == buy == 1
     if direction == 0 {
-        // BUY: data = [BUY, token_amount, max_sol_cost] → 使用 min_out 作为 token_amount，上界用 amount_in
-        data.extend_from_slice(PUMPFUN_AMM_BUY_DISCRIMINATOR);
-        data.extend_from_slice(&minimum_amount_out.to_le_bytes()); // token_amount
-        data.extend_from_slice(&amount_in.to_le_bytes()); // max_sol_cost
-    } else {
         // SELL: data = [SELL, token_amount, min_sol_output] → 使用 amount_in 作为 token_amount，min_out 保持
         data.extend_from_slice(PUMPFUN_AMM_SELL_DISCRIMINATOR);
         data.extend_from_slice(&amount_in.to_le_bytes()); // token_amount
         data.extend_from_slice(&minimum_amount_out.to_le_bytes()); // min_sol_output
+    } else {
+        // BUY: data = [BUY, token_amount, max_sol_cost] → 使用 min_out 作为 token_amount，上界用 amount_in
+        data.extend_from_slice(PUMPFUN_AMM_BUY_DISCRIMINATOR);
+        data.extend_from_slice(&minimum_amount_out.to_le_bytes()); // token_amount
+        data.extend_from_slice(&amount_in.to_le_bytes()); // max_sol_cost
     };
 
     // Instruction
@@ -103,8 +115,16 @@ pub fn pumpfun_swap_swap<'info>(
     invoke(&ix, &account_infos)?;
 
     // 读取执行后余额并计算真实产出
-    let post_out = read_token_amount(accounts.user_token_account)?;
+    let post_out = if direction == 0 {
+        // sell
+        accounts.payer.lamports()
+    } else {
+        // buy
+        read_token_amount(accounts.user_token_account)?
+    };
     let amount_out = post_out.saturating_sub(pre_out);
+    // TODO
+    msg!("amount_out: {}", amount_out);
     Ok(SwapResult {
         amount_out,
         fee_amount: 0,
