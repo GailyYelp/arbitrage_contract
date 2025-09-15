@@ -235,7 +235,7 @@ pub fn execute_arbitrage<'info>(
                     event_authority: &step_slice[6],
                     remaining_accounts: step_slice[7..].to_vec(),
                 };
-                pumpfun_swap_swap(account_infos, step.direction, current_amount, 0)
+                pumpfun_swap_swap(account_infos, step.direction, current_amount,  step.fee_rate)
             }
             Protocol::PumpFunAMM => {
                 require!(step_slice.len() >= 10, ArbitrageError::InvalidAccountCount);
