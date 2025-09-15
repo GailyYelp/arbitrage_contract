@@ -37,7 +37,7 @@ pub fn pumpfun_amm_swap<'info>(
     accounts: PumpFunAmmAccounts<'info>,
     direction: u8, // 0: sell, 1: buy
     amount_in: u64,
-    minimum_amount_out: u64,
+    total_fee_base_point: u64,
 ) -> Result<SwapResult> {
     let output_token_account = if direction == 0 {
         accounts.user_quote_token_account // sell
@@ -45,6 +45,19 @@ pub fn pumpfun_amm_swap<'info>(
         accounts.user_base_token_account // buy
     };
     let pre_out = read_token_amount(output_token_account)?;
+
+    let minimum_amount_out = if direction != 0 {
+        // buy
+        simulate_buy_amount_by_input(
+            amount_in,
+            total_fee_base_point,
+            accounts.pool_state,
+            accounts.pool_base_token_account,
+            accounts.pool_quote_token_account,
+        )?
+    } else {
+        0_u64
+    };
 
     // 账户 metas（参照引擎构造顺序）
     let mut metas = vec![
@@ -134,4 +147,62 @@ pub fn pumpfun_amm_swap<'info>(
         amount_out,
         fee_amount: 0,
     })
+}
+
+pub fn simulate_buy_amount_by_input<'info>(
+    input_amount: u64,
+    total_fee_base_point: u64,
+    pool_state: &'info AccountInfo<'info>,
+    pool_base_token_account: &'info AccountInfo<'info>,
+    pool_quote_token_account: &'info AccountInfo<'info>,
+) -> Result<u64> {
+    if input_amount == 0 {
+        return Ok(0_u64);
+    }
+
+    let base_amount = read_token_amount(pool_base_token_account)?;
+    let quote_amout = read_token_amount(pool_quote_token_account)?;
+
+    // load data from pool_state
+    let data = pool_state.try_borrow_data()?;
+    let lp_supply = u64::from_le_bytes(data[195..203].try_into().ok().unwrap());
+
+    // simulate
+    let (x, y) = (base_amount, quote_amout + lp_supply);
+    msg!("x: {:?}, y: {:?}", x, y);
+    // 计算手续费
+    let input_amount_without_fee = div_up(
+        input_amount * 10000,
+        10000 + total_fee_base_point
+    );
+    msg!("input_amount_without_fee: {:?}", input_amount_without_fee);
+    let total_fee = div_up(input_amount_without_fee * total_fee_base_point, 10000);
+    let input_amount_without_fee = input_amount - total_fee;
+    msg!("total_fee: {:?}", total_fee);
+    msg!("input_amount_without_fee: {:?}", input_amount_without_fee);
+    let output_amount = swap_base_input(
+        u128::from(input_amount_without_fee),
+        u128::from(y),
+        u128::from(x),
+    )
+    .unwrap_or(0);
+    msg!("output_amount: {:?}", output_amount);
+    return Ok(output_amount as u64);
+}
+
+// 除法向上取整
+pub fn div_up(a: u64, b: u64) -> u64 {
+    (a + b - 1) / b
+}
+
+pub fn swap_base_input(
+    source_amount: u128,           // 输入数量
+    swap_source_amount: u128,      // 池中源代币数量
+    swap_destination_amount: u128, // 池中目标代币数量
+) -> Option<u128> {
+    // 公式: Δy = (Δx * y) / (x + Δx)
+    let numerator = source_amount.checked_mul(swap_destination_amount)?;
+    let denominator = swap_source_amount.checked_add(source_amount)?;
+    let destinsation_amount_swapped = numerator.checked_div(denominator)?;
+    Some(destinsation_amount_swapped)
 }

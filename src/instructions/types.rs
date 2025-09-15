@@ -14,9 +14,7 @@ pub fn read_token_amount<'info>(ai: &AccountInfo<'info>) -> Result<u64> {
         return Err(ArbitrageError::InvalidAccount.into());
     }
     let data = ai.try_borrow_data()?;
-    let mut amount_bytes = [0u8; 8];
-    amount_bytes.copy_from_slice(&data[64..72]);
-    Ok(u64::from_le_bytes(amount_bytes))
+    Ok(u64::from_le_bytes(data[64..72].try_into().ok().unwrap()))
 }
 
 // 通用工具：读取 token 账户的 mint（前 32 字节）

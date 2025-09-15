@@ -23,6 +23,7 @@ pub struct SwapStepMeta {
     pub protocol: Protocol, // 0=CPMM,1=CLMM,2=PoolV4,3=LaunchPad,4=PumpFun,5=PumpFunAMM
     pub accounts_len: u8,   // 本步账户组长度（用于从 remaining_accounts 切片）
     pub direction: u8, // 0: buy, zero_to_one, base_to_quote   1: sell, one_to_zero, quote_to_base
+    pub extra_data: u64, // 额外信息
 }
 
 #[derive(Clone, Debug, AnchorSerialize, AnchorDeserialize)]
