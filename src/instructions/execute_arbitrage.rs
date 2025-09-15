@@ -291,7 +291,7 @@ pub fn execute_arbitrage<'info>(
                     coin_creator_vault_authority: &step_slice[9],
                     remaining_accounts: step_slice[10..].to_vec(),
                 };
-                pumpfun_amm_swap(account_infos, step.direction, current_amount, step.extra_data)
+                pumpfun_amm_swap(account_infos, step.direction, current_amount, step.fee_rate)
             }
         }?;
 

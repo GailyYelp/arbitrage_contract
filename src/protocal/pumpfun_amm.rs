@@ -37,7 +37,7 @@ pub fn pumpfun_amm_swap<'info>(
     accounts: PumpFunAmmAccounts<'info>,
     direction: u8, // 0: sell, 1: buy
     amount_in: u64,
-    total_fee_base_point: u64,
+    total_fee_base_point: u16,
 ) -> Result<SwapResult> {
     let output_token_account = if direction == 0 {
         accounts.user_quote_token_account // sell
@@ -50,7 +50,7 @@ pub fn pumpfun_amm_swap<'info>(
         // buy
         simulate_buy_amount_by_input(
             amount_in,
-            total_fee_base_point,
+            total_fee_base_point as u64,
             accounts.pool_state,
             accounts.pool_base_token_account,
             accounts.pool_quote_token_account,
