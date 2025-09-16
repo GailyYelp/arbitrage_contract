@@ -1,6 +1,7 @@
+use crate::errors::ArbitrageError;
 use crate::instructions::types::read_token_amount;
 use crate::instructions::types::SwapResult;
-use crate::errors::ArbitrageError;
+use crate::protocal::pumpfun_amm::simulate_swap_base_input;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::instruction::{AccountMeta, Instruction};
 use anchor_lang::solana_program::program::invoke;
@@ -47,7 +48,7 @@ pub fn pumpfun_swap_swap<'info>(
             amount_in,
             total_fee_base_point as u64,
         )?
-    }else{
+    } else {
         0_u64
     };
 
@@ -139,7 +140,12 @@ pub fn pumpfun_swap_swap<'info>(
     };
     let amount_out = post_out.saturating_sub(pre_out);
     // TODO 上线上链需删除
-    msg!("amount_out: {} pre_out: {} post_out: {}",  amount_out, pre_out, post_out);
+    msg!(
+        "amount_out: {} pre_out: {} post_out: {}",
+        amount_out,
+        pre_out,
+        post_out
+    );
     Ok(SwapResult {
         amount_out,
         fee_amount: 0,
@@ -156,7 +162,7 @@ pub fn pumpfun_swap_swap<'info>(
 fn simulate_pumpfun_swap_buy_amount_by_input<'info>(
     pool_account: &'info AccountInfo<'info>,
     max_sol_in: u64,
-    creator_fee_basis_points: u64,
+    total_fee_base_point: u64,
 ) -> Result<u64> {
     if max_sol_in == 0 {
         return Ok(0);
@@ -171,76 +177,17 @@ fn simulate_pumpfun_swap_buy_amount_by_input<'info>(
     // token_total_supply    [32..40]
     // complete              [40]
     // creator               [41..73]
-    let pool_data = pool_account
-        .try_borrow_data()
-        .map_err(|_| error!(ArbitrageError::InvalidAccount))?;
+    let pool_data = pool_account.try_borrow_data()?;
     // 需要读取到 complete(1B) 与 creator(32B)，creator 起始偏移为 41（相对结构），所以至少 8+73 字节
     require!(pool_data.len() >= 8 + 73, ArbitrageError::InvalidAccount);
 
-    let disc = 8usize;
-    let virtual_token_reserves = read_le_u64(&pool_data, disc + 0)?;
-    let virtual_sol_reserves = read_le_u64(&pool_data, disc + 8)?;
-    let real_token_reserves = read_le_u64(&pool_data, disc + 16)?;
-    let is_complete = pool_data[disc + 40]; // bool
-    // 读取 creator
-    let mut creator_bytes = [0u8; 32];
-    creator_bytes.copy_from_slice(&pool_data[disc + 41..disc + 41 + 32]);
-    let creator_pubkey = Pubkey::new_from_array(creator_bytes);
-    if is_complete != 0 {
-        // 完成后不再交易
-        return Ok(0);
-    }
-
-
-    // 输入侧扣费（向上取整），使用 u128 防溢出
-    let input_sol_lamports_u128 = max_sol_in as u128;
-    // 只有在 creator 非默认地址且 creator_fee_bps > 0 时才收取创作者费
-    let creator_fee_lamports_u128 = if creator_pubkey != Pubkey::default()
-        && creator_fee_basis_points > 0
-    {
-        div_up_u128(
-            input_sol_lamports_u128 * creator_fee_basis_points as u128,
-            10_000,
-        )
-    } else {
-        0
-    };
-    let net_sol_in_u128 = input_sol_lamports_u128.saturating_sub(creator_fee_lamports_u128);
-    if net_sol_in_u128 == 0 {
-        return Ok(0);
-    }
-
-    // bonding curve：k = vSOL * vTOKEN
-    let virtual_sol_reserves_u128 = virtual_sol_reserves as u128;
-    let virtual_token_reserves_u128 = virtual_token_reserves as u128;
-    let k_constant = virtual_sol_reserves_u128.saturating_mul(virtual_token_reserves_u128);
-    let new_virtual_sol_reserves_u128 =
-        virtual_sol_reserves_u128.saturating_add(net_sol_in_u128);
-    if new_virtual_sol_reserves_u128 == 0 {
-        return Ok(0);
-    }
-    let mut new_virtual_token_reserves_u128 = k_constant / new_virtual_sol_reserves_u128;
-    // 与本地实现保持一致，+1 用于向上取整，避免过度乐观
-    new_virtual_token_reserves_u128 = new_virtual_token_reserves_u128.saturating_add(1);
-
-    let token_out_u128 =
-        virtual_token_reserves_u128.saturating_sub(new_virtual_token_reserves_u128);
-    let token_amount_out = token_out_u128.min(real_token_reserves as u128) as u64;
+    let virtual_token_reserves = u64::from_le_bytes(pool_data[8..16].try_into().ok().unwrap());
+    let virtual_sol_reserves = u64::from_le_bytes(pool_data[16..24].try_into().ok().unwrap());
+    let token_amount_out = simulate_swap_base_input(
+        virtual_token_reserves,
+        virtual_sol_reserves,
+        total_fee_base_point,
+        max_sol_in - 1, // 扣除 1 个 lamport 用于手续费
+    );
     Ok(token_amount_out)
-}
-
-#[inline]
-fn read_le_u64(data: &[u8], start: usize) -> Result<u64> {
-    let end = start.saturating_add(8);
-    if data.len() < end {
-        return Err(error!(ArbitrageError::InvalidAccount));
-    }
-    let mut buf = [0u8; 8];
-    buf.copy_from_slice(&data[start..end]);
-    Ok(u64::from_le_bytes(buf))
-}
-
-#[inline]
-fn div_up_u128(a: u128, b: u128) -> u128 {
-    (a + b - 1) / b
 }

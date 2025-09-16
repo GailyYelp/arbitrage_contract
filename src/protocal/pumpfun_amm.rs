@@ -169,25 +169,8 @@ pub fn simulate_buy_amount_by_input<'info>(
 
     // simulate
     let (x, y) = (base_amount, quote_amout + lp_supply);
-    msg!("x: {:?}, y: {:?}", x, y);
-    // 计算手续费
-    let input_amount_without_fee = div_up(
-        input_amount * 10000,
-        10000 + total_fee_base_point
-    );
-    msg!("input_amount_without_fee: {:?}", input_amount_without_fee);
-    let total_fee = div_up(input_amount_without_fee * total_fee_base_point, 10000);
-    let input_amount_without_fee = input_amount - total_fee;
-    msg!("total_fee: {:?}", total_fee);
-    msg!("input_amount_without_fee: {:?}", input_amount_without_fee);
-    let output_amount = swap_base_input(
-        u128::from(input_amount_without_fee),
-        u128::from(y),
-        u128::from(x),
-    )
-    .unwrap_or(0);
-    msg!("output_amount: {:?}", output_amount);
-    return Ok(output_amount as u64);
+    let output_amount = simulate_swap_base_input(x, y, total_fee_base_point, input_amount);
+    return Ok(output_amount);
 }
 
 // 除法向上取整
@@ -205,4 +188,28 @@ pub fn swap_base_input(
     let denominator = swap_source_amount.checked_add(source_amount)?;
     let destinsation_amount_swapped = numerator.checked_div(denominator)?;
     Some(destinsation_amount_swapped)
+}
+
+pub fn simulate_swap_base_input(
+    x: u64,
+    y: u64,
+    total_fee_base_point: u64,
+    input_amount: u64,
+) -> u64 {
+    msg!("x: {:?}, y: {:?}", x, y);
+    // 计算手续费
+    let input_amount_without_fee = div_up(input_amount * 10000, 10000 + total_fee_base_point);
+    msg!("input_amount_without_fee: {:?}", input_amount_without_fee);
+    let total_fee = div_up(input_amount_without_fee * total_fee_base_point, 10000);
+    let input_amount_without_fee = input_amount - total_fee;
+    msg!("total_fee: {:?}", total_fee);
+    msg!("input_amount_without_fee: {:?}", input_amount_without_fee);
+    let output_amount = swap_base_input(
+        u128::from(input_amount_without_fee),
+        u128::from(y),
+        u128::from(x),
+    )
+    .unwrap_or(0);
+    msg!("output_amount: {:?}", output_amount);
+    output_amount as u64
 }
