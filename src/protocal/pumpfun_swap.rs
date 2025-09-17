@@ -187,7 +187,7 @@ fn simulate_pumpfun_swap_buy_amount_by_input<'info>(
         virtual_token_reserves,
         virtual_sol_reserves,
         total_fee_base_point,
-        max_sol_in - 1, // 扣除 1 个 lamport 用于手续费
+        max_sol_in - 2, // 扣除 2 个 lamport 用于手续费
     );
     Ok(token_amount_out)
 }

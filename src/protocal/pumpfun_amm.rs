@@ -166,6 +166,7 @@ pub fn simulate_buy_amount_by_input<'info>(
     // load data from pool_state
     let data = pool_state.try_borrow_data()?;
     let lp_supply = u64::from_le_bytes(data[203..211].try_into().ok().unwrap());
+    msg!("base_amount: {:?}, quote_amout: {:?}, lp_supply: {:?}", base_amount, quote_amout, lp_supply);
 
     // simulate
     let (x, y) = (base_amount, quote_amout + lp_supply);
