@@ -51,7 +51,6 @@ pub fn pumpfun_amm_swap<'info>(
         simulate_buy_amount_by_input(
             amount_in,
             total_fee_base_point as u64,
-            accounts.pool_state,
             accounts.pool_base_token_account,
             accounts.pool_quote_token_account,
         )?
@@ -125,8 +124,6 @@ pub fn pumpfun_amm_swap<'info>(
     } else {
         // buy
         data.extend_from_slice(PUMPFUN_AMM_BUY_DISCRIMINATOR);
-        // let minimum_amount_out2 = 45000000000_u64;
-        // data.extend_from_slice(&minimum_amount_out2.to_le_bytes()); // amount_out
         data.extend_from_slice(&minimum_amount_out.to_le_bytes()); // amount_out
         data.extend_from_slice(&amount_in.to_le_bytes()); // max_sol_cost
     }
@@ -152,7 +149,6 @@ pub fn pumpfun_amm_swap<'info>(
 pub fn simulate_buy_amount_by_input<'info>(
     input_amount: u64,
     total_fee_base_point: u64,
-    pool_state: &'info AccountInfo<'info>,
     pool_base_token_account: &'info AccountInfo<'info>,
     pool_quote_token_account: &'info AccountInfo<'info>,
 ) -> Result<u64> {
@@ -163,14 +159,13 @@ pub fn simulate_buy_amount_by_input<'info>(
     let base_amount = read_token_amount(pool_base_token_account)?;
     let quote_amout = read_token_amount(pool_quote_token_account)?;
 
-    // load data from pool_state
-    let data = pool_state.try_borrow_data()?;
-    let lp_supply = u64::from_le_bytes(data[203..211].try_into().ok().unwrap());
-    msg!("base_amount: {:?}, quote_amout: {:?}, lp_supply: {:?}", base_amount, quote_amout, lp_supply);
-
     // simulate
-    let (x, y) = (base_amount, quote_amout + lp_supply);
-    let output_amount = simulate_swap_base_input(x, y, total_fee_base_point, input_amount);
+    let output_amount = simulate_swap_base_input(
+        base_amount,
+        quote_amout,
+        total_fee_base_point,
+        input_amount - 2, // 扣除 2 个 lamport 用于手续费
+    );
     return Ok(output_amount);
 }
 

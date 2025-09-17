@@ -114,8 +114,6 @@ pub fn pumpfun_swap_swap<'info>(
     } else {
         // BUY: data = [BUY, token_amount, max_sol_cost] → 使用 min_out 作为 token_amount，上界用 amount_in
         data.extend_from_slice(PUMPFUN_AMM_BUY_DISCRIMINATOR);
-        // let minimum_amount_out2 = 3400000000_u64;
-        // data.extend_from_slice(&minimum_amount_out2.to_le_bytes()); // token_amount
         data.extend_from_slice(&minimum_amount_out.to_le_bytes()); // token_amount
         data.extend_from_slice(&amount_in.to_le_bytes()); // max_sol_cost
     };
