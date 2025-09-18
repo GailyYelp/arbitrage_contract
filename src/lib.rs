@@ -48,7 +48,7 @@ pub mod state;
 
 pub use state::*;
 
-declare_id!("9Vj7SrxY3mQdw48xZ29r53ZA2rjNiniTA7KNsjH8ubkK");
+declare_id!("EfDjP3C4FTeZMobPbMWccAeQCsUdBJYbMWbQX4pufQU7");
 
 #[derive(Accounts)]
 pub struct ExecuteArbitrage {}
