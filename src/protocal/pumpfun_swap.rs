@@ -137,13 +137,12 @@ pub fn pumpfun_swap_swap<'info>(
         read_token_amount(accounts.user_token_account)?
     };
     let amount_out = post_out.saturating_sub(pre_out);
-    // TODO 上线上链需删除
-    msg!(
-        "amount_out: {} pre_out: {} post_out: {}",
-        amount_out,
-        pre_out,
-        post_out
-    );
+    // msg!(
+    //     "amount_out: {} pre_out: {} post_out: {}",
+    //     amount_out,
+    //     pre_out,
+    //     post_out
+    // );
     Ok(SwapResult {
         amount_out,
         fee_amount: 0,

@@ -18,14 +18,14 @@ pub fn read_token_amount<'info>(ai: &AccountInfo<'info>) -> Result<u64> {
 }
 
 // 通用工具：读取 token 账户的 mint（前 32 字节）
-fn token_account_mint(ai: &AccountInfo) -> Option<Pubkey> {
-    if ai.data_len() < 32 {
-        return None;
-    }
-    if let Ok(data) = ai.try_borrow_data() {
-        let mut mint_bytes = [0u8; 32];
-        mint_bytes.copy_from_slice(&data[0..32]);
-        return Some(Pubkey::new_from_array(mint_bytes));
-    }
-    None
-}
+// fn token_account_mint(ai: &AccountInfo) -> Option<Pubkey> {
+//     if ai.data_len() < 32 {
+//         return None;
+//     }
+//     if let Ok(data) = ai.try_borrow_data() {
+//         let mut mint_bytes = [0u8; 32];
+//         mint_bytes.copy_from_slice(&data[0..32]);
+//         return Some(Pubkey::new_from_array(mint_bytes));
+//     }
+//     None
+// }

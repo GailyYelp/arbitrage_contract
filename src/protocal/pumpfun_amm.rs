@@ -192,20 +192,20 @@ pub fn simulate_swap_base_input(
     total_fee_base_point: u64,
     input_amount: u64,
 ) -> u64 {
-    msg!("x: {:?}, y: {:?}", x, y);
+    // msg!("x: {:?}, y: {:?}", x, y);
     // 计算手续费
     let input_amount_without_fee = div_up(input_amount * 10000, 10000 + total_fee_base_point);
-    msg!("input_amount_without_fee: {:?}", input_amount_without_fee);
+    // msg!("input_amount_without_fee: {:?}", input_amount_without_fee);
     let total_fee = div_up(input_amount_without_fee * total_fee_base_point, 10000);
     let input_amount_without_fee = input_amount - total_fee;
-    msg!("total_fee: {:?}", total_fee);
-    msg!("input_amount_without_fee: {:?}", input_amount_without_fee);
+    // msg!("total_fee: {:?}", total_fee);
+    // msg!("input_amount_without_fee: {:?}", input_amount_without_fee);
     let output_amount = swap_base_input(
         u128::from(input_amount_without_fee),
         u128::from(y),
         u128::from(x),
     )
     .unwrap_or(0);
-    msg!("output_amount: {:?}", output_amount);
+    // msg!("output_amount: {:?}", output_amount);
     output_amount as u64
 }
