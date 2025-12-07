@@ -60,17 +60,17 @@ pub fn pumpfun_amm_swap<'info>(
 
     // 账户 metas（参照引擎构造顺序）
     let mut metas = vec![
-        AccountMeta::new_readonly(accounts.pool_state.key(), false), // pool
-        AccountMeta::new(accounts.payer.key(), true),                // user
+        AccountMeta::new(accounts.pool_state.key(), false), // pool
+        AccountMeta::new(accounts.payer.key(), true),       // user
         AccountMeta::new_readonly(accounts.global_config.key(), false), // global
-        AccountMeta::new_readonly(accounts.base_mint.key(), false),  // base_mint
+        AccountMeta::new_readonly(accounts.base_mint.key(), false), // base_mint
         AccountMeta::new_readonly(accounts.quote_mint.key(), false), // quote_mint
         AccountMeta::new(accounts.user_base_token_account.key(), false), // user_base_ata
         AccountMeta::new(accounts.user_quote_token_account.key(), false), // user_quote_ata
         AccountMeta::new(accounts.pool_base_token_account.key(), false), // pool_base_ata
         AccountMeta::new(accounts.pool_quote_token_account.key(), false), // pool_quote_ata
         AccountMeta::new_readonly(accounts.fee_recipient.key(), false), // fee_recipient
-        AccountMeta::new(accounts.fee_recipient_ata.key(), false),   // fee_recipient_ata
+        AccountMeta::new(accounts.fee_recipient_ata.key(), false), // fee_recipient_ata
         AccountMeta::new_readonly(accounts.base_token_program.key(), false), // base_token_program
         AccountMeta::new_readonly(accounts.quote_token_program.key(), false), // quote_token_program
         AccountMeta::new_readonly(accounts.system_program.key(), false), // system_program

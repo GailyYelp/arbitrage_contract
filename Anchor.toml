@@ -14,14 +14,17 @@ arbitrage_contract = "7R2DEVjE6DQPsQYnLSaFwPQjp1RN5vR8BAfxNhociMxV"
 arbitrage_contract = "9Vj7SrxY3mQdw48xZ29r53ZA2rjNiniTA7KNsjH8ubkK"
 
 [programs.mainnet]
-arbitrage_contract = "EfDjP3C4FTeZMobPbMWccAeQCsUdBJYbMWbQX4pufQU7"
+arbitrage_contract = "BnvW7qAWpur6tcVHsmkgRjiH1orAc7ERL6aVymBPpNEB"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
 cluster = "mainnet"
-wallet = "/Users/zhengwei/Desktop/wallet-keypair-mainnet.json"
+wallet = "/Users/springbugs/.solana/accounts/3n9fuagU7XgahE6skJNEt5njDbyamiG8oT5V9gMZ83vE.json"
+# wallet = "/Users/zhengwei/Desktop/wallet-keypair-mainnet.json"
+# cluster = "devnet"
+# wallet = "/Users/springbugs/.solana/accounts/BaGpW18zBa1qTwy5WoFdZ1bo6UDxJk4DXCNJRPszY4cc.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
