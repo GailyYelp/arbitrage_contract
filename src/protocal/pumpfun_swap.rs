@@ -1,4 +1,5 @@
 use crate::errors::ArbitrageError;
+use crate::instructions::types::append_remaining_accounts;
 use crate::instructions::types::read_token_amount;
 use crate::instructions::types::SwapResult;
 use crate::protocal::pumpfun_amm::simulate_swap_base_input;
@@ -9,6 +10,7 @@ use anchor_lang::solana_program::program::invoke;
 // PumpSwap 指令选择器 (链上真实的discriminator)
 pub const PUMPFUN_AMM_BUY_DISCRIMINATOR: &[u8; 8] = &[102, 6, 61, 18, 1, 218, 235, 234];
 pub const PUMPFUN_AMM_SELL_DISCRIMINATOR: &[u8; 8] = &[51, 230, 133, 164, 1, 127, 131, 173];
+pub const PUMPFUN_SWAP_MIN_ACCOUNTS: usize = 7;
 
 #[derive(Clone)]
 pub struct PumpFunSwapAccounts<'info> {
@@ -92,14 +94,7 @@ pub fn pumpfun_swap_swap<'info>(
     }
 
     // 动态补充剩余账户
-    for ai in accounts.remaining_accounts {
-        if ai.is_writable {
-            metas.push(AccountMeta::new(ai.key(), false));
-        } else {
-            metas.push(AccountMeta::new_readonly(ai.key(), false));
-        }
-        account_infos.push(ai);
-    }
+    append_remaining_accounts(&mut metas, &mut account_infos, accounts.remaining_accounts);
     account_infos.push(accounts.program.clone());
 
     // 构造 data 与账户顺序（严格按 BUY/SELL 对齐）
@@ -184,7 +179,7 @@ fn simulate_pumpfun_swap_buy_amount_by_input<'info>(
         virtual_token_reserves,
         virtual_sol_reserves,
         total_fee_base_point,
-        max_sol_in - 2, // 扣除 2 个 lamport 用于手续费
-    );
+        max_sol_in.saturating_sub(2), // 扣除 2 个 lamport 用于手续费
+    )?;
     Ok(token_amount_out)
 }

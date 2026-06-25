@@ -1,4 +1,5 @@
 use crate::instructions::types::read_token_amount;
+use crate::instructions::types::token_balance_delta;
 use crate::instructions::types::SwapResult;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::instruction::{AccountMeta, Instruction};
@@ -10,6 +11,7 @@ pub const RAYDIUM_LAUNCHPAD_BUY_EXACT_IN_SELECTOR: &[u8; 8] =
 // 9527de9bd37c981a hex -> u8 array
 pub const RAYDIUM_LAUNCHPAD_SELL_EXACT_IN_SELECTOR: &[u8; 8] =
     &[149, 39, 222, 155, 211, 124, 152, 26];
+pub const RAYDIUM_LAUNCHPAD_MIN_ACCOUNTS: usize = 8;
 
 #[derive(Clone)]
 pub struct RaydiumLaunchpadAccounts<'info> {
@@ -28,9 +30,9 @@ pub struct RaydiumLaunchpadAccounts<'info> {
     pub quote_token_program: &'info AccountInfo<'info>, // 13. 计价代币program
     pub event_authority: &'info AccountInfo<'info>,  // 14. event authority账户
     pub program: &'info AccountInfo<'info>,          // 15. program账户
-    // pub system_program: &'info AccountInfo<'info>,   // 16. system program
-    // pub observation_state: &'info AccountInfo<'info>, // 17. observation账户
-    // pub observation_state2: &'info AccountInfo<'info>, // 18. observation账户
+                                                     // pub system_program: &'info AccountInfo<'info>,   // 16. system program
+                                                     // pub observation_state: &'info AccountInfo<'info>, // 17. observation账户
+                                                     // pub observation_state2: &'info AccountInfo<'info>, // 18. observation账户
 }
 
 pub fn raydium_launchpad_swap<'info>(
@@ -46,7 +48,7 @@ pub fn raydium_launchpad_swap<'info>(
         accounts.user_quote_token
     };
     let pre_out = read_token_amount(output_token_account)?;
-    
+
     // 构造 Raydium Launchpad 交换指令
     let metas = vec![
         AccountMeta::new_readonly(accounts.payer.key(), true),
@@ -121,8 +123,7 @@ pub fn raydium_launchpad_swap<'info>(
     } else {
         accounts.user_quote_token
     };
-    let post_out = read_token_amount(output_token_account)?;
-    let amount_out = post_out.saturating_sub(pre_out);
+    let amount_out = token_balance_delta(output_token_account, pre_out)?;
     Ok(SwapResult {
         amount_out,
         fee_amount: 0,

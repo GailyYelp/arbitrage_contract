@@ -1,4 +1,6 @@
+use crate::instructions::types::append_remaining_accounts;
 use crate::instructions::types::read_token_amount;
+use crate::instructions::types::token_balance_delta;
 use crate::instructions::types::SwapResult;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::instruction::{AccountMeta, Instruction};
@@ -8,6 +10,7 @@ use anchor_lang::solana_program::program::invoke;
 pub const PUMPFUN_AMM_BUY_DISCRIMINATOR: &[u8; 8] = &[102, 6, 61, 18, 1, 218, 235, 234];
 // sell discriminator
 pub const PUMPFUN_AMM_SELL_DISCRIMINATOR: &[u8; 8] = &[51, 230, 133, 164, 1, 127, 131, 173];
+pub const PUMPFUN_AMM_MIN_ACCOUNTS: usize = 10;
 
 #[derive(Clone)]
 pub struct PumpFunAmmAccounts<'info> {
@@ -104,14 +107,7 @@ pub fn pumpfun_amm_swap<'info>(
     ];
 
     // 动态补充：从 remaining_accounts 追加与 PumpFunAMM 程序相关且不在基础集中的账户（例如 global_volume_accumulator + user_volume_accumulator)
-    for ai in accounts.remaining_accounts {
-        if ai.is_writable {
-            metas.push(AccountMeta::new(ai.key(), false));
-        } else {
-            metas.push(AccountMeta::new_readonly(ai.key(), false));
-        }
-        account_infos.push(ai);
-    }
+    append_remaining_accounts(&mut metas, &mut account_infos, accounts.remaining_accounts);
     account_infos.push(accounts.program.clone());
 
     // 构造 data
@@ -138,8 +134,7 @@ pub fn pumpfun_amm_swap<'info>(
     // Invoke
     invoke(&ix, &account_infos)?;
 
-    let post_out = read_token_amount(output_token_account)?;
-    let amount_out = post_out.saturating_sub(pre_out);
+    let amount_out = token_balance_delta(output_token_account, pre_out)?;
     Ok(SwapResult {
         amount_out,
         fee_amount: 0,
@@ -164,14 +159,17 @@ pub fn simulate_buy_amount_by_input<'info>(
         base_amount,
         quote_amout,
         total_fee_base_point,
-        input_amount - 2, // 扣除 2 个 lamport 用于手续费
-    );
-    return Ok(output_amount);
+        input_amount.saturating_sub(2), // 扣除 2 个 lamport 用于手续费
+    )?;
+    Ok(output_amount)
 }
 
 // 除法向上取整
-pub fn div_up(a: u64, b: u64) -> u64 {
-    (a + b - 1) / b
+pub fn div_up(a: u128, b: u128) -> Option<u128> {
+    if b == 0 {
+        return None;
+    }
+    a.checked_add(b.checked_sub(1)?)?.checked_div(b)
 }
 
 pub fn swap_base_input(
@@ -191,21 +189,52 @@ pub fn simulate_swap_base_input(
     y: u64,
     total_fee_base_point: u64,
     input_amount: u64,
-) -> u64 {
+) -> Result<u64> {
     // msg!("x: {:?}, y: {:?}", x, y);
     // 计算手续费
-    let input_amount_without_fee = div_up(input_amount * 10000, 10000 + total_fee_base_point);
+    let input_amount_without_fee = div_up(
+        u128::from(input_amount)
+            .checked_mul(10000)
+            .ok_or(crate::errors::ArbitrageError::MathOverflow)?,
+        10000u128
+            .checked_add(u128::from(total_fee_base_point))
+            .ok_or(crate::errors::ArbitrageError::MathOverflow)?,
+    )
+    .ok_or(crate::errors::ArbitrageError::MathOverflow)?;
     // msg!("input_amount_without_fee: {:?}", input_amount_without_fee);
-    let total_fee = div_up(input_amount_without_fee * total_fee_base_point, 10000);
-    let input_amount_without_fee = input_amount - total_fee;
+    let total_fee = div_up(
+        input_amount_without_fee
+            .checked_mul(u128::from(total_fee_base_point))
+            .ok_or(crate::errors::ArbitrageError::MathOverflow)?,
+        10000,
+    )
+    .ok_or(crate::errors::ArbitrageError::MathOverflow)?;
+    let input_amount_without_fee = u128::from(input_amount).saturating_sub(total_fee);
     // msg!("total_fee: {:?}", total_fee);
     // msg!("input_amount_without_fee: {:?}", input_amount_without_fee);
-    let output_amount = swap_base_input(
-        u128::from(input_amount_without_fee),
-        u128::from(y),
-        u128::from(x),
-    )
-    .unwrap_or(0);
+    let output_amount =
+        swap_base_input(input_amount_without_fee, u128::from(y), u128::from(x)).unwrap_or(0);
     // msg!("output_amount: {:?}", output_amount);
-    output_amount as u64
+    u64::try_from(output_amount).map_err(|_| crate::errors::ArbitrageError::MathOverflow.into())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn div_up_handles_zero_denominator() {
+        assert_eq!(div_up(1, 0), None);
+    }
+
+    #[test]
+    fn simulate_swap_handles_tiny_input_without_underflow() {
+        assert_eq!(simulate_swap_base_input(1_000, 1_000, 100, 1).unwrap(), 0);
+    }
+
+    #[test]
+    fn simulate_swap_uses_checked_large_math() {
+        let out = simulate_swap_base_input(u64::MAX, u64::MAX, 100, u64::MAX).unwrap();
+        assert!(out > 0);
+    }
 }

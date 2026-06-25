@@ -1,12 +1,13 @@
 use crate::instructions::types::read_token_amount;
+use crate::instructions::types::token_balance_delta;
 use crate::instructions::types::SwapResult;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::instruction::{AccountMeta, Instruction};
 use anchor_lang::solana_program::program::invoke;
 
-
 // Raydium CPMM SwapBaseIn 交易指令选择器
 pub const RAYDIUM_CPMM_SWAP_BASE_IN_SELECTOR: &[u8; 8] = &[143, 190, 90, 218, 196, 30, 51, 222];
+pub const RAYDIUM_CPMM_MIN_ACCOUNTS: usize = 7;
 
 #[derive(Clone)]
 pub struct RaydiumCpmmAccounts<'info> {
@@ -85,8 +86,7 @@ pub fn raydium_cpmm_swap<'info>(
     invoke(&ix, &account_infos)?;
 
     // 读取执行后余额并计算真实产出
-    let post_out = read_token_amount(accounts.output_token_account)?;
-    let amount_out = post_out.saturating_sub(pre_out);
+    let amount_out = token_balance_delta(accounts.output_token_account, pre_out)?;
     Ok(SwapResult {
         amount_out,
         fee_amount: 0,

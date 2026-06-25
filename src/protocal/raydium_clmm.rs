@@ -1,4 +1,6 @@
+use crate::instructions::types::append_remaining_accounts;
 use crate::instructions::types::read_token_amount;
+use crate::instructions::types::token_balance_delta;
 use crate::instructions::types::SwapResult;
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::instruction::{AccountMeta, Instruction};
@@ -6,6 +8,7 @@ use anchor_lang::solana_program::program::invoke;
 
 // Raydium CLMM SwapBaseIn 交易指令选择器
 pub const RAYDIUM_CLMM_SWAP_V2_SELECTOR: &[u8; 8] = &[43, 4, 237, 11, 26, 201, 30, 98];
+pub const RAYDIUM_CLMM_MIN_ACCOUNTS: usize = 8;
 
 #[derive(Clone)]
 pub struct RaydiumClmmAccounts<'info> {
@@ -68,14 +71,7 @@ pub fn raydium_clmm_swap<'info>(
     ];
 
     // 动态补充：从 remaining_accounts 追加与 CLMM 程序相关且不在基础集中的账户（例如 extension / tick arrays)
-    for ai in accounts.remaining_accounts {
-        if ai.is_writable {
-            metas.push(AccountMeta::new(ai.key(), false));
-        } else {
-            metas.push(AccountMeta::new_readonly(ai.key(), false));
-        }
-        account_infos.push(ai);
-    }
+    append_remaining_accounts(&mut metas, &mut account_infos, accounts.remaining_accounts);
     // CLMM 程序账户
     account_infos.push(accounts.program.clone());
 
@@ -98,8 +94,7 @@ pub fn raydium_clmm_swap<'info>(
     // Invoke
     invoke(&ix, &account_infos)?;
 
-    let post_out = read_token_amount(accounts.output_token_account)?;
-    let amount_out = post_out.saturating_sub(pre_out);
+    let amount_out = token_balance_delta(accounts.output_token_account, pre_out)?;
     Ok(SwapResult {
         amount_out,
         fee_amount: 0,
