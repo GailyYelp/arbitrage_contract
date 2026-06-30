@@ -37,12 +37,12 @@ pub struct RaydiumLaunchpadAccounts<'info> {
 
 pub fn raydium_launchpad_swap<'info>(
     accounts: RaydiumLaunchpadAccounts<'info>,
-    direction: u8, // 0: buy, 1: sell
+    direction: u8, // 0: sell/base -> quote, 1: buy/quote -> base
     amount_in: u64,
     minimum_amount_out: u64,
 ) -> Result<SwapResult> {
     // 读取执行前余额
-    let output_token_account = if direction == 0 {
+    let output_token_account = if launchpad_direction_outputs_base(direction)? {
         accounts.user_base_token
     } else {
         accounts.user_quote_token
@@ -97,11 +97,7 @@ pub fn raydium_launchpad_swap<'info>(
     // 指令数据 (根据Raydium程序规范构造)
     let share_fee_rate: u64 = 0;
     let mut data = Vec::with_capacity(32);
-    data.extend_from_slice(if direction == 0 {
-        RAYDIUM_LAUNCHPAD_SELL_EXACT_IN_SELECTOR
-    } else {
-        RAYDIUM_LAUNCHPAD_BUY_EXACT_IN_SELECTOR
-    });
+    data.extend_from_slice(launchpad_exact_in_selector(direction)?);
     data.extend_from_slice(&amount_in.to_le_bytes());
     data.extend_from_slice(&minimum_amount_out.to_le_bytes());
     data.extend_from_slice(&share_fee_rate.to_le_bytes());
@@ -118,7 +114,7 @@ pub fn raydium_launchpad_swap<'info>(
     invoke(&ix, &account_infos)?;
 
     // 读取执行后余额并计算真实产出
-    let output_token_account = if direction == 0 {
+    let output_token_account = if launchpad_direction_outputs_base(direction)? {
         accounts.user_base_token
     } else {
         accounts.user_quote_token
@@ -128,4 +124,49 @@ pub fn raydium_launchpad_swap<'info>(
         amount_out,
         fee_amount: 0,
     })
+}
+
+fn launchpad_exact_in_selector(direction: u8) -> Result<&'static [u8; 8]> {
+    match direction {
+        0 => Ok(RAYDIUM_LAUNCHPAD_SELL_EXACT_IN_SELECTOR),
+        1 => Ok(RAYDIUM_LAUNCHPAD_BUY_EXACT_IN_SELECTOR),
+        _ => Err(crate::errors::ArbitrageError::InvalidAccount.into()),
+    }
+}
+
+fn launchpad_direction_outputs_base(direction: u8) -> Result<bool> {
+    match direction {
+        0 => Ok(false),
+        1 => Ok(true),
+        _ => Err(crate::errors::ArbitrageError::InvalidAccount.into()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn direction_zero_is_sell_exact_in_and_outputs_quote() {
+        assert_eq!(
+            launchpad_exact_in_selector(0).unwrap(),
+            RAYDIUM_LAUNCHPAD_SELL_EXACT_IN_SELECTOR
+        );
+        assert!(!launchpad_direction_outputs_base(0).unwrap());
+    }
+
+    #[test]
+    fn direction_one_is_buy_exact_in_and_outputs_base() {
+        assert_eq!(
+            launchpad_exact_in_selector(1).unwrap(),
+            RAYDIUM_LAUNCHPAD_BUY_EXACT_IN_SELECTOR
+        );
+        assert!(launchpad_direction_outputs_base(1).unwrap());
+    }
+
+    #[test]
+    fn invalid_direction_is_rejected() {
+        assert!(launchpad_exact_in_selector(2).is_err());
+        assert!(launchpad_direction_outputs_base(2).is_err());
+    }
 }

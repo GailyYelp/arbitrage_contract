@@ -1,8 +1,15 @@
 use anchor_lang::prelude::*;
 
 use crate::errors::ArbitrageError;
-use crate::instructions::accounts::parse_route_accounts;
-use crate::instructions::types::{token_program_for_mint, validate_token_account_for_mint};
+use crate::instructions::accounts::{parse_route_accounts, validate_step_account_flags};
+use crate::instructions::program_ids::{
+    validate_step_fixed_accounts, validate_step_program_account,
+};
+use crate::instructions::types::{
+    token_program_for_mint, validate_pumpfun_amm_semantic_accounts,
+    validate_pumpfun_swap_semantic_accounts, validate_raydium_pool_v4_authority,
+    validate_token_account_for_mint, validate_token_account_for_mint_and_authority,
+};
 use crate::protocal::{
     pumpfun_amm::{pumpfun_amm_swap, PumpFunAmmAccounts, PUMPFUN_AMM_MIN_ACCOUNTS},
     pumpfun_swap::{pumpfun_swap_swap, PumpFunSwapAccounts, PUMPFUN_SWAP_MIN_ACCOUNTS},
@@ -55,11 +62,27 @@ pub fn execute_arbitrage<'info>(
             token_program_for_mint(in_mint_ai, token_program, token_2022_program)?;
         let out_mint_program_ai =
             token_program_for_mint(out_mint_ai, token_program, token_2022_program)?;
-        validate_token_account_for_mint(user_in_ai, in_mint_ai, in_mint_program_ai)?;
-        validate_token_account_for_mint(user_out_ai, out_mint_ai, out_mint_program_ai)?;
+        validate_token_account_for_mint_and_authority(
+            user_in_ai,
+            in_mint_ai,
+            in_mint_program_ai,
+            payer,
+        )?;
+        validate_token_account_for_mint_and_authority(
+            user_out_ai,
+            out_mint_ai,
+            out_mint_program_ai,
+            payer,
+        )?;
 
         // 切分本步账户组
         let step_slice = &remaining_accounts[route_accounts.step_ranges[i].clone()];
+        let program_account = step_slice
+            .first()
+            .ok_or(ArbitrageError::InvalidAccountCount)?;
+        validate_step_account_flags(step.protocol, step_slice)?;
+        validate_step_program_account(step.protocol, program_account)?;
+        validate_step_fixed_accounts(step.protocol, step_slice)?;
 
         let result = match step.protocol {
             Protocol::RaydiumCPMM => {
@@ -67,6 +90,18 @@ pub fn execute_arbitrage<'info>(
                     step_slice.len() >= RAYDIUM_CPMM_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
                 );
+                validate_token_account_for_mint_and_authority(
+                    &step_slice[4],
+                    in_mint_ai,
+                    in_mint_program_ai,
+                    &step_slice[1],
+                )?;
+                validate_token_account_for_mint_and_authority(
+                    &step_slice[5],
+                    out_mint_ai,
+                    out_mint_program_ai,
+                    &step_slice[1],
+                )?;
                 let account_infos = RaydiumCpmmAccounts {
                     program: &step_slice[0],
                     payer: payer,
@@ -83,13 +118,15 @@ pub fn execute_arbitrage<'info>(
                     output_mint: out_mint_ai,
                     observation_state: &step_slice[6],
                 };
-                raydium_cpmm_swap(account_infos, current_amount, 0)
+                raydium_cpmm_swap(account_infos, current_amount, step.min_output_amount)
             }
             Protocol::RaydiumCLMM => {
                 require!(
                     step_slice.len() >= RAYDIUM_CLMM_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
                 );
+                validate_token_account_for_mint(&step_slice[3], in_mint_ai, in_mint_program_ai)?;
+                validate_token_account_for_mint(&step_slice[4], out_mint_ai, out_mint_program_ai)?;
                 let account_infos = RaydiumClmmAccounts {
                     program: &step_slice[0],
                     payer: payer,
@@ -107,13 +144,46 @@ pub fn execute_arbitrage<'info>(
                     output_mint: &out_mint_ai,
                     remaining_accounts: step_slice[7..].to_vec(),
                 };
-                raydium_clmm_swap(account_infos, current_amount, 0)
+                raydium_clmm_swap(account_infos, current_amount, step.min_output_amount)
             }
             Protocol::RaydiumPoolV4 => {
                 require!(
                     step_slice.len() >= RAYDIUM_POOL_V4_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
                 );
+                let (
+                    coin_vault_mint,
+                    pc_vault_mint,
+                    coin_vault_token_program,
+                    pc_vault_token_program,
+                ) = if direction == 0 {
+                    (
+                        in_mint_ai,
+                        out_mint_ai,
+                        in_mint_program_ai,
+                        out_mint_program_ai,
+                    )
+                } else {
+                    (
+                        out_mint_ai,
+                        in_mint_ai,
+                        out_mint_program_ai,
+                        in_mint_program_ai,
+                    )
+                };
+                validate_token_account_for_mint_and_authority(
+                    &step_slice[5],
+                    coin_vault_mint,
+                    coin_vault_token_program,
+                    &step_slice[2],
+                )?;
+                validate_token_account_for_mint_and_authority(
+                    &step_slice[6],
+                    pc_vault_mint,
+                    pc_vault_token_program,
+                    &step_slice[2],
+                )?;
+                validate_raydium_pool_v4_authority(&step_slice[0], &step_slice[1], &step_slice[2])?;
                 let account_infos = RaydiumPoolV4Accounts {
                     program: &step_slice[0],
                     token_program: token_program,
@@ -135,7 +205,7 @@ pub fn execute_arbitrage<'info>(
                     output_token_account: user_out_ai,
                     payer: payer,
                 };
-                raydium_pool_v4_swap(account_infos, current_amount, 0)
+                raydium_pool_v4_swap(account_infos, current_amount, step.min_output_amount)
             }
             Protocol::RaydiumLaunchPad => {
                 require!(
@@ -150,26 +220,38 @@ pub fn execute_arbitrage<'info>(
                     base_token_program,
                     quote_token_program,
                 ) = if direction == 0 {
-                    // buy
+                    // sell/base -> quote
                     (
-                        out_mint_ai,
                         in_mint_ai,
-                        user_out_ai,
+                        out_mint_ai,
                         user_in_ai,
-                        out_mint_program_ai,
+                        user_out_ai,
                         in_mint_program_ai,
+                        out_mint_program_ai,
                     )
                 } else {
-                    // sell
+                    // buy/quote -> base
                     (
-                        in_mint_ai,
                         out_mint_ai,
-                        user_in_ai,
+                        in_mint_ai,
                         user_out_ai,
-                        in_mint_program_ai,
+                        user_in_ai,
                         out_mint_program_ai,
+                        in_mint_program_ai,
                     )
                 };
+                validate_token_account_for_mint_and_authority(
+                    &step_slice[5],
+                    base_mint,
+                    base_token_program,
+                    &step_slice[1],
+                )?;
+                validate_token_account_for_mint_and_authority(
+                    &step_slice[6],
+                    quote_mint,
+                    quote_token_program,
+                    &step_slice[1],
+                )?;
                 let account_infos = RaydiumLaunchpadAccounts {
                     payer: payer,
                     authority: &step_slice[1],
@@ -190,7 +272,12 @@ pub fn execute_arbitrage<'info>(
                     // observation_state: &step_slice[8],
                     // observation_state2: &step_slice[9],
                 };
-                raydium_launchpad_swap(account_infos, direction, current_amount, 0)
+                raydium_launchpad_swap(
+                    account_infos,
+                    direction,
+                    current_amount,
+                    step.min_output_amount,
+                )
             }
             Protocol::PumpFunSwap => {
                 require!(
@@ -202,6 +289,13 @@ pub fn execute_arbitrage<'info>(
                 } else {
                     (in_mint_ai, user_in_ai, in_mint_program_ai) // sell
                 };
+                validate_token_account_for_mint(&step_slice[4], mint, token_program)?;
+                validate_pumpfun_swap_semantic_accounts(
+                    &step_slice[0],
+                    payer,
+                    step_slice,
+                    direction,
+                )?;
 
                 let account_infos = PumpFunSwapAccounts {
                     program: &step_slice[0],
@@ -255,6 +349,17 @@ pub fn execute_arbitrage<'info>(
                     )
                 };
 
+                validate_token_account_for_mint(&step_slice[3], base_mint, base_token_program)?;
+                validate_token_account_for_mint(&step_slice[4], quote_mint, quote_token_program)?;
+                validate_pumpfun_amm_semantic_accounts(
+                    &step_slice[0],
+                    payer,
+                    associated_token_program,
+                    quote_token_program,
+                    base_mint,
+                    quote_mint,
+                    step_slice,
+                )?;
                 let account_infos = PumpFunAmmAccounts {
                     program: &step_slice[0],
                     pool_state: &step_slice[1],
@@ -281,6 +386,8 @@ pub fn execute_arbitrage<'info>(
             }
         }?;
 
+        validate_step_min_output(result.amount_out, step.min_output_amount)?;
+
         // 更新运行金额（余额差法结果）
         current_amount = result.amount_out;
     }
@@ -294,4 +401,29 @@ pub fn execute_arbitrage<'info>(
         ArbitrageError::InsufficientProfit
     );
     Ok(())
+}
+
+fn validate_step_min_output(amount_out: u64, min_output_amount: u64) -> Result<()> {
+    require!(
+        amount_out >= min_output_amount,
+        ArbitrageError::InsufficientOutputAmount
+    );
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn step_min_output_accepts_equal_or_above_threshold() {
+        assert!(validate_step_min_output(100, 100).is_ok());
+        assert!(validate_step_min_output(101, 100).is_ok());
+    }
+
+    #[test]
+    fn step_min_output_rejects_below_threshold() {
+        let err = validate_step_min_output(99, 100).unwrap_err();
+        assert_eq!(err, ArbitrageError::InsufficientOutputAmount.into());
+    }
 }

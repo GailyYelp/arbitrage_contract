@@ -44,6 +44,9 @@ pub enum ArbitrageError {
     #[msg("Invalid public key format")]
     InvalidPublicKey,
 
+    #[msg("Invalid program id")]
+    InvalidProgramId,
+
     // DEX交换相关错误
     #[msg("Missing required account")]
     MissingRequiredAccount,

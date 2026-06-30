@@ -173,8 +173,8 @@ fn simulate_pumpfun_swap_buy_amount_by_input<'info>(
     // 需要读取到 complete(1B) 与 creator(32B)，creator 起始偏移为 41（相对结构），所以至少 8+73 字节
     require!(pool_data.len() >= 8 + 73, ArbitrageError::InvalidAccount);
 
-    let virtual_token_reserves = u64::from_le_bytes(pool_data[8..16].try_into().ok().unwrap());
-    let virtual_sol_reserves = u64::from_le_bytes(pool_data[16..24].try_into().ok().unwrap());
+    let virtual_token_reserves = read_pool_u64(&pool_data, 8)?;
+    let virtual_sol_reserves = read_pool_u64(&pool_data, 16)?;
     let token_amount_out = simulate_swap_base_input(
         virtual_token_reserves,
         virtual_sol_reserves,
@@ -182,4 +182,14 @@ fn simulate_pumpfun_swap_buy_amount_by_input<'info>(
         max_sol_in.saturating_sub(2), // 扣除 2 个 lamport 用于手续费
     )?;
     Ok(token_amount_out)
+}
+
+fn read_pool_u64(data: &[u8], offset: usize) -> Result<u64> {
+    let end = offset.checked_add(8).ok_or(ArbitrageError::MathOverflow)?;
+    let bytes = data
+        .get(offset..end)
+        .ok_or(ArbitrageError::InvalidAccount)?
+        .try_into()
+        .map_err(|_| ArbitrageError::InvalidAccount)?;
+    Ok(u64::from_le_bytes(bytes))
 }

@@ -23,9 +23,16 @@ idl-build = ["anchor-lang/idl-build"]
 [profile.release]
 overflow-checks = true
 
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(feature, values("anchor-debug", "cpi", "custom-heap", "custom-panic"))',
+    'cfg(target_os, values("solana"))',
+] }
+
 [dependencies]
 anchor-lang = "=0.31.1"
 anchor-spl = "=0.31.1"
 
 [dev-dependencies]
 solana-keypair = "=2.2.3"
+serde_json = "1.0.143"

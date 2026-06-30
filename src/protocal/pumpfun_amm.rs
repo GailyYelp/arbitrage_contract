@@ -212,8 +212,8 @@ pub fn simulate_swap_base_input(
     let input_amount_without_fee = u128::from(input_amount).saturating_sub(total_fee);
     // msg!("total_fee: {:?}", total_fee);
     // msg!("input_amount_without_fee: {:?}", input_amount_without_fee);
-    let output_amount =
-        swap_base_input(input_amount_without_fee, u128::from(y), u128::from(x)).unwrap_or(0);
+    let output_amount = swap_base_input(input_amount_without_fee, u128::from(y), u128::from(x))
+        .ok_or(crate::errors::ArbitrageError::MathOverflow)?;
     // msg!("output_amount: {:?}", output_amount);
     u64::try_from(output_amount).map_err(|_| crate::errors::ArbitrageError::MathOverflow.into())
 }
