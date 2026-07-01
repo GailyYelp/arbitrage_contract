@@ -9,9 +9,9 @@ use crate::protocal::{
     raydium_launchpad::RAYDIUM_LAUNCHPAD_MIN_ACCOUNTS,
     raydium_pool_v4::RAYDIUM_POOL_V4_MIN_ACCOUNTS,
 };
-use crate::state::{Protocol, SwapArbParams};
+use crate::state::{Protocol, SwapArbParams, REMAINING_ACCOUNTS_FIXED_PREFIX_LEN};
 
-pub const FIXED_REMAINING_ACCOUNTS: usize = 5;
+pub const FIXED_REMAINING_ACCOUNTS: usize = REMAINING_ACCOUNTS_FIXED_PREFIX_LEN;
 
 pub struct RouteAccounts<'a, 'info> {
     pub payer: &'a AccountInfo<'info>,

@@ -10,19 +10,27 @@ use anchor_lang::prelude::*;
 ///    - 客户端常量：ARBITRAGE_CONTRACT_ID = "<ProgramID>"
 ///
 /// 1) 显式切换到 devnet 与钱包。不要把个人钱包绝对路径提交到仓库。
+/// ```text
 ///    solana config set --url https://api.devnet.solana.com
 ///    solana config set -k <DEVNET_WALLET_KEYPAIR>
+/// ```
 ///
 /// 2) 构建（带 devnet 特性）
+/// ```text
 ///    anchor build -- --features devnet
+/// ```
 ///
 /// 3) 部署
+/// ```text
 ///    anchor deploy --program-name arbitrage_contract \
 ///                  --program-keypair <DEVNET_PROGRAM_KEYPAIR> \
 ///                  --provider.cluster devnet
+/// ```
 ///
 /// 4) 验证（可选）
+/// ```text
 ///    solana program show <DEVNET_PROGRAM_ID>
+/// ```
 ///
 /// mainnet 部署命令
 ///
@@ -32,17 +40,28 @@ use anchor_lang::prelude::*;
 ///    - 客户端常量：ARBITRAGE_CONTRACT_ID = "<MAINNET_PROGRAM_ID>"
 ///
 /// 1) 设置主网与钱包。主网部署必须通过显式环境变量或命令行参数传入。
+/// ```text
 ///    solana config set --url https://api.mainnet-beta.solana.com
 ///    solana config set -k <MAINNET_WALLET_KEYPAIR>
+/// ```
 ///
 /// 2) 构建（不要加 devnet 特性）
+/// ```text
 ///    anchor build
+/// ```
 ///
 /// 3) 部署（Anchor 0.31 需指定 program-name）
+/// ```text
+///    scripts/preflight_deploy.sh --cluster mainnet \
+///                                --provider-cluster mainnet \
+///                                --program-keypair <MAINNET_PROGRAM_KEYPAIR> \
+///                                --wallet <MAINNET_WALLET_KEYPAIR>
+///
 ///    ANCHOR_PROVIDER_URL=https://api.mainnet-beta.solana.com \
 ///    ANCHOR_WALLET=<MAINNET_WALLET_KEYPAIR> \
 ///    anchor deploy --program-name arbitrage_contract \
 ///                  --program-keypair <MAINNET_PROGRAM_KEYPAIR>
+/// ```
 pub mod errors;
 pub mod instructions;
 pub mod protocal;
@@ -70,8 +89,6 @@ pub mod arbitrage_contract {
 
 #[cfg(test)]
 mod tests {
-    use solana_keypair::Keypair;
-
     const PRODUCTION_SOURCES: &[(&str, &str)] = &[
         ("src/errors.rs", include_str!("errors.rs")),
         (
@@ -125,20 +142,6 @@ mod tests {
 
     const FORBIDDEN_PRODUCTION_PATTERNS: &[&str] =
         &[".unwrap(", ".expect(", "panic!(", ".unwrap_or"];
-
-    #[test]
-    fn generate_secret_bin_from_base58() {
-        const BASE58_KEYPAIR: &str = "";
-        if BASE58_KEYPAIR.is_empty() {
-            return;
-        }
-
-        let keypair = Keypair::from_base58_string(BASE58_KEYPAIR);
-
-        let secret_bytes = keypair.to_bytes();
-
-        println!("secret_bytes: {:?}", secret_bytes);
-    }
 
     #[test]
     fn production_sources_do_not_use_panicking_or_fallback_helpers() {

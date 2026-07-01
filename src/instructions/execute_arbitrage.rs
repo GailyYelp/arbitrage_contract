@@ -7,7 +7,9 @@ use crate::instructions::program_ids::{
 };
 use crate::instructions::types::{
     token_program_for_mint, validate_pumpfun_amm_semantic_accounts,
-    validate_pumpfun_swap_semantic_accounts, validate_raydium_pool_v4_authority,
+    validate_pumpfun_swap_semantic_accounts, validate_raydium_clmm_semantic_accounts,
+    validate_raydium_cpmm_semantic_accounts, validate_raydium_launchpad_semantic_accounts,
+    validate_raydium_pool_v4_authority, validate_raydium_pool_v4_semantic_accounts,
     validate_token_account_for_mint, validate_token_account_for_mint_and_authority,
 };
 use crate::protocal::{
@@ -102,9 +104,17 @@ pub fn execute_arbitrage<'info>(
                     out_mint_program_ai,
                     &step_slice[1],
                 )?;
+                validate_raydium_cpmm_semantic_accounts(
+                    step_slice,
+                    direction,
+                    in_mint_ai,
+                    out_mint_ai,
+                    in_mint_program_ai,
+                    out_mint_program_ai,
+                )?;
                 let account_infos = RaydiumCpmmAccounts {
                     program: &step_slice[0],
-                    payer: payer,
+                    payer,
                     authority: &step_slice[1],
                     amm_config: &step_slice[2],
                     pool_state: &step_slice[3],
@@ -127,9 +137,10 @@ pub fn execute_arbitrage<'info>(
                 );
                 validate_token_account_for_mint(&step_slice[3], in_mint_ai, in_mint_program_ai)?;
                 validate_token_account_for_mint(&step_slice[4], out_mint_ai, out_mint_program_ai)?;
+                validate_raydium_clmm_semantic_accounts(step_slice, in_mint_ai, out_mint_ai)?;
                 let account_infos = RaydiumClmmAccounts {
                     program: &step_slice[0],
-                    payer: payer,
+                    payer,
                     amm_config: &step_slice[1],
                     pool_state: &step_slice[2],
                     input_token_account: user_in_ai,
@@ -137,11 +148,11 @@ pub fn execute_arbitrage<'info>(
                     input_vault: &step_slice[3],
                     output_vault: &step_slice[4],
                     observation_state: &step_slice[5],
-                    token_program: token_program,
+                    token_program,
                     token_program_2022: token_2022_program,
                     memo_program: &step_slice[6],
-                    input_mint: &in_mint_ai,
-                    output_mint: &out_mint_ai,
+                    input_mint: in_mint_ai,
+                    output_mint: out_mint_ai,
                     remaining_accounts: step_slice[7..].to_vec(),
                 };
                 raydium_clmm_swap(account_infos, current_amount, step.min_output_amount)
@@ -183,10 +194,28 @@ pub fn execute_arbitrage<'info>(
                     pc_vault_token_program,
                     &step_slice[2],
                 )?;
+                validate_token_account_for_mint_and_authority(
+                    &step_slice[12],
+                    coin_vault_mint,
+                    coin_vault_token_program,
+                    &step_slice[14],
+                )?;
+                validate_token_account_for_mint_and_authority(
+                    &step_slice[13],
+                    pc_vault_mint,
+                    pc_vault_token_program,
+                    &step_slice[14],
+                )?;
                 validate_raydium_pool_v4_authority(&step_slice[0], &step_slice[1], &step_slice[2])?;
+                validate_raydium_pool_v4_semantic_accounts(
+                    step_slice,
+                    direction,
+                    in_mint_ai,
+                    out_mint_ai,
+                )?;
                 let account_infos = RaydiumPoolV4Accounts {
                     program: &step_slice[0],
-                    token_program: token_program,
+                    token_program,
                     pool_state: &step_slice[1],
                     amm_authority_info: &step_slice[2],
                     amm_open_orders: &step_slice[3],
@@ -203,7 +232,7 @@ pub fn execute_arbitrage<'info>(
                     market_vault_signer: &step_slice[14],
                     input_token_account: user_in_ai,
                     output_token_account: user_out_ai,
-                    payer: payer,
+                    payer,
                 };
                 raydium_pool_v4_swap(account_infos, current_amount, step.min_output_amount)
             }
@@ -252,20 +281,21 @@ pub fn execute_arbitrage<'info>(
                     quote_token_program,
                     &step_slice[1],
                 )?;
+                validate_raydium_launchpad_semantic_accounts(step_slice, base_mint, quote_mint)?;
                 let account_infos = RaydiumLaunchpadAccounts {
-                    payer: payer,
+                    payer,
                     authority: &step_slice[1],
                     global_config: &step_slice[2],
                     platform_config: &step_slice[3],
                     pool_state: &step_slice[4],
-                    user_base_token: user_base_token,
-                    user_quote_token: user_quote_token,
+                    user_base_token,
+                    user_quote_token,
                     base_vault: &step_slice[5],
                     quote_vault: &step_slice[6],
-                    base_mint: base_mint,
-                    quote_mint: quote_mint,
-                    base_token_program: base_token_program,
-                    quote_token_program: quote_token_program,
+                    base_mint,
+                    quote_mint,
+                    base_token_program,
+                    quote_token_program,
                     event_authority: &step_slice[7],
                     program: &step_slice[0],
                     // system_program: &ctx.accounts.system_program.to_account_info(),
@@ -301,14 +331,14 @@ pub fn execute_arbitrage<'info>(
                     program: &step_slice[0],
                     global_account: &step_slice[1],
                     fee_recipient: &step_slice[2],
-                    mint: mint,
+                    mint,
                     pool_id: &step_slice[3],
                     token_vault0: &step_slice[4],
-                    user_token_account: user_token_account,
-                    payer: payer,
-                    system_program: system_program,
+                    user_token_account,
+                    payer,
+                    system_program,
                     creator_vault: &step_slice[5],
-                    token_program: token_program,
+                    token_program,
                     event_authority: &step_slice[6],
                     remaining_accounts: step_slice[7..].to_vec(),
                 };
@@ -363,20 +393,20 @@ pub fn execute_arbitrage<'info>(
                 let account_infos = PumpFunAmmAccounts {
                     program: &step_slice[0],
                     pool_state: &step_slice[1],
-                    payer: payer,
+                    payer,
                     global_config: &step_slice[2],
-                    base_mint: base_mint,
-                    quote_mint: quote_mint,
-                    user_base_token_account: user_base_token_account,
-                    user_quote_token_account: user_quote_token_account,
+                    base_mint,
+                    quote_mint,
+                    user_base_token_account,
+                    user_quote_token_account,
                     pool_base_token_account: &step_slice[3],
                     pool_quote_token_account: &step_slice[4],
                     fee_recipient: &step_slice[5],
                     fee_recipient_ata: &step_slice[6],
-                    base_token_program: base_token_program,
-                    quote_token_program: quote_token_program,
-                    system_program: system_program,
-                    associated_token_program: associated_token_program,
+                    base_token_program,
+                    quote_token_program,
+                    system_program,
+                    associated_token_program,
                     event_authority: &step_slice[7],
                     coin_creator_vault_ata: &step_slice[8],
                     coin_creator_vault_authority: &step_slice[9],

@@ -12,8 +12,74 @@ pub const PUMPFUN_AMM_CREATOR_VAULT_SEED: &[u8] = b"creator_vault";
 pub const PUMPFUN_GLOBAL_VOLUME_ACCUMULATOR_SEED: &[u8] = b"global_volume_accumulator";
 pub const PUMPFUN_USER_VOLUME_ACCUMULATOR_SEED: &[u8] = b"user_volume_accumulator";
 const RAYDIUM_POOL_V4_NONCE_OFFSET: usize = 8;
+const U8_FIELD_LEN: usize = 1;
 const U64_FIELD_LEN: usize = 8;
+const U128_FIELD_LEN: usize = 16;
 const PUBKEY_FIELD_LEN: usize = 32;
+const RAYDIUM_POOL_V4_U64_PREFIX_FIELDS: usize = 16;
+const RAYDIUM_POOL_V4_FEES_U64_FIELDS: usize = 8;
+const RAYDIUM_POOL_V4_STATE_DATA_LEN: usize = (10 * U64_FIELD_LEN) + (4 * U128_FIELD_LEN);
+const RAYDIUM_POOL_V4_COIN_VAULT_OFFSET: usize =
+    (RAYDIUM_POOL_V4_U64_PREFIX_FIELDS + RAYDIUM_POOL_V4_FEES_U64_FIELDS) * U64_FIELD_LEN
+        + RAYDIUM_POOL_V4_STATE_DATA_LEN;
+const RAYDIUM_POOL_V4_PC_VAULT_OFFSET: usize = RAYDIUM_POOL_V4_COIN_VAULT_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_POOL_V4_COIN_MINT_OFFSET: usize = RAYDIUM_POOL_V4_PC_VAULT_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_POOL_V4_PC_MINT_OFFSET: usize = RAYDIUM_POOL_V4_COIN_MINT_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_POOL_V4_LP_MINT_OFFSET: usize = RAYDIUM_POOL_V4_PC_MINT_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_POOL_V4_OPEN_ORDERS_OFFSET: usize = RAYDIUM_POOL_V4_LP_MINT_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_POOL_V4_MARKET_OFFSET: usize = RAYDIUM_POOL_V4_OPEN_ORDERS_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_POOL_V4_MARKET_PROGRAM_OFFSET: usize =
+    RAYDIUM_POOL_V4_MARKET_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_POOL_V4_TARGET_ORDERS_OFFSET: usize =
+    RAYDIUM_POOL_V4_MARKET_PROGRAM_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_CPMM_POOL_STATE_DISCRIMINATOR: &[u8; 8] = &[247, 237, 227, 245, 215, 195, 222, 70];
+const RAYDIUM_CPMM_POOL_AMM_CONFIG_OFFSET: usize = 8;
+const RAYDIUM_CPMM_POOL_CREATOR_OFFSET: usize =
+    RAYDIUM_CPMM_POOL_AMM_CONFIG_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_CPMM_POOL_TOKEN_0_VAULT_OFFSET: usize =
+    RAYDIUM_CPMM_POOL_CREATOR_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_CPMM_POOL_TOKEN_1_VAULT_OFFSET: usize =
+    RAYDIUM_CPMM_POOL_TOKEN_0_VAULT_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_CPMM_POOL_LP_MINT_OFFSET: usize =
+    RAYDIUM_CPMM_POOL_TOKEN_1_VAULT_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_CPMM_POOL_TOKEN_0_MINT_OFFSET: usize =
+    RAYDIUM_CPMM_POOL_LP_MINT_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_CPMM_POOL_TOKEN_1_MINT_OFFSET: usize =
+    RAYDIUM_CPMM_POOL_TOKEN_0_MINT_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_CPMM_POOL_TOKEN_0_PROGRAM_OFFSET: usize =
+    RAYDIUM_CPMM_POOL_TOKEN_1_MINT_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_CPMM_POOL_TOKEN_1_PROGRAM_OFFSET: usize =
+    RAYDIUM_CPMM_POOL_TOKEN_0_PROGRAM_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_CPMM_POOL_OBSERVATION_KEY_OFFSET: usize =
+    RAYDIUM_CPMM_POOL_TOKEN_1_PROGRAM_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_CLMM_POOL_STATE_DISCRIMINATOR: &[u8; 8] = &[247, 237, 227, 245, 215, 195, 222, 70];
+const RAYDIUM_CLMM_POOL_AMM_CONFIG_OFFSET: usize = 8 + U8_FIELD_LEN;
+const RAYDIUM_CLMM_POOL_OWNER_OFFSET: usize =
+    RAYDIUM_CLMM_POOL_AMM_CONFIG_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_CLMM_POOL_TOKEN_MINT_0_OFFSET: usize =
+    RAYDIUM_CLMM_POOL_OWNER_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_CLMM_POOL_TOKEN_MINT_1_OFFSET: usize =
+    RAYDIUM_CLMM_POOL_TOKEN_MINT_0_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_CLMM_POOL_TOKEN_VAULT_0_OFFSET: usize =
+    RAYDIUM_CLMM_POOL_TOKEN_MINT_1_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_CLMM_POOL_TOKEN_VAULT_1_OFFSET: usize =
+    RAYDIUM_CLMM_POOL_TOKEN_VAULT_0_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_CLMM_POOL_OBSERVATION_KEY_OFFSET: usize =
+    RAYDIUM_CLMM_POOL_TOKEN_VAULT_1_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_LAUNCHPAD_POOL_STATE_DISCRIMINATOR: &[u8; 8] =
+    &[247, 237, 227, 245, 215, 195, 222, 70];
+const RAYDIUM_LAUNCHPAD_POOL_GLOBAL_CONFIG_OFFSET: usize =
+    8 + (11 * U64_FIELD_LEN) + (5 * U8_FIELD_LEN) + (5 * U64_FIELD_LEN);
+const RAYDIUM_LAUNCHPAD_POOL_PLATFORM_CONFIG_OFFSET: usize =
+    RAYDIUM_LAUNCHPAD_POOL_GLOBAL_CONFIG_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_LAUNCHPAD_POOL_BASE_MINT_OFFSET: usize =
+    RAYDIUM_LAUNCHPAD_POOL_PLATFORM_CONFIG_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_LAUNCHPAD_POOL_QUOTE_MINT_OFFSET: usize =
+    RAYDIUM_LAUNCHPAD_POOL_BASE_MINT_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_LAUNCHPAD_POOL_BASE_VAULT_OFFSET: usize =
+    RAYDIUM_LAUNCHPAD_POOL_QUOTE_MINT_OFFSET + PUBKEY_FIELD_LEN;
+const RAYDIUM_LAUNCHPAD_POOL_QUOTE_VAULT_OFFSET: usize =
+    RAYDIUM_LAUNCHPAD_POOL_BASE_VAULT_OFFSET + PUBKEY_FIELD_LEN;
 const PUMPFUN_SWAP_BONDING_CURVE_DISCRIMINATOR: &[u8; 8] = &[23, 183, 248, 55, 96, 216, 172, 96];
 const PUMPFUN_SWAP_BONDING_CURVE_CREATOR_OFFSET: usize = 49;
 const PUMPFUN_AMM_POOL_DISCRIMINATOR: &[u8; 8] = &[241, 154, 109, 4, 17, 177, 109, 188];
@@ -100,6 +166,255 @@ pub fn validate_raydium_pool_v4_authority<'info>(
     require_keys_eq!(
         authority.key(),
         expected_authority,
+        ArbitrageError::InvalidAccount
+    );
+    Ok(())
+}
+
+pub fn validate_raydium_pool_v4_semantic_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    direction: u8,
+    input_mint: &AccountInfo<'info>,
+    output_mint: &AccountInfo<'info>,
+) -> Result<()> {
+    require!(
+        step_accounts.len() >= 15,
+        ArbitrageError::InvalidAccountCount
+    );
+    let data = step_accounts[1].try_borrow_data()?;
+    let pool = read_raydium_pool_v4_semantic_keys(&data)?;
+    require_keys_eq!(
+        pool.open_orders,
+        step_accounts[3].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        pool.target_orders,
+        step_accounts[4].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        pool.coin_vault,
+        step_accounts[5].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        pool.pc_vault,
+        step_accounts[6].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        pool.market_program,
+        step_accounts[7].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        pool.market,
+        step_accounts[8].key(),
+        ArbitrageError::InvalidAccount
+    );
+
+    let (expected_input_mint, expected_output_mint) = match direction {
+        0 => (pool.coin_mint, pool.pc_mint),
+        1 => (pool.pc_mint, pool.coin_mint),
+        _ => return Err(ArbitrageError::InvalidInstructionData.into()),
+    };
+    require_keys_eq!(
+        expected_input_mint,
+        input_mint.key(),
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        expected_output_mint,
+        output_mint.key(),
+        ArbitrageError::InvalidTokenMint
+    );
+
+    for market_owned_account in [
+        &step_accounts[3],
+        &step_accounts[8],
+        &step_accounts[9],
+        &step_accounts[10],
+        &step_accounts[11],
+    ] {
+        require_keys_eq!(
+            market_owned_account.owner.key(),
+            step_accounts[7].key(),
+            ArbitrageError::InvalidAccount
+        );
+    }
+
+    Ok(())
+}
+
+pub fn validate_raydium_cpmm_semantic_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    direction: u8,
+    input_mint: &AccountInfo<'info>,
+    output_mint: &AccountInfo<'info>,
+    input_token_program: &AccountInfo<'info>,
+    output_token_program: &AccountInfo<'info>,
+) -> Result<()> {
+    require!(
+        step_accounts.len() >= 7,
+        ArbitrageError::InvalidAccountCount
+    );
+    let data = step_accounts[3].try_borrow_data()?;
+    let pool = read_raydium_cpmm_pool_semantic_keys(&data)?;
+    require_keys_eq!(
+        pool.amm_config,
+        step_accounts[2].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        pool.observation_key,
+        step_accounts[6].key(),
+        ArbitrageError::InvalidAccount
+    );
+
+    let (
+        input_vault,
+        output_vault,
+        expected_input_mint,
+        expected_output_mint,
+        expected_input_program,
+        expected_output_program,
+    ) = match direction {
+        0 => (
+            pool.token_0_vault,
+            pool.token_1_vault,
+            pool.token_0_mint,
+            pool.token_1_mint,
+            pool.token_0_program,
+            pool.token_1_program,
+        ),
+        1 => (
+            pool.token_1_vault,
+            pool.token_0_vault,
+            pool.token_1_mint,
+            pool.token_0_mint,
+            pool.token_1_program,
+            pool.token_0_program,
+        ),
+        _ => return Err(ArbitrageError::InvalidInstructionData.into()),
+    };
+
+    require_keys_eq!(
+        input_vault,
+        step_accounts[4].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        output_vault,
+        step_accounts[5].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        expected_input_mint,
+        input_mint.key(),
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        expected_output_mint,
+        output_mint.key(),
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        expected_input_program,
+        input_token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        expected_output_program,
+        output_token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    Ok(())
+}
+
+pub fn validate_raydium_clmm_semantic_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    input_mint: &AccountInfo<'info>,
+    output_mint: &AccountInfo<'info>,
+) -> Result<()> {
+    require!(
+        step_accounts.len() >= 7,
+        ArbitrageError::InvalidAccountCount
+    );
+    let data = step_accounts[2].try_borrow_data()?;
+    let pool = read_raydium_clmm_pool_semantic_keys(&data)?;
+    require_keys_eq!(
+        pool.amm_config,
+        step_accounts[1].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        pool.observation_key,
+        step_accounts[5].key(),
+        ArbitrageError::InvalidAccount
+    );
+
+    let (input_vault, output_vault) =
+        if pool.token_mint_0 == input_mint.key() && pool.token_mint_1 == output_mint.key() {
+            (pool.token_vault_0, pool.token_vault_1)
+        } else if pool.token_mint_1 == input_mint.key() && pool.token_mint_0 == output_mint.key() {
+            (pool.token_vault_1, pool.token_vault_0)
+        } else {
+            return Err(ArbitrageError::InvalidTokenMint.into());
+        };
+
+    require_keys_eq!(
+        input_vault,
+        step_accounts[3].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        output_vault,
+        step_accounts[4].key(),
+        ArbitrageError::InvalidAccount
+    );
+    Ok(())
+}
+
+pub fn validate_raydium_launchpad_semantic_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    base_mint: &AccountInfo<'info>,
+    quote_mint: &AccountInfo<'info>,
+) -> Result<()> {
+    require!(
+        step_accounts.len() >= 8,
+        ArbitrageError::InvalidAccountCount
+    );
+    let data = step_accounts[4].try_borrow_data()?;
+    let pool = read_raydium_launchpad_pool_semantic_keys(&data)?;
+    require_keys_eq!(
+        pool.global_config,
+        step_accounts[2].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        pool.platform_config,
+        step_accounts[3].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        pool.base_mint,
+        base_mint.key(),
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        pool.quote_mint,
+        quote_mint.key(),
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        pool.base_vault,
+        step_accounts[5].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        pool.quote_vault,
+        step_accounts[6].key(),
         ArbitrageError::InvalidAccount
     );
     Ok(())
@@ -218,6 +533,115 @@ pub fn validate_pumpfun_amm_semantic_accounts<'info>(
         &step_accounts[fee_config_index + 1],
         PUMPFUN_AMM_FEE_CONFIG,
     )
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+struct RaydiumPoolV4SemanticKeys {
+    coin_vault: Pubkey,
+    pc_vault: Pubkey,
+    coin_mint: Pubkey,
+    pc_mint: Pubkey,
+    open_orders: Pubkey,
+    market: Pubkey,
+    market_program: Pubkey,
+    target_orders: Pubkey,
+}
+
+fn read_raydium_pool_v4_semantic_keys(data: &[u8]) -> Result<RaydiumPoolV4SemanticKeys> {
+    Ok(RaydiumPoolV4SemanticKeys {
+        coin_vault: read_pubkey_from_data(data, RAYDIUM_POOL_V4_COIN_VAULT_OFFSET)?,
+        pc_vault: read_pubkey_from_data(data, RAYDIUM_POOL_V4_PC_VAULT_OFFSET)?,
+        coin_mint: read_pubkey_from_data(data, RAYDIUM_POOL_V4_COIN_MINT_OFFSET)?,
+        pc_mint: read_pubkey_from_data(data, RAYDIUM_POOL_V4_PC_MINT_OFFSET)?,
+        open_orders: read_pubkey_from_data(data, RAYDIUM_POOL_V4_OPEN_ORDERS_OFFSET)?,
+        market: read_pubkey_from_data(data, RAYDIUM_POOL_V4_MARKET_OFFSET)?,
+        market_program: read_pubkey_from_data(data, RAYDIUM_POOL_V4_MARKET_PROGRAM_OFFSET)?,
+        target_orders: read_pubkey_from_data(data, RAYDIUM_POOL_V4_TARGET_ORDERS_OFFSET)?,
+    })
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+struct RaydiumCpmmPoolSemanticKeys {
+    amm_config: Pubkey,
+    token_0_vault: Pubkey,
+    token_1_vault: Pubkey,
+    token_0_mint: Pubkey,
+    token_1_mint: Pubkey,
+    token_0_program: Pubkey,
+    token_1_program: Pubkey,
+    observation_key: Pubkey,
+}
+
+fn read_raydium_cpmm_pool_semantic_keys(data: &[u8]) -> Result<RaydiumCpmmPoolSemanticKeys> {
+    require!(
+        data.starts_with(RAYDIUM_CPMM_POOL_STATE_DISCRIMINATOR),
+        ArbitrageError::InvalidAccount
+    );
+    Ok(RaydiumCpmmPoolSemanticKeys {
+        amm_config: read_pubkey_from_data(data, RAYDIUM_CPMM_POOL_AMM_CONFIG_OFFSET)?,
+        token_0_vault: read_pubkey_from_data(data, RAYDIUM_CPMM_POOL_TOKEN_0_VAULT_OFFSET)?,
+        token_1_vault: read_pubkey_from_data(data, RAYDIUM_CPMM_POOL_TOKEN_1_VAULT_OFFSET)?,
+        token_0_mint: read_pubkey_from_data(data, RAYDIUM_CPMM_POOL_TOKEN_0_MINT_OFFSET)?,
+        token_1_mint: read_pubkey_from_data(data, RAYDIUM_CPMM_POOL_TOKEN_1_MINT_OFFSET)?,
+        token_0_program: read_pubkey_from_data(data, RAYDIUM_CPMM_POOL_TOKEN_0_PROGRAM_OFFSET)?,
+        token_1_program: read_pubkey_from_data(data, RAYDIUM_CPMM_POOL_TOKEN_1_PROGRAM_OFFSET)?,
+        observation_key: read_pubkey_from_data(data, RAYDIUM_CPMM_POOL_OBSERVATION_KEY_OFFSET)?,
+    })
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+struct RaydiumClmmPoolSemanticKeys {
+    amm_config: Pubkey,
+    token_mint_0: Pubkey,
+    token_mint_1: Pubkey,
+    token_vault_0: Pubkey,
+    token_vault_1: Pubkey,
+    observation_key: Pubkey,
+}
+
+fn read_raydium_clmm_pool_semantic_keys(data: &[u8]) -> Result<RaydiumClmmPoolSemanticKeys> {
+    require!(
+        data.starts_with(RAYDIUM_CLMM_POOL_STATE_DISCRIMINATOR),
+        ArbitrageError::InvalidAccount
+    );
+    Ok(RaydiumClmmPoolSemanticKeys {
+        amm_config: read_pubkey_from_data(data, RAYDIUM_CLMM_POOL_AMM_CONFIG_OFFSET)?,
+        token_mint_0: read_pubkey_from_data(data, RAYDIUM_CLMM_POOL_TOKEN_MINT_0_OFFSET)?,
+        token_mint_1: read_pubkey_from_data(data, RAYDIUM_CLMM_POOL_TOKEN_MINT_1_OFFSET)?,
+        token_vault_0: read_pubkey_from_data(data, RAYDIUM_CLMM_POOL_TOKEN_VAULT_0_OFFSET)?,
+        token_vault_1: read_pubkey_from_data(data, RAYDIUM_CLMM_POOL_TOKEN_VAULT_1_OFFSET)?,
+        observation_key: read_pubkey_from_data(data, RAYDIUM_CLMM_POOL_OBSERVATION_KEY_OFFSET)?,
+    })
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+struct RaydiumLaunchpadPoolSemanticKeys {
+    global_config: Pubkey,
+    platform_config: Pubkey,
+    base_mint: Pubkey,
+    quote_mint: Pubkey,
+    base_vault: Pubkey,
+    quote_vault: Pubkey,
+}
+
+fn read_raydium_launchpad_pool_semantic_keys(
+    data: &[u8],
+) -> Result<RaydiumLaunchpadPoolSemanticKeys> {
+    require!(
+        data.starts_with(RAYDIUM_LAUNCHPAD_POOL_STATE_DISCRIMINATOR),
+        ArbitrageError::InvalidAccount
+    );
+    Ok(RaydiumLaunchpadPoolSemanticKeys {
+        global_config: read_pubkey_from_data(data, RAYDIUM_LAUNCHPAD_POOL_GLOBAL_CONFIG_OFFSET)?,
+        platform_config: read_pubkey_from_data(
+            data,
+            RAYDIUM_LAUNCHPAD_POOL_PLATFORM_CONFIG_OFFSET,
+        )?,
+        base_mint: read_pubkey_from_data(data, RAYDIUM_LAUNCHPAD_POOL_BASE_MINT_OFFSET)?,
+        quote_mint: read_pubkey_from_data(data, RAYDIUM_LAUNCHPAD_POOL_QUOTE_MINT_OFFSET)?,
+        base_vault: read_pubkey_from_data(data, RAYDIUM_LAUNCHPAD_POOL_BASE_VAULT_OFFSET)?,
+        quote_vault: read_pubkey_from_data(data, RAYDIUM_LAUNCHPAD_POOL_QUOTE_VAULT_OFFSET)?,
+    })
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -448,6 +872,38 @@ mod tests {
         data[offset..offset + PUBKEY_FIELD_LEN].copy_from_slice(key.as_ref());
     }
 
+    #[allow(clippy::too_many_arguments)]
+    fn raydium_pool_v4_amm_state_data(
+        coin_vault: Pubkey,
+        pc_vault: Pubkey,
+        coin_mint: Pubkey,
+        pc_mint: Pubkey,
+        open_orders: Pubkey,
+        market: Pubkey,
+        market_program: Pubkey,
+        target_orders: Pubkey,
+    ) -> Vec<u8> {
+        let mut data = vec![0_u8; RAYDIUM_POOL_V4_TARGET_ORDERS_OFFSET + PUBKEY_FIELD_LEN];
+        data[0..8].copy_from_slice(&6_u64.to_le_bytes());
+        write_pubkey(&mut data, RAYDIUM_POOL_V4_COIN_VAULT_OFFSET, coin_vault);
+        write_pubkey(&mut data, RAYDIUM_POOL_V4_PC_VAULT_OFFSET, pc_vault);
+        write_pubkey(&mut data, RAYDIUM_POOL_V4_COIN_MINT_OFFSET, coin_mint);
+        write_pubkey(&mut data, RAYDIUM_POOL_V4_PC_MINT_OFFSET, pc_mint);
+        write_pubkey(&mut data, RAYDIUM_POOL_V4_OPEN_ORDERS_OFFSET, open_orders);
+        write_pubkey(&mut data, RAYDIUM_POOL_V4_MARKET_OFFSET, market);
+        write_pubkey(
+            &mut data,
+            RAYDIUM_POOL_V4_MARKET_PROGRAM_OFFSET,
+            market_program,
+        );
+        write_pubkey(
+            &mut data,
+            RAYDIUM_POOL_V4_TARGET_ORDERS_OFFSET,
+            target_orders,
+        );
+        data
+    }
+
     fn pumpfun_swap_bonding_curve_data(creator: Pubkey) -> Vec<u8> {
         let mut data = vec![0_u8; PUMPFUN_SWAP_BONDING_CURVE_CREATOR_OFFSET + PUBKEY_FIELD_LEN];
         data[0..8].copy_from_slice(PUMPFUN_SWAP_BONDING_CURVE_DISCRIMINATOR);
@@ -484,6 +940,140 @@ mod tests {
             &mut data,
             PUMPFUN_AMM_POOL_COIN_CREATOR_OFFSET,
             coin_creator,
+        );
+        data
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn raydium_cpmm_pool_data(
+        amm_config: Pubkey,
+        token_0_vault: Pubkey,
+        token_1_vault: Pubkey,
+        token_0_mint: Pubkey,
+        token_1_mint: Pubkey,
+        token_0_program: Pubkey,
+        token_1_program: Pubkey,
+        observation_key: Pubkey,
+    ) -> Vec<u8> {
+        let mut data = vec![0_u8; RAYDIUM_CPMM_POOL_OBSERVATION_KEY_OFFSET + PUBKEY_FIELD_LEN];
+        data[0..8].copy_from_slice(RAYDIUM_CPMM_POOL_STATE_DISCRIMINATOR);
+        write_pubkey(&mut data, RAYDIUM_CPMM_POOL_AMM_CONFIG_OFFSET, amm_config);
+        write_pubkey(
+            &mut data,
+            RAYDIUM_CPMM_POOL_TOKEN_0_VAULT_OFFSET,
+            token_0_vault,
+        );
+        write_pubkey(
+            &mut data,
+            RAYDIUM_CPMM_POOL_TOKEN_1_VAULT_OFFSET,
+            token_1_vault,
+        );
+        write_pubkey(
+            &mut data,
+            RAYDIUM_CPMM_POOL_TOKEN_0_MINT_OFFSET,
+            token_0_mint,
+        );
+        write_pubkey(
+            &mut data,
+            RAYDIUM_CPMM_POOL_TOKEN_1_MINT_OFFSET,
+            token_1_mint,
+        );
+        write_pubkey(
+            &mut data,
+            RAYDIUM_CPMM_POOL_TOKEN_0_PROGRAM_OFFSET,
+            token_0_program,
+        );
+        write_pubkey(
+            &mut data,
+            RAYDIUM_CPMM_POOL_TOKEN_1_PROGRAM_OFFSET,
+            token_1_program,
+        );
+        write_pubkey(
+            &mut data,
+            RAYDIUM_CPMM_POOL_OBSERVATION_KEY_OFFSET,
+            observation_key,
+        );
+        data
+    }
+
+    fn raydium_clmm_pool_data(
+        amm_config: Pubkey,
+        token_mint_0: Pubkey,
+        token_mint_1: Pubkey,
+        token_vault_0: Pubkey,
+        token_vault_1: Pubkey,
+        observation_key: Pubkey,
+    ) -> Vec<u8> {
+        let mut data = vec![0_u8; RAYDIUM_CLMM_POOL_OBSERVATION_KEY_OFFSET + PUBKEY_FIELD_LEN];
+        data[0..8].copy_from_slice(RAYDIUM_CLMM_POOL_STATE_DISCRIMINATOR);
+        write_pubkey(&mut data, RAYDIUM_CLMM_POOL_AMM_CONFIG_OFFSET, amm_config);
+        write_pubkey(
+            &mut data,
+            RAYDIUM_CLMM_POOL_TOKEN_MINT_0_OFFSET,
+            token_mint_0,
+        );
+        write_pubkey(
+            &mut data,
+            RAYDIUM_CLMM_POOL_TOKEN_MINT_1_OFFSET,
+            token_mint_1,
+        );
+        write_pubkey(
+            &mut data,
+            RAYDIUM_CLMM_POOL_TOKEN_VAULT_0_OFFSET,
+            token_vault_0,
+        );
+        write_pubkey(
+            &mut data,
+            RAYDIUM_CLMM_POOL_TOKEN_VAULT_1_OFFSET,
+            token_vault_1,
+        );
+        write_pubkey(
+            &mut data,
+            RAYDIUM_CLMM_POOL_OBSERVATION_KEY_OFFSET,
+            observation_key,
+        );
+        data
+    }
+
+    fn raydium_launchpad_pool_data(
+        global_config: Pubkey,
+        platform_config: Pubkey,
+        base_mint: Pubkey,
+        quote_mint: Pubkey,
+        base_vault: Pubkey,
+        quote_vault: Pubkey,
+    ) -> Vec<u8> {
+        let mut data = vec![0_u8; RAYDIUM_LAUNCHPAD_POOL_QUOTE_VAULT_OFFSET + PUBKEY_FIELD_LEN];
+        data[0..8].copy_from_slice(RAYDIUM_LAUNCHPAD_POOL_STATE_DISCRIMINATOR);
+        write_pubkey(
+            &mut data,
+            RAYDIUM_LAUNCHPAD_POOL_GLOBAL_CONFIG_OFFSET,
+            global_config,
+        );
+        write_pubkey(
+            &mut data,
+            RAYDIUM_LAUNCHPAD_POOL_PLATFORM_CONFIG_OFFSET,
+            platform_config,
+        );
+        write_pubkey(
+            &mut data,
+            RAYDIUM_LAUNCHPAD_POOL_BASE_MINT_OFFSET,
+            base_mint,
+        );
+        write_pubkey(
+            &mut data,
+            RAYDIUM_LAUNCHPAD_POOL_QUOTE_MINT_OFFSET,
+            quote_mint,
+        );
+        write_pubkey(
+            &mut data,
+            RAYDIUM_LAUNCHPAD_POOL_BASE_VAULT_OFFSET,
+            base_vault,
+        );
+        write_pubkey(
+            &mut data,
+            RAYDIUM_LAUNCHPAD_POOL_QUOTE_VAULT_OFFSET,
+            quote_vault,
         );
         data
     }
@@ -747,6 +1337,707 @@ mod tests {
         )
         .unwrap_err();
         assert_eq!(err, ArbitrageError::InvalidAccount.into());
+    }
+
+    #[test]
+    fn raydium_cpmm_semantic_validation_checks_pool_state_accounts() {
+        let amm_config_key = Pubkey::new_unique();
+        let token0_vault_key = Pubkey::new_unique();
+        let token1_vault_key = Pubkey::new_unique();
+        let token0_mint_key = Pubkey::new_unique();
+        let token1_mint_key = Pubkey::new_unique();
+        let token0_program_key = Pubkey::new_unique();
+        let token1_program_key = Pubkey::new_unique();
+        let observation_key = Pubkey::new_unique();
+
+        let step_accounts = vec![
+            test_account_with_data(
+                Pubkey::new_unique(),
+                Pubkey::new_unique(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(
+                Pubkey::new_unique(),
+                Pubkey::new_unique(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                amm_config_key,
+                Pubkey::new_unique(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                Pubkey::new_unique(),
+                Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                raydium_cpmm_pool_data(
+                    amm_config_key,
+                    token0_vault_key,
+                    token1_vault_key,
+                    token0_mint_key,
+                    token1_mint_key,
+                    token0_program_key,
+                    token1_program_key,
+                    observation_key,
+                ),
+            ),
+            test_account_with_data(
+                token0_vault_key,
+                Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                token1_vault_key,
+                Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                observation_key,
+                Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                vec![],
+            ),
+        ];
+        let token0_mint = test_account_with_data(
+            token0_mint_key,
+            token0_program_key,
+            false,
+            false,
+            false,
+            vec![],
+        );
+        let token1_mint = test_account_with_data(
+            token1_mint_key,
+            token1_program_key,
+            false,
+            false,
+            false,
+            vec![],
+        );
+        let token0_program = test_account_with_data(
+            token0_program_key,
+            token0_program_key,
+            false,
+            false,
+            true,
+            vec![],
+        );
+        let token1_program = test_account_with_data(
+            token1_program_key,
+            token1_program_key,
+            false,
+            false,
+            true,
+            vec![],
+        );
+
+        assert!(validate_raydium_cpmm_semantic_accounts(
+            &step_accounts,
+            0,
+            &token0_mint,
+            &token1_mint,
+            &token0_program,
+            &token1_program,
+        )
+        .is_ok());
+
+        let mut reverse_step_accounts = step_accounts.clone();
+        reverse_step_accounts[4] = step_accounts[5].clone();
+        reverse_step_accounts[5] = step_accounts[4].clone();
+        assert!(validate_raydium_cpmm_semantic_accounts(
+            &reverse_step_accounts,
+            1,
+            &token1_mint,
+            &token0_mint,
+            &token1_program,
+            &token0_program,
+        )
+        .is_ok());
+
+        let mut wrong_observation = step_accounts.clone();
+        wrong_observation[6] = test_account_with_data(
+            Pubkey::new_unique(),
+            Pubkey::new_unique(),
+            false,
+            true,
+            false,
+            vec![],
+        );
+        let err = validate_raydium_cpmm_semantic_accounts(
+            &wrong_observation,
+            0,
+            &token0_mint,
+            &token1_mint,
+            &token0_program,
+            &token1_program,
+        )
+        .unwrap_err();
+        assert_eq!(err, ArbitrageError::InvalidAccount.into());
+
+        let wrong_output_mint = test_account_with_data(
+            Pubkey::new_unique(),
+            token1_program_key,
+            false,
+            false,
+            false,
+            vec![],
+        );
+        let err = validate_raydium_cpmm_semantic_accounts(
+            &step_accounts,
+            0,
+            &token0_mint,
+            &wrong_output_mint,
+            &token0_program,
+            &token1_program,
+        )
+        .unwrap_err();
+        assert_eq!(err, ArbitrageError::InvalidTokenMint.into());
+
+        let wrong_input_program = test_account_with_data(
+            Pubkey::new_unique(),
+            Pubkey::new_unique(),
+            false,
+            false,
+            true,
+            vec![],
+        );
+        let err = validate_raydium_cpmm_semantic_accounts(
+            &step_accounts,
+            0,
+            &token0_mint,
+            &token1_mint,
+            &wrong_input_program,
+            &token1_program,
+        )
+        .unwrap_err();
+        assert_eq!(err, ArbitrageError::InvalidAccount.into());
+    }
+
+    #[test]
+    fn raydium_clmm_semantic_validation_checks_pool_state_accounts() {
+        let amm_config_key = Pubkey::new_unique();
+        let token0_mint_key = Pubkey::new_unique();
+        let token1_mint_key = Pubkey::new_unique();
+        let token0_vault_key = Pubkey::new_unique();
+        let token1_vault_key = Pubkey::new_unique();
+        let observation_key = Pubkey::new_unique();
+
+        let step_accounts = vec![
+            test_account_with_data(
+                Pubkey::new_unique(),
+                Pubkey::new_unique(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(
+                amm_config_key,
+                Pubkey::new_unique(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                Pubkey::new_unique(),
+                Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                raydium_clmm_pool_data(
+                    amm_config_key,
+                    token0_mint_key,
+                    token1_mint_key,
+                    token0_vault_key,
+                    token1_vault_key,
+                    observation_key,
+                ),
+            ),
+            test_account_with_data(
+                token0_vault_key,
+                Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                token1_vault_key,
+                Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                observation_key,
+                Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                Pubkey::new_unique(),
+                Pubkey::new_unique(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+        ];
+        let token0_mint = test_account_with_data(
+            token0_mint_key,
+            Pubkey::new_unique(),
+            false,
+            false,
+            false,
+            vec![],
+        );
+        let token1_mint = test_account_with_data(
+            token1_mint_key,
+            Pubkey::new_unique(),
+            false,
+            false,
+            false,
+            vec![],
+        );
+
+        assert!(validate_raydium_clmm_semantic_accounts(
+            &step_accounts,
+            &token0_mint,
+            &token1_mint,
+        )
+        .is_ok());
+
+        let mut reverse_step_accounts = step_accounts.clone();
+        reverse_step_accounts[3] = step_accounts[4].clone();
+        reverse_step_accounts[4] = step_accounts[3].clone();
+        assert!(validate_raydium_clmm_semantic_accounts(
+            &reverse_step_accounts,
+            &token1_mint,
+            &token0_mint,
+        )
+        .is_ok());
+
+        let mut wrong_observation = step_accounts.clone();
+        wrong_observation[5] = test_account_with_data(
+            Pubkey::new_unique(),
+            Pubkey::new_unique(),
+            false,
+            true,
+            false,
+            vec![],
+        );
+        let err =
+            validate_raydium_clmm_semantic_accounts(&wrong_observation, &token0_mint, &token1_mint)
+                .unwrap_err();
+        assert_eq!(err, ArbitrageError::InvalidAccount.into());
+
+        let wrong_output_mint = test_account_with_data(
+            Pubkey::new_unique(),
+            Pubkey::new_unique(),
+            false,
+            false,
+            false,
+            vec![],
+        );
+        let err = validate_raydium_clmm_semantic_accounts(
+            &step_accounts,
+            &token0_mint,
+            &wrong_output_mint,
+        )
+        .unwrap_err();
+        assert_eq!(err, ArbitrageError::InvalidTokenMint.into());
+
+        let mut wrong_input_vault = step_accounts.clone();
+        wrong_input_vault[3] = test_account_with_data(
+            Pubkey::new_unique(),
+            Pubkey::new_unique(),
+            false,
+            true,
+            false,
+            vec![],
+        );
+        let err =
+            validate_raydium_clmm_semantic_accounts(&wrong_input_vault, &token0_mint, &token1_mint)
+                .unwrap_err();
+        assert_eq!(err, ArbitrageError::InvalidAccount.into());
+    }
+
+    #[test]
+    fn raydium_pool_v4_semantic_validation_checks_pool_state_accounts() {
+        let coin_vault_key = Pubkey::new_unique();
+        let pc_vault_key = Pubkey::new_unique();
+        let coin_mint_key = Pubkey::new_unique();
+        let pc_mint_key = Pubkey::new_unique();
+        let open_orders_key = Pubkey::new_unique();
+        let target_orders_key = Pubkey::new_unique();
+        let market_program_key = Pubkey::new_unique();
+        let market_key = Pubkey::new_unique();
+
+        let step_accounts = vec![
+            test_account_with_data(
+                Pubkey::new_unique(),
+                Pubkey::new_unique(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(
+                Pubkey::new_unique(),
+                Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                raydium_pool_v4_amm_state_data(
+                    coin_vault_key,
+                    pc_vault_key,
+                    coin_mint_key,
+                    pc_mint_key,
+                    open_orders_key,
+                    market_key,
+                    market_program_key,
+                    target_orders_key,
+                ),
+            ),
+            test_account_with_data(
+                Pubkey::new_unique(),
+                Pubkey::new_unique(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                open_orders_key,
+                market_program_key,
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                target_orders_key,
+                Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                coin_vault_key,
+                Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                pc_vault_key,
+                Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                market_program_key,
+                Pubkey::new_unique(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(market_key, market_program_key, false, true, false, vec![]),
+            test_account_with_data(
+                Pubkey::new_unique(),
+                market_program_key,
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                Pubkey::new_unique(),
+                market_program_key,
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                Pubkey::new_unique(),
+                market_program_key,
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                Pubkey::new_unique(),
+                Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                Pubkey::new_unique(),
+                Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                Pubkey::new_unique(),
+                Pubkey::new_unique(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+        ];
+        let coin_mint = test_account_with_data(
+            coin_mint_key,
+            Pubkey::new_unique(),
+            false,
+            false,
+            false,
+            vec![],
+        );
+        let pc_mint = test_account_with_data(
+            pc_mint_key,
+            Pubkey::new_unique(),
+            false,
+            false,
+            false,
+            vec![],
+        );
+
+        assert!(validate_raydium_pool_v4_semantic_accounts(
+            &step_accounts,
+            0,
+            &coin_mint,
+            &pc_mint,
+        )
+        .is_ok());
+        assert!(validate_raydium_pool_v4_semantic_accounts(
+            &step_accounts,
+            1,
+            &pc_mint,
+            &coin_mint,
+        )
+        .is_ok());
+
+        let mut wrong_target_orders = step_accounts.clone();
+        wrong_target_orders[4] = test_account_with_data(
+            Pubkey::new_unique(),
+            Pubkey::new_unique(),
+            false,
+            true,
+            false,
+            vec![],
+        );
+        let err = validate_raydium_pool_v4_semantic_accounts(
+            &wrong_target_orders,
+            0,
+            &coin_mint,
+            &pc_mint,
+        )
+        .unwrap_err();
+        assert_eq!(err, ArbitrageError::InvalidAccount.into());
+
+        let mut wrong_market_owner = step_accounts.clone();
+        wrong_market_owner[8] =
+            test_account_with_data(market_key, Pubkey::new_unique(), false, true, false, vec![]);
+        let err = validate_raydium_pool_v4_semantic_accounts(
+            &wrong_market_owner,
+            0,
+            &coin_mint,
+            &pc_mint,
+        )
+        .unwrap_err();
+        assert_eq!(err, ArbitrageError::InvalidAccount.into());
+
+        let wrong_output_mint = test_account_with_data(
+            Pubkey::new_unique(),
+            Pubkey::new_unique(),
+            false,
+            false,
+            false,
+            vec![],
+        );
+        let err = validate_raydium_pool_v4_semantic_accounts(
+            &step_accounts,
+            0,
+            &coin_mint,
+            &wrong_output_mint,
+        )
+        .unwrap_err();
+        assert_eq!(err, ArbitrageError::InvalidTokenMint.into());
+    }
+
+    #[test]
+    fn raydium_launchpad_semantic_validation_checks_pool_state_accounts() {
+        let global_config_key = Pubkey::new_unique();
+        let platform_config_key = Pubkey::new_unique();
+        let base_mint_key = Pubkey::new_unique();
+        let quote_mint_key = Pubkey::new_unique();
+        let base_vault_key = Pubkey::new_unique();
+        let quote_vault_key = Pubkey::new_unique();
+
+        let step_accounts = vec![
+            test_account_with_data(
+                Pubkey::new_unique(),
+                Pubkey::new_unique(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(
+                Pubkey::new_unique(),
+                Pubkey::new_unique(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                global_config_key,
+                Pubkey::new_unique(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                platform_config_key,
+                Pubkey::new_unique(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                Pubkey::new_unique(),
+                Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                raydium_launchpad_pool_data(
+                    global_config_key,
+                    platform_config_key,
+                    base_mint_key,
+                    quote_mint_key,
+                    base_vault_key,
+                    quote_vault_key,
+                ),
+            ),
+            test_account_with_data(
+                base_vault_key,
+                Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                quote_vault_key,
+                Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                Pubkey::new_unique(),
+                Pubkey::new_unique(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+        ];
+        let base_mint = test_account_with_data(
+            base_mint_key,
+            Pubkey::new_unique(),
+            false,
+            false,
+            false,
+            vec![],
+        );
+        let quote_mint = test_account_with_data(
+            quote_mint_key,
+            Pubkey::new_unique(),
+            false,
+            false,
+            false,
+            vec![],
+        );
+
+        assert!(validate_raydium_launchpad_semantic_accounts(
+            &step_accounts,
+            &base_mint,
+            &quote_mint,
+        )
+        .is_ok());
+
+        let mut wrong_base_vault = step_accounts.clone();
+        wrong_base_vault[5] = test_account_with_data(
+            Pubkey::new_unique(),
+            Pubkey::new_unique(),
+            false,
+            true,
+            false,
+            vec![],
+        );
+        let err = validate_raydium_launchpad_semantic_accounts(
+            &wrong_base_vault,
+            &base_mint,
+            &quote_mint,
+        )
+        .unwrap_err();
+        assert_eq!(err, ArbitrageError::InvalidAccount.into());
+
+        let wrong_quote_mint = test_account_with_data(
+            Pubkey::new_unique(),
+            Pubkey::new_unique(),
+            false,
+            false,
+            false,
+            vec![],
+        );
+        let err = validate_raydium_launchpad_semantic_accounts(
+            &step_accounts,
+            &base_mint,
+            &wrong_quote_mint,
+        )
+        .unwrap_err();
+        assert_eq!(err, ArbitrageError::InvalidTokenMint.into());
     }
 
     #[test]

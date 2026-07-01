@@ -7,7 +7,7 @@ use anchor_lang::solana_program::program::invoke;
 
 // faea0d7bd59c13ec hex -> u8 array
 pub const RAYDIUM_LAUNCHPAD_BUY_EXACT_IN_SELECTOR: &[u8; 8] =
-    &[250, 234, 13, 189, 213, 46, 253, 81];
+    &[250, 234, 13, 123, 213, 156, 19, 236];
 // 9527de9bd37c981a hex -> u8 array
 pub const RAYDIUM_LAUNCHPAD_SELL_EXACT_IN_SELECTOR: &[u8; 8] =
     &[149, 39, 222, 155, 211, 124, 152, 26];
@@ -149,6 +149,10 @@ mod tests {
     #[test]
     fn direction_zero_is_sell_exact_in_and_outputs_quote() {
         assert_eq!(
+            RAYDIUM_LAUNCHPAD_SELL_EXACT_IN_SELECTOR,
+            &[149, 39, 222, 155, 211, 124, 152, 26]
+        );
+        assert_eq!(
             launchpad_exact_in_selector(0).unwrap(),
             RAYDIUM_LAUNCHPAD_SELL_EXACT_IN_SELECTOR
         );
@@ -157,6 +161,10 @@ mod tests {
 
     #[test]
     fn direction_one_is_buy_exact_in_and_outputs_base() {
+        assert_eq!(
+            RAYDIUM_LAUNCHPAD_BUY_EXACT_IN_SELECTOR,
+            &[250, 234, 13, 123, 213, 156, 19, 236]
+        );
         assert_eq!(
             launchpad_exact_in_selector(1).unwrap(),
             RAYDIUM_LAUNCHPAD_BUY_EXACT_IN_SELECTOR
