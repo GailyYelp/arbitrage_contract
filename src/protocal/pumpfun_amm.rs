@@ -1,3 +1,4 @@
+use crate::errors::ArbitrageError;
 use crate::instructions::types::append_remaining_accounts;
 use crate::instructions::types::read_token_amount;
 use crate::instructions::types::token_balance_delta;
@@ -11,6 +12,7 @@ pub const PUMPFUN_AMM_BUY_DISCRIMINATOR: &[u8; 8] = &[102, 6, 61, 18, 1, 218, 23
 // sell discriminator
 pub const PUMPFUN_AMM_SELL_DISCRIMINATOR: &[u8; 8] = &[51, 230, 133, 164, 1, 127, 131, 173];
 pub const PUMPFUN_AMM_MIN_ACCOUNTS: usize = 10;
+pub const PUMPFUN_BUY_LAMPORT_BUFFER: u64 = 2;
 
 #[derive(Clone)]
 pub struct PumpFunAmmAccounts<'info> {
@@ -42,6 +44,9 @@ pub fn pumpfun_amm_swap<'info>(
     amount_in: u64,
     total_fee_base_point: u16,
 ) -> Result<SwapResult> {
+    let total_fee_base_point = fee_bps_to_u64(total_fee_base_point);
+    validate_total_fee_base_point(total_fee_base_point)?;
+
     let output_token_account = if direction == 0 {
         accounts.user_quote_token_account // sell
     } else {
@@ -53,7 +58,7 @@ pub fn pumpfun_amm_swap<'info>(
         // buy
         simulate_buy_amount_by_input(
             amount_in,
-            total_fee_base_point as u64,
+            total_fee_base_point,
             accounts.pool_base_token_account,
             accounts.pool_quote_token_account,
         )?
@@ -153,15 +158,39 @@ pub fn simulate_buy_amount_by_input<'info>(
 
     let base_amount = read_token_amount(pool_base_token_account)?;
     let quote_amout = read_token_amount(pool_quote_token_account)?;
+    let effective_input_amount = pumpfun_buy_effective_input_amount(input_amount)?;
 
     // simulate
     let output_amount = simulate_swap_base_input(
         base_amount,
         quote_amout,
         total_fee_base_point,
-        input_amount.saturating_sub(2), // 扣除 2 个 lamport 用于手续费
+        effective_input_amount,
     )?;
     Ok(output_amount)
+}
+
+pub fn pumpfun_buy_effective_input_amount(input_amount: u64) -> Result<u64> {
+    if input_amount == 0 {
+        return Ok(0);
+    }
+
+    let effective_input_amount = input_amount
+        .checked_sub(PUMPFUN_BUY_LAMPORT_BUFFER)
+        .ok_or(ArbitrageError::InvalidAmount)?;
+    require!(effective_input_amount > 0, ArbitrageError::InvalidAmount);
+    Ok(effective_input_amount)
+}
+
+pub fn validate_total_fee_base_point(total_fee_base_point: u64) -> Result<()> {
+    if total_fee_base_point >= 10_000 {
+        return Err(ArbitrageError::FeeTooHigh.into());
+    }
+    Ok(())
+}
+
+pub fn fee_bps_to_u64(total_fee_base_point: u16) -> u64 {
+    u64::from(total_fee_base_point)
 }
 
 // 除法向上取整
@@ -190,32 +219,36 @@ pub fn simulate_swap_base_input(
     total_fee_base_point: u64,
     input_amount: u64,
 ) -> Result<u64> {
+    validate_total_fee_base_point(total_fee_base_point)?;
+
     // msg!("x: {:?}, y: {:?}", x, y);
     // 计算手续费
     let input_amount_without_fee = div_up(
         u128::from(input_amount)
             .checked_mul(10000)
-            .ok_or(crate::errors::ArbitrageError::MathOverflow)?,
+            .ok_or(ArbitrageError::MathOverflow)?,
         10000u128
             .checked_add(u128::from(total_fee_base_point))
-            .ok_or(crate::errors::ArbitrageError::MathOverflow)?,
+            .ok_or(ArbitrageError::MathOverflow)?,
     )
-    .ok_or(crate::errors::ArbitrageError::MathOverflow)?;
+    .ok_or(ArbitrageError::MathOverflow)?;
     // msg!("input_amount_without_fee: {:?}", input_amount_without_fee);
     let total_fee = div_up(
         input_amount_without_fee
             .checked_mul(u128::from(total_fee_base_point))
-            .ok_or(crate::errors::ArbitrageError::MathOverflow)?,
+            .ok_or(ArbitrageError::MathOverflow)?,
         10000,
     )
-    .ok_or(crate::errors::ArbitrageError::MathOverflow)?;
-    let input_amount_without_fee = u128::from(input_amount).saturating_sub(total_fee);
+    .ok_or(ArbitrageError::MathOverflow)?;
+    let input_amount_without_fee = u128::from(input_amount)
+        .checked_sub(total_fee)
+        .ok_or(ArbitrageError::MathOverflow)?;
     // msg!("total_fee: {:?}", total_fee);
     // msg!("input_amount_without_fee: {:?}", input_amount_without_fee);
     let output_amount = swap_base_input(input_amount_without_fee, u128::from(y), u128::from(x))
-        .ok_or(crate::errors::ArbitrageError::MathOverflow)?;
+        .ok_or(ArbitrageError::MathOverflow)?;
     // msg!("output_amount: {:?}", output_amount);
-    u64::try_from(output_amount).map_err(|_| crate::errors::ArbitrageError::MathOverflow.into())
+    u64::try_from(output_amount).map_err(|_| ArbitrageError::MathOverflow.into())
 }
 
 #[cfg(test)]
@@ -233,8 +266,71 @@ mod tests {
     }
 
     #[test]
+    fn pumpfun_buy_effective_input_requires_buffer_plus_swap_amount() {
+        assert_eq!(pumpfun_buy_effective_input_amount(0).unwrap(), 0);
+        assert!(pumpfun_buy_effective_input_amount(1).is_err());
+        assert!(pumpfun_buy_effective_input_amount(2).is_err());
+        assert_eq!(pumpfun_buy_effective_input_amount(3).unwrap(), 1);
+    }
+
+    #[test]
     fn simulate_swap_uses_checked_large_math() {
         let out = simulate_swap_base_input(u64::MAX, u64::MAX, 100, u64::MAX).unwrap();
         assert!(out > 0);
+    }
+
+    #[test]
+    fn pumpfun_total_fee_rejects_bps_denominator_or_higher() {
+        assert!(validate_total_fee_base_point(9_999).is_ok());
+        assert!(validate_total_fee_base_point(10_000).is_err());
+        assert!(validate_total_fee_base_point(u64::MAX).is_err());
+    }
+
+    #[test]
+    fn pumpfun_fee_bps_uses_lossless_conversion_helper() {
+        assert_eq!(fee_bps_to_u64(9_999), 9_999);
+
+        for (name, source) in [
+            ("pumpfun_amm", include_str!("pumpfun_amm.rs")),
+            ("pumpfun_swap", include_str!("pumpfun_swap.rs")),
+        ] {
+            let production = production_source_text(source);
+            assert!(
+                !production.contains("total_fee_base_point as u64"),
+                "{name} fee bps conversion must use fee_bps_to_u64"
+            );
+        }
+    }
+
+    #[test]
+    fn simulate_swap_rejects_invalid_fee_instead_of_zero_output() {
+        assert!(simulate_swap_base_input(1_000_000, 2_000_000, 10_000, 100_000).is_err());
+        assert!(simulate_swap_base_input(1_000_000, 2_000_000, u64::MAX, 100_000).is_err());
+    }
+
+    #[test]
+    fn simulate_swap_output_never_exceeds_destination_reserve_for_sampled_boundaries() {
+        let reserves = [1_u64, 2, 1_000, u64::MAX];
+        let fees = [0_u64, 1, 9_999];
+        let inputs = [1_u64, 2, 10_000, u64::MAX];
+
+        for x in reserves {
+            for y in reserves {
+                for fee in fees {
+                    for input in inputs {
+                        let output =
+                            simulate_swap_base_input(x, y, fee, input).expect("valid fee quote");
+                        assert!(output <= x);
+                    }
+                }
+            }
+        }
+    }
+
+    fn production_source_text(source: &str) -> &str {
+        match source.split_once("\n#[cfg(test)]") {
+            Some((production, _)) => production,
+            None => source,
+        }
     }
 }

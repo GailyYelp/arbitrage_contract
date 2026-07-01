@@ -801,9 +801,15 @@ fn read_pubkey_from_data(data: &[u8], offset: usize) -> Result<Pubkey> {
     Ok(Pubkey::new_from_array(key))
 }
 
+pub fn checked_balance_delta(pre_amount: u64, post_amount: u64) -> Result<u64> {
+    post_amount
+        .checked_sub(pre_amount)
+        .ok_or(ArbitrageError::InsufficientOutputAmount.into())
+}
+
 pub fn token_balance_delta<'info>(account: &AccountInfo<'info>, pre_amount: u64) -> Result<u64> {
     let post_amount = read_token_amount(account)?;
-    Ok(post_amount.saturating_sub(pre_amount))
+    checked_balance_delta(pre_amount, post_amount)
 }
 
 pub fn append_remaining_accounts<'info>(
@@ -1103,6 +1109,25 @@ mod tests {
         assert!(read_token_amount_from_data(&[0u8; 71]).is_err());
         assert!(read_token_mint_from_data(&[0u8; 31]).is_err());
         assert!(read_token_owner_from_data(&[0u8; 63]).is_err());
+    }
+
+    #[test]
+    fn token_balance_delta_rejects_decreased_output_balance() {
+        let mint = Pubkey::new_unique();
+        let owner = Pubkey::new_unique();
+        let account = test_account_with_data(
+            Pubkey::new_unique(),
+            owner,
+            false,
+            true,
+            false,
+            make_token_account_data(mint, owner, 15).to_vec(),
+        );
+
+        assert_eq!(token_balance_delta(&account, 10).unwrap(), 5);
+        assert!(token_balance_delta(&account, 16).is_err());
+        assert_eq!(checked_balance_delta(15, 15).unwrap(), 0);
+        assert!(checked_balance_delta(16, 15).is_err());
     }
 
     #[test]

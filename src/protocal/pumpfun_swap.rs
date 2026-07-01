@@ -1,8 +1,12 @@
 use crate::errors::ArbitrageError;
 use crate::instructions::types::append_remaining_accounts;
+use crate::instructions::types::checked_balance_delta;
 use crate::instructions::types::read_token_amount;
 use crate::instructions::types::SwapResult;
-use crate::protocal::pumpfun_amm::simulate_swap_base_input;
+use crate::protocal::pumpfun_amm::{
+    fee_bps_to_u64, pumpfun_buy_effective_input_amount, simulate_swap_base_input,
+    validate_total_fee_base_point,
+};
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::instruction::{AccountMeta, Instruction};
 use anchor_lang::solana_program::program::invoke;
@@ -35,6 +39,9 @@ pub fn pumpfun_swap_swap<'info>(
     amount_in: u64,
     total_fee_base_point: u16,
 ) -> Result<SwapResult> {
+    let total_fee_base_point = fee_bps_to_u64(total_fee_base_point);
+    validate_total_fee_base_point(total_fee_base_point)?;
+
     let pre_out = if direction == 0 {
         // sell
         accounts.payer.try_lamports()?
@@ -48,7 +55,7 @@ pub fn pumpfun_swap_swap<'info>(
         simulate_pumpfun_swap_buy_amount_by_input(
             accounts.pool_id,
             amount_in,
-            total_fee_base_point as u64,
+            total_fee_base_point,
         )?
     } else {
         0_u64
@@ -131,7 +138,7 @@ pub fn pumpfun_swap_swap<'info>(
         // buy
         read_token_amount(accounts.user_token_account)?
     };
-    let amount_out = post_out.saturating_sub(pre_out);
+    let amount_out = checked_balance_delta(pre_out, post_out)?;
     // msg!(
     //     "amount_out: {} pre_out: {} post_out: {}",
     //     amount_out,
@@ -175,11 +182,12 @@ fn simulate_pumpfun_swap_buy_amount_by_input<'info>(
 
     let virtual_token_reserves = read_pool_u64(&pool_data, 8)?;
     let virtual_sol_reserves = read_pool_u64(&pool_data, 16)?;
+    let effective_sol_in = pumpfun_buy_effective_input_amount(max_sol_in)?;
     let token_amount_out = simulate_swap_base_input(
         virtual_token_reserves,
         virtual_sol_reserves,
         total_fee_base_point,
-        max_sol_in.saturating_sub(2), // 扣除 2 个 lamport 用于手续费
+        effective_sol_in,
     )?;
     Ok(token_amount_out)
 }

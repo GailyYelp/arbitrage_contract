@@ -31,7 +31,6 @@ pub fn execute_arbitrage<'info>(
     params: SwapArbParams,
 ) -> Result<()> {
     let route_accounts = parse_route_accounts(ctx.remaining_accounts, &params)?;
-    let m = params.mints_count as usize;
     let remaining_accounts = ctx.remaining_accounts;
     let payer = route_accounts.payer;
     let system_program = route_accounts.system_program;
@@ -40,6 +39,7 @@ pub fn execute_arbitrage<'info>(
     let token_2022_program = route_accounts.token_2022_program;
     let mints = route_accounts.mints;
     let user_accounts = route_accounts.user_accounts;
+    let m = mints.len();
 
     let mut current_amount = params.input_amount;
     for (i, step) in params.steps.iter().enumerate() {
@@ -423,14 +423,19 @@ pub fn execute_arbitrage<'info>(
     }
 
     // 4) 终局利润阈值
+    let minimum_final_amount =
+        min_profit_threshold(params.input_amount, params.min_profit_lamports)?;
     require!(
-        current_amount
-            >= params
-                .input_amount
-                .saturating_add(params.min_profit_lamports),
+        current_amount >= minimum_final_amount,
         ArbitrageError::InsufficientProfit
     );
     Ok(())
+}
+
+fn min_profit_threshold(input_amount: u64, min_profit_lamports: u64) -> Result<u64> {
+    input_amount
+        .checked_add(min_profit_lamports)
+        .ok_or(ArbitrageError::MathOverflow.into())
 }
 
 fn validate_step_min_output(amount_out: u64, min_output_amount: u64) -> Result<()> {
@@ -455,5 +460,13 @@ mod tests {
     fn step_min_output_rejects_below_threshold() {
         let err = validate_step_min_output(99, 100).unwrap_err();
         assert_eq!(err, ArbitrageError::InsufficientOutputAmount.into());
+    }
+
+    #[test]
+    fn min_profit_threshold_rejects_overflow() {
+        assert_eq!(min_profit_threshold(100, 7).unwrap(), 107);
+
+        let err = min_profit_threshold(u64::MAX, 1).unwrap_err();
+        assert_eq!(err, ArbitrageError::MathOverflow.into());
     }
 }

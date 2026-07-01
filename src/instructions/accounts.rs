@@ -28,12 +28,19 @@ pub fn parse_route_accounts<'a, 'info>(
     remaining_accounts: &'a [AccountInfo<'info>],
     params: &SwapArbParams,
 ) -> Result<RouteAccounts<'a, 'info>> {
-    let mints_count = params.mints_count as usize;
+    let mints_count = mints_count_to_usize(params.mints_count);
     let step_ranges =
         calculate_step_ranges(remaining_accounts.len(), params.mints_count, &params.steps)?;
     require!(params.input_amount > 0, ArbitrageError::InvalidAmount);
     validate_fixed_programs(remaining_accounts)?;
     validate_route_account_flags(remaining_accounts, mints_count)?;
+    let mints_start = FIXED_REMAINING_ACCOUNTS;
+    let user_accounts_start = mints_start
+        .checked_add(mints_count)
+        .ok_or(ArbitrageError::MathOverflow)?;
+    let user_accounts_end = user_accounts_start
+        .checked_add(mints_count)
+        .ok_or(ArbitrageError::MathOverflow)?;
 
     Ok(RouteAccounts {
         payer: &remaining_accounts[0],
@@ -41,10 +48,8 @@ pub fn parse_route_accounts<'a, 'info>(
         associated_token_program: &remaining_accounts[2],
         token_program: &remaining_accounts[3],
         token_2022_program: &remaining_accounts[4],
-        mints: &remaining_accounts
-            [FIXED_REMAINING_ACCOUNTS..FIXED_REMAINING_ACCOUNTS + mints_count],
-        user_accounts: &remaining_accounts
-            [FIXED_REMAINING_ACCOUNTS + mints_count..FIXED_REMAINING_ACCOUNTS + 2 * mints_count],
+        mints: &remaining_accounts[mints_start..user_accounts_start],
+        user_accounts: &remaining_accounts[user_accounts_start..user_accounts_end],
         step_ranges,
     })
 }
@@ -286,18 +291,15 @@ pub fn calculate_step_ranges(
     steps: &[crate::state::SwapStepMeta],
 ) -> Result<Vec<Range<usize>>> {
     require!(mints_count > 1, ArbitrageError::InvalidAccountCount);
-    require!(
-        steps.len() == mints_count as usize,
-        ArbitrageError::InvalidAccountCount
-    );
+    let m = mints_count_to_usize(mints_count);
+    require!(steps.len() == m, ArbitrageError::InvalidAccountCount);
 
     for step in steps {
         step.validate()?;
     }
 
-    let m = mints_count as usize;
     let base_len = FIXED_REMAINING_ACCOUNTS
-        .checked_add(2usize.checked_mul(m).ok_or(ArbitrageError::MathOverflow)?)
+        .checked_add(m.checked_mul(2).ok_or(ArbitrageError::MathOverflow)?)
         .ok_or(ArbitrageError::MathOverflow)?;
     require!(
         remaining_accounts_len >= base_len,
@@ -305,7 +307,7 @@ pub fn calculate_step_ranges(
     );
 
     let declared_steps_len = steps.iter().try_fold(0usize, |acc, s| {
-        acc.checked_add(s.accounts_len as usize)
+        acc.checked_add(step_accounts_len_to_usize(s.accounts_len))
             .ok_or(ArbitrageError::MathOverflow)
     })?;
     let actual_steps_len = remaining_accounts_len
@@ -319,7 +321,7 @@ pub fn calculate_step_ranges(
     let mut cursor = base_len;
     let mut ranges = Vec::with_capacity(steps.len());
     for step in steps {
-        let step_len = step.accounts_len as usize;
+        let step_len = step_accounts_len_to_usize(step.accounts_len);
         let end = cursor
             .checked_add(step_len)
             .ok_or(ArbitrageError::MathOverflow)?;
@@ -328,6 +330,14 @@ pub fn calculate_step_ranges(
     }
 
     Ok(ranges)
+}
+
+fn mints_count_to_usize(mints_count: u8) -> usize {
+    usize::from(mints_count)
+}
+
+fn step_accounts_len_to_usize(accounts_len: u8) -> usize {
+    usize::from(accounts_len)
 }
 
 #[cfg(test)]
@@ -666,5 +676,36 @@ mod tests {
         let err = validate_step_account_flags(Protocol::PumpFunAMM, &accounts).unwrap_err();
 
         assert_eq!(err, ArbitrageError::InvalidAccountCount.into());
+    }
+
+    #[test]
+    fn route_account_lengths_use_lossless_index_helpers() {
+        assert_eq!(mints_count_to_usize(7), 7);
+        assert_eq!(step_accounts_len_to_usize(9), 9);
+
+        for (name, source) in [
+            ("accounts", include_str!("accounts.rs")),
+            ("execute_arbitrage", include_str!("execute_arbitrage.rs")),
+        ] {
+            let production = production_source_text(source);
+            for forbidden in [
+                "params.mints_count as usize",
+                "mints_count as usize",
+                "accounts_len as usize",
+                "2 * mints_count",
+            ] {
+                assert!(
+                    !production.contains(forbidden),
+                    "{name} route account boundary math must use checked helpers instead of {forbidden}"
+                );
+            }
+        }
+    }
+
+    fn production_source_text(source: &str) -> &str {
+        match source.split_once("\n#[cfg(test)]") {
+            Some((production, _)) => production,
+            None => source,
+        }
     }
 }

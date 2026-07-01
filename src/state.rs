@@ -4,7 +4,7 @@ pub const CONTRACT_PROTOCOL_VERSION: u16 = 3;
 pub const CONTRACT_PROTOCOL_COUNT: usize = 6;
 pub const CLIENT_MAX_SUPPORTED_PATH_LENGTH: usize = 5;
 pub const REMAINING_ACCOUNTS_FIXED_PREFIX_LEN: usize = 5;
-pub const MAX_FEE_RATE_BPS: u16 = 10_000;
+pub const FEE_RATE_BPS_DENOMINATOR: u16 = 10_000;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, AnchorSerialize, AnchorDeserialize)]
 pub enum Protocol {
@@ -94,7 +94,7 @@ impl SwapStepMeta {
     pub fn validate(&self) -> Result<()> {
         let _ = self.direction_value()?;
         require!(
-            self.fee_rate <= MAX_FEE_RATE_BPS,
+            self.fee_rate < FEE_RATE_BPS_DENOMINATOR,
             crate::errors::ArbitrageError::FeeTooHigh
         );
         Ok(())
@@ -123,12 +123,21 @@ mod tests {
     }
 
     #[test]
-    fn step_validation_rejects_fee_rate_above_bps_denominator() {
+    fn step_validation_rejects_fee_rate_at_or_above_bps_denominator() {
+        let valid_step = SwapStepMeta {
+            protocol: Protocol::PumpFunAMM,
+            accounts_len: 10,
+            direction: 1,
+            fee_rate: FEE_RATE_BPS_DENOMINATOR - 1,
+            min_output_amount: 0,
+        };
+        assert!(valid_step.validate().is_ok());
+
         let step = SwapStepMeta {
             protocol: Protocol::PumpFunAMM,
             accounts_len: 10,
             direction: 1,
-            fee_rate: MAX_FEE_RATE_BPS + 1,
+            fee_rate: FEE_RATE_BPS_DENOMINATOR,
             min_output_amount: 0,
         };
 
