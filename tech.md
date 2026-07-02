@@ -35,6 +35,16 @@ Feature flags:
 - `flex`: reserved for more flexible validation behavior.
 - `idl-build`: enables Anchor IDL build support.
 
+Contract ABI limits are anchored by the repository-level `contract_abi.json`.
+`build.rs` generates a read-only ABI constants module at compile time, and
+`src/state.rs` re-exports `CONTRACT_PROTOCOL_VERSION`,
+`CONTRACT_PROTOCOL_COUNT`, `CLIENT_MAX_SUPPORTED_PATH_LENGTH`, and
+`REMAINING_ACCOUNTS_FIXED_PREFIX_LEN` from that generated module. The on-chain
+`Protocol` enum remains explicit and auditable; `Protocol::contract_id()` uses
+an explicit match for ABI ids instead of relying on enum discriminant casts.
+Tests compare the enum with the generated manifest entries and the Borsh field
+layout.
+
 ## Module Layout
 
 ```text
@@ -89,6 +99,7 @@ pub struct SwapStepMeta {
     pub accounts_len: u8,
     pub direction: u8,
     pub fee_rate: u16,
+    pub min_output_amount: u64,
 }
 ```
 
@@ -98,7 +109,8 @@ Validation performed by `execute_arbitrage`:
 - `input_amount > 0`
 - `steps.len() == mints_count`
 - every step has `direction` 0 or 1
-- every step has `fee_rate <= 10_000`
+- every step has `fee_rate < 10_000`
+- every step enforces `min_output_amount` after CPI when non-zero
 - `remaining_accounts.len() >= 2 * mints_count + 5`
 - flattened step account count equals the sum of `steps[*].accounts_len`
 - fixed program accounts match System, Associated Token, SPL Token, and Token-2022 program ids

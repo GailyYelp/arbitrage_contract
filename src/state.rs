@@ -1,9 +1,13 @@
 use anchor_lang::prelude::*;
 
-pub const CONTRACT_PROTOCOL_VERSION: u16 = 3;
-pub const CONTRACT_PROTOCOL_COUNT: usize = 6;
-pub const CLIENT_MAX_SUPPORTED_PATH_LENGTH: usize = 5;
-pub const REMAINING_ACCOUNTS_FIXED_PREFIX_LEN: usize = 5;
+mod abi_generated {
+    include!(concat!(env!("OUT_DIR"), "/contract_abi_generated.rs"));
+}
+
+pub use abi_generated::{
+    CLIENT_MAX_SUPPORTED_PATH_LENGTH, CONTRACT_PROTOCOL_COUNT, CONTRACT_PROTOCOL_VERSION,
+    REMAINING_ACCOUNTS_FIXED_PREFIX_LEN,
+};
 pub const FEE_RATE_BPS_DENOMINATOR: u16 = 10_000;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, AnchorSerialize, AnchorDeserialize)]
@@ -27,7 +31,14 @@ impl Protocol {
     ];
 
     pub const fn contract_id(self) -> u8 {
-        self as u8
+        match self {
+            Protocol::RaydiumCPMM => 0,
+            Protocol::RaydiumCLMM => 1,
+            Protocol::RaydiumPoolV4 => 2,
+            Protocol::RaydiumLaunchPad => 3,
+            Protocol::PumpFunSwap => 4,
+            Protocol::PumpFunAMM => 5,
+        }
     }
 
     pub const fn manifest_name(self) -> &'static str {
@@ -175,8 +186,14 @@ mod tests {
             .filter(|protocol| protocol["contract_enum"].as_bool() == Some(true))
             .count();
         assert_eq!(manifest_contract_protocol_count, Protocol::ALL.len());
+        let generated_contract_protocol_count = abi_generated::CONTRACT_PROTOCOLS_MANIFEST
+            .iter()
+            .filter(|protocol| protocol.contract_enum)
+            .count();
+        assert_eq!(generated_contract_protocol_count, Protocol::ALL.len());
         for protocol in Protocol::ALL {
             assert_protocol_id(protocols, protocol.manifest_name(), protocol.contract_id());
+            assert_generated_protocol_id(protocol.manifest_name(), protocol.contract_id());
         }
 
         let step_fields = manifest["swap_step_meta"]["fields"]
@@ -200,6 +217,32 @@ mod tests {
                 ("min_output_amount", "u64"),
             ]
         );
+    }
+
+    #[test]
+    fn abi_constants_are_generated_from_manifest() {
+        let production = include_str!("state.rs")
+            .split_once("\n#[cfg(test)]")
+            .map(|(production, _)| production)
+            .unwrap_or_else(|| include_str!("state.rs"));
+
+        assert!(
+            production
+                .contains("include!(concat!(env!(\"OUT_DIR\"), \"/contract_abi_generated.rs\"))"),
+            "contract ABI constants must come from the build-script generated manifest module"
+        );
+        for forbidden in [
+            "pub const CONTRACT_PROTOCOL_VERSION: u16 =",
+            "pub const CONTRACT_PROTOCOL_COUNT: usize =",
+            "pub const CLIENT_MAX_SUPPORTED_PATH_LENGTH: usize =",
+            "pub const REMAINING_ACCOUNTS_FIXED_PREFIX_LEN: usize =",
+            "self as u8",
+        ] {
+            assert!(
+                !production.contains(forbidden),
+                "contract ABI production code must not use forbidden pattern: {forbidden}"
+            );
+        }
     }
 
     #[test]
@@ -297,6 +340,16 @@ mod tests {
 
         assert_eq!(protocol["contract_enum"].as_bool(), Some(true));
         assert_eq!(protocol["id"].as_u64(), Some(u64::from(expected_id)));
+    }
+
+    fn assert_generated_protocol_id(name: &str, expected_id: u8) {
+        let protocol = abi_generated::CONTRACT_PROTOCOLS_MANIFEST
+            .iter()
+            .find(|protocol| protocol.name == name)
+            .unwrap_or_else(|| panic!("missing generated ABI manifest entry: {name}"));
+
+        assert!(protocol.contract_enum);
+        assert_eq!(protocol.id, Some(expected_id));
     }
 
     fn manifest_fields(manifest: &Value, section: &str) -> Vec<(String, String)> {
