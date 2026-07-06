@@ -69,8 +69,8 @@ pub mod state;
 
 pub use state::*;
 
-declare_id!("BnvW7qAWpur6tcVHsmkgRjiH1orAc7ERL6aVymBPpNEB");
-// declare_id!("9Vj7SrxY3mQdw48xZ29r53ZA2rjNiniTA7KNsjH8ubkK");
+// declare_id!("BnvW7qAWpur6tcVHsmkgRjiH1orAc7ERL6aVymBPpNEB");
+declare_id!("9Vj7SrxY3mQdw48xZ29r53ZA2rjNiniTA7KNsjH8ubkK");
 
 #[derive(Accounts)]
 pub struct ExecuteArbitrage {}
@@ -113,6 +113,10 @@ mod tests {
         ),
         ("src/lib.rs", include_str!("lib.rs")),
         ("src/protocal/mod.rs", include_str!("protocal/mod.rs")),
+        (
+            "src/protocal/orca_whirlpool.rs",
+            include_str!("protocal/orca_whirlpool.rs"),
+        ),
         (
             "src/protocal/pumpfun_amm.rs",
             include_str!("protocal/pumpfun_amm.rs"),

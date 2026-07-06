@@ -15,6 +15,7 @@ use anchor_lang::solana_program::program::invoke;
 pub const PUMPFUN_AMM_BUY_DISCRIMINATOR: &[u8; 8] = &[102, 6, 61, 18, 1, 218, 235, 234];
 pub const PUMPFUN_AMM_SELL_DISCRIMINATOR: &[u8; 8] = &[51, 230, 133, 164, 1, 127, 131, 173];
 pub const PUMPFUN_SWAP_MIN_ACCOUNTS: usize = 7;
+const TRACK_VOLUME_FALSE: u8 = 0;
 
 #[derive(Clone)]
 pub struct PumpFunSwapAccounts<'info> {
@@ -105,7 +106,7 @@ pub fn pumpfun_swap_swap<'info>(
     account_infos.push(accounts.program.clone());
 
     // 构造 data 与账户顺序（严格按 BUY/SELL 对齐）
-    let mut data = Vec::with_capacity(8 + 8 + 8);
+    let mut data = Vec::with_capacity(8 + 8 + 8 + 1);
     // mint --> sol_mint == sell == 0
     // sol_mint --> mint == buy == 1
     if direction == 0 {
@@ -118,6 +119,7 @@ pub fn pumpfun_swap_swap<'info>(
         data.extend_from_slice(PUMPFUN_AMM_BUY_DISCRIMINATOR);
         data.extend_from_slice(&minimum_amount_out.to_le_bytes()); // token_amount
         data.extend_from_slice(&amount_in.to_le_bytes()); // max_sol_cost
+        data.push(TRACK_VOLUME_FALSE);
     };
 
     // Instruction

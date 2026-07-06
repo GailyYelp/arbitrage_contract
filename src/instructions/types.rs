@@ -13,6 +13,8 @@ pub const PUMPFUN_GLOBAL_VOLUME_ACCUMULATOR_SEED: &[u8] = b"global_volume_accumu
 pub const PUMPFUN_USER_VOLUME_ACCUMULATOR_SEED: &[u8] = b"user_volume_accumulator";
 const RAYDIUM_POOL_V4_NONCE_OFFSET: usize = 8;
 const U8_FIELD_LEN: usize = 1;
+const U16_FIELD_LEN: usize = 2;
+const I32_FIELD_LEN: usize = 4;
 const U64_FIELD_LEN: usize = 8;
 const U128_FIELD_LEN: usize = 16;
 const PUBKEY_FIELD_LEN: usize = 32;
@@ -97,6 +99,38 @@ const PUMPFUN_AMM_POOL_LP_SUPPLY_OFFSET: usize =
     PUMPFUN_AMM_POOL_QUOTE_TOKEN_ACCOUNT_OFFSET + PUBKEY_FIELD_LEN;
 const PUMPFUN_AMM_POOL_COIN_CREATOR_OFFSET: usize =
     PUMPFUN_AMM_POOL_LP_SUPPLY_OFFSET + U64_FIELD_LEN;
+const ORCA_WHIRLPOOL_DISCRIMINATOR: &[u8; 8] = &[63, 149, 209, 12, 225, 128, 99, 9];
+const ORCA_WHIRLPOOL_CONFIG_OFFSET: usize = 8;
+const ORCA_WHIRLPOOL_BUMP_OFFSET: usize = ORCA_WHIRLPOOL_CONFIG_OFFSET + PUBKEY_FIELD_LEN;
+const ORCA_WHIRLPOOL_TICK_SPACING_OFFSET: usize = ORCA_WHIRLPOOL_BUMP_OFFSET + U8_FIELD_LEN;
+const ORCA_WHIRLPOOL_FEE_TIER_INDEX_SEED_OFFSET: usize =
+    ORCA_WHIRLPOOL_TICK_SPACING_OFFSET + U16_FIELD_LEN;
+const ORCA_WHIRLPOOL_FEE_RATE_OFFSET: usize =
+    ORCA_WHIRLPOOL_FEE_TIER_INDEX_SEED_OFFSET + U16_FIELD_LEN;
+const ORCA_WHIRLPOOL_PROTOCOL_FEE_RATE_OFFSET: usize =
+    ORCA_WHIRLPOOL_FEE_RATE_OFFSET + U16_FIELD_LEN;
+const ORCA_WHIRLPOOL_LIQUIDITY_OFFSET: usize =
+    ORCA_WHIRLPOOL_PROTOCOL_FEE_RATE_OFFSET + U16_FIELD_LEN;
+const ORCA_WHIRLPOOL_SQRT_PRICE_OFFSET: usize = ORCA_WHIRLPOOL_LIQUIDITY_OFFSET + U128_FIELD_LEN;
+const ORCA_WHIRLPOOL_TICK_CURRENT_INDEX_OFFSET: usize =
+    ORCA_WHIRLPOOL_SQRT_PRICE_OFFSET + U128_FIELD_LEN;
+const ORCA_WHIRLPOOL_PROTOCOL_FEE_OWED_A_OFFSET: usize =
+    ORCA_WHIRLPOOL_TICK_CURRENT_INDEX_OFFSET + I32_FIELD_LEN;
+const ORCA_WHIRLPOOL_PROTOCOL_FEE_OWED_B_OFFSET: usize =
+    ORCA_WHIRLPOOL_PROTOCOL_FEE_OWED_A_OFFSET + U64_FIELD_LEN;
+const ORCA_WHIRLPOOL_TOKEN_MINT_A_OFFSET: usize =
+    ORCA_WHIRLPOOL_PROTOCOL_FEE_OWED_B_OFFSET + U64_FIELD_LEN;
+const ORCA_WHIRLPOOL_TOKEN_VAULT_A_OFFSET: usize =
+    ORCA_WHIRLPOOL_TOKEN_MINT_A_OFFSET + PUBKEY_FIELD_LEN;
+const ORCA_WHIRLPOOL_FEE_GROWTH_GLOBAL_A_OFFSET: usize =
+    ORCA_WHIRLPOOL_TOKEN_VAULT_A_OFFSET + PUBKEY_FIELD_LEN;
+const ORCA_WHIRLPOOL_TOKEN_MINT_B_OFFSET: usize =
+    ORCA_WHIRLPOOL_FEE_GROWTH_GLOBAL_A_OFFSET + U128_FIELD_LEN;
+const ORCA_WHIRLPOOL_TOKEN_VAULT_B_OFFSET: usize =
+    ORCA_WHIRLPOOL_TOKEN_MINT_B_OFFSET + PUBKEY_FIELD_LEN;
+const ORCA_WHIRLPOOL_TICK_ARRAY_SIZE: i32 = 88;
+const ORCA_WHIRLPOOL_TICK_ARRAY_SEED: &[u8] = b"tick_array";
+const ORCA_WHIRLPOOL_ORACLE_SEED: &[u8] = b"oracle";
 
 #[derive(Debug, Clone)]
 pub struct SwapResult {
@@ -376,6 +410,93 @@ pub fn validate_raydium_clmm_semantic_accounts<'info>(
     Ok(())
 }
 
+pub fn validate_orca_whirlpool_semantic_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    direction: u8,
+    input_mint: &AccountInfo<'info>,
+    output_mint: &AccountInfo<'info>,
+    input_token_program: &AccountInfo<'info>,
+    output_token_program: &AccountInfo<'info>,
+) -> Result<()> {
+    require!(
+        step_accounts.len() >= 13,
+        ArbitrageError::InvalidAccountCount
+    );
+    let data = step_accounts[4].try_borrow_data()?;
+    let pool = read_orca_whirlpool_semantic_keys(&data)?;
+    require_keys_eq!(
+        pool.token_mint_a,
+        step_accounts[7].key(),
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        pool.token_mint_b,
+        step_accounts[8].key(),
+        ArbitrageError::InvalidTokenMint
+    );
+
+    let (
+        expected_input_mint,
+        expected_output_mint,
+        expected_input_vault,
+        expected_output_vault,
+        expected_token_program_a,
+        expected_token_program_b,
+    ) = match direction {
+        0 => (
+            pool.token_mint_a,
+            pool.token_mint_b,
+            pool.token_vault_a,
+            pool.token_vault_b,
+            input_token_program.key(),
+            output_token_program.key(),
+        ),
+        1 => (
+            pool.token_mint_b,
+            pool.token_mint_a,
+            pool.token_vault_b,
+            pool.token_vault_a,
+            output_token_program.key(),
+            input_token_program.key(),
+        ),
+        _ => return Err(ArbitrageError::InvalidInstructionData.into()),
+    };
+
+    require_keys_eq!(
+        expected_input_mint,
+        input_mint.key(),
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        expected_output_mint,
+        output_mint.key(),
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        expected_input_vault,
+        step_accounts[5].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        expected_output_vault,
+        step_accounts[6].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        expected_token_program_a,
+        step_accounts[1].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        expected_token_program_b,
+        step_accounts[2].key(),
+        ArbitrageError::InvalidAccount
+    );
+
+    validate_orca_whirlpool_program_owned_accounts(step_accounts)?;
+    validate_orca_whirlpool_derived_accounts(step_accounts, direction, pool)
+}
+
 pub fn validate_raydium_launchpad_semantic_accounts<'info>(
     step_accounts: &[AccountInfo<'info>],
     base_mint: &AccountInfo<'info>,
@@ -428,7 +549,13 @@ pub fn validate_pumpfun_swap_semantic_accounts<'info>(
 ) -> Result<()> {
     let expected_len = match direction {
         0 => 9,
-        1 => 11,
+        1 => {
+            require!(
+                step_accounts.len() == 11 || step_accounts.len() == 13,
+                ArbitrageError::InvalidAccountCount
+            );
+            step_accounts.len()
+        }
         _ => return Err(ArbitrageError::InvalidInstructionData.into()),
     };
     require!(
@@ -453,7 +580,7 @@ pub fn validate_pumpfun_swap_semantic_accounts<'info>(
         ArbitrageError::InvalidAccount
     );
 
-    let fee_config_index = expected_len - 2;
+    let fee_config_index = if direction == 1 { 9 } else { expected_len - 2 };
     if direction == 1 {
         validate_pumpfun_volume_accounts(program, payer, &step_accounts[7], &step_accounts[8])?;
     }
@@ -474,7 +601,7 @@ pub fn validate_pumpfun_amm_semantic_accounts<'info>(
     step_accounts: &[AccountInfo<'info>],
 ) -> Result<()> {
     require!(
-        step_accounts.len() == 12 || step_accounts.len() == 14,
+        step_accounts.len() == 12 || step_accounts.len() == 14 || step_accounts.len() == 16,
         ArbitrageError::InvalidAccountCount
     );
 
@@ -524,8 +651,13 @@ pub fn validate_pumpfun_amm_semantic_accounts<'info>(
         ArbitrageError::InvalidAccount
     );
 
-    let fee_config_index = step_accounts.len() - 2;
-    if step_accounts.len() == 14 {
+    let fee_config_index = match step_accounts.len() {
+        12 => 10,
+        14 => 12,
+        16 => 12,
+        _ => return Err(ArbitrageError::InvalidAccountCount.into()),
+    };
+    if step_accounts.len() >= 14 {
         validate_pumpfun_volume_accounts(program, payer, &step_accounts[10], &step_accounts[11])?;
     }
     validate_pumpfun_fee_config_accounts(
@@ -597,6 +729,153 @@ struct RaydiumClmmPoolSemanticKeys {
     token_vault_0: Pubkey,
     token_vault_1: Pubkey,
     observation_key: Pubkey,
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+struct OrcaWhirlpoolSemanticKeys {
+    tick_spacing: u16,
+    tick_current_index: i32,
+    token_mint_a: Pubkey,
+    token_vault_a: Pubkey,
+    token_mint_b: Pubkey,
+    token_vault_b: Pubkey,
+}
+
+fn read_orca_whirlpool_semantic_keys(data: &[u8]) -> Result<OrcaWhirlpoolSemanticKeys> {
+    require!(
+        data.starts_with(ORCA_WHIRLPOOL_DISCRIMINATOR),
+        ArbitrageError::InvalidAccount
+    );
+    Ok(OrcaWhirlpoolSemanticKeys {
+        tick_spacing: read_u16_from_data(data, ORCA_WHIRLPOOL_TICK_SPACING_OFFSET)?,
+        tick_current_index: read_i32_from_data(data, ORCA_WHIRLPOOL_TICK_CURRENT_INDEX_OFFSET)?,
+        token_mint_a: read_pubkey_from_data(data, ORCA_WHIRLPOOL_TOKEN_MINT_A_OFFSET)?,
+        token_vault_a: read_pubkey_from_data(data, ORCA_WHIRLPOOL_TOKEN_VAULT_A_OFFSET)?,
+        token_mint_b: read_pubkey_from_data(data, ORCA_WHIRLPOOL_TOKEN_MINT_B_OFFSET)?,
+        token_vault_b: read_pubkey_from_data(data, ORCA_WHIRLPOOL_TOKEN_VAULT_B_OFFSET)?,
+    })
+}
+
+fn validate_orca_whirlpool_program_owned_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+) -> Result<()> {
+    for program_owned_account in [
+        &step_accounts[4],
+        &step_accounts[9],
+        &step_accounts[10],
+        &step_accounts[11],
+    ] {
+        require_keys_eq!(
+            program_owned_account.owner.key(),
+            step_accounts[0].key(),
+            ArbitrageError::InvalidAccount
+        );
+    }
+    Ok(())
+}
+
+fn validate_orca_whirlpool_derived_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    direction: u8,
+    pool: OrcaWhirlpoolSemanticKeys,
+) -> Result<()> {
+    let program_id = step_accounts[0].key();
+    let pool_id = step_accounts[4].key();
+    let tick_arrays = orca_whirlpool_directional_tick_array_addresses(
+        pool_id,
+        pool.tick_current_index,
+        pool.tick_spacing,
+        direction,
+        &program_id,
+    )?;
+    for (idx, expected_tick_array) in tick_arrays.iter().enumerate() {
+        require_keys_eq!(
+            *expected_tick_array,
+            step_accounts[9 + idx].key(),
+            ArbitrageError::InvalidAccount
+        );
+    }
+
+    let expected_oracle =
+        Pubkey::find_program_address(&[ORCA_WHIRLPOOL_ORACLE_SEED, pool_id.as_ref()], &program_id)
+            .0;
+    require_keys_eq!(
+        expected_oracle,
+        step_accounts[12].key(),
+        ArbitrageError::InvalidAccount
+    );
+    Ok(())
+}
+
+fn orca_whirlpool_directional_tick_array_addresses(
+    pool_id: Pubkey,
+    tick_current_index: i32,
+    tick_spacing: u16,
+    direction: u8,
+    program_id: &Pubkey,
+) -> Result<[Pubkey; 3]> {
+    let start_indexes =
+        orca_whirlpool_directional_start_indexes(tick_current_index, tick_spacing, direction)?;
+    Ok(start_indexes.map(|start_index| {
+        let start_tick_index = start_index.to_string();
+        Pubkey::find_program_address(
+            &[
+                ORCA_WHIRLPOOL_TICK_ARRAY_SEED,
+                pool_id.as_ref(),
+                start_tick_index.as_bytes(),
+            ],
+            program_id,
+        )
+        .0
+    }))
+}
+
+fn orca_whirlpool_directional_start_indexes(
+    tick_current_index: i32,
+    tick_spacing: u16,
+    direction: u8,
+) -> Result<[i32; 3]> {
+    let current_start_index =
+        orca_whirlpool_tick_array_start_index(tick_current_index, tick_spacing)?;
+    let array_spacing = orca_whirlpool_tick_array_spacing(tick_spacing)?;
+    let direction_multiplier = match direction {
+        0 => -1_i32,
+        1 => 1_i32,
+        _ => return Err(ArbitrageError::InvalidInstructionData.into()),
+    };
+    let first_offset = direction_multiplier
+        .checked_mul(array_spacing)
+        .ok_or(ArbitrageError::MathOverflow)?;
+    let second_offset = first_offset
+        .checked_mul(2)
+        .ok_or(ArbitrageError::MathOverflow)?;
+    Ok([
+        current_start_index,
+        current_start_index
+            .checked_add(first_offset)
+            .ok_or(ArbitrageError::MathOverflow)?,
+        current_start_index
+            .checked_add(second_offset)
+            .ok_or(ArbitrageError::MathOverflow)?,
+    ])
+}
+
+fn orca_whirlpool_tick_array_start_index(
+    tick_current_index: i32,
+    tick_spacing: u16,
+) -> Result<i32> {
+    let array_spacing = orca_whirlpool_tick_array_spacing(tick_spacing)?;
+    tick_current_index
+        .div_euclid(array_spacing)
+        .checked_mul(array_spacing)
+        .ok_or(ArbitrageError::MathOverflow.into())
+}
+
+fn orca_whirlpool_tick_array_spacing(tick_spacing: u16) -> Result<i32> {
+    require!(tick_spacing > 0, ArbitrageError::InvalidAccount);
+    i32::from(tick_spacing)
+        .checked_mul(ORCA_WHIRLPOOL_TICK_ARRAY_SIZE)
+        .ok_or(ArbitrageError::MathOverflow.into())
 }
 
 fn read_raydium_clmm_pool_semantic_keys(data: &[u8]) -> Result<RaydiumClmmPoolSemanticKeys> {
@@ -789,6 +1068,30 @@ pub fn read_token_mint_from_data(data: &[u8]) -> Result<Pubkey> {
 
 pub fn read_token_owner_from_data(data: &[u8]) -> Result<Pubkey> {
     read_pubkey_from_data(data, 32)
+}
+
+fn read_u16_from_data(data: &[u8], offset: usize) -> Result<u16> {
+    let end = offset
+        .checked_add(U16_FIELD_LEN)
+        .ok_or(ArbitrageError::MathOverflow)?;
+    let bytes = data
+        .get(offset..end)
+        .ok_or(ArbitrageError::InvalidAccount)?
+        .try_into()
+        .map_err(|_| ArbitrageError::InvalidAccount)?;
+    Ok(u16::from_le_bytes(bytes))
+}
+
+fn read_i32_from_data(data: &[u8], offset: usize) -> Result<i32> {
+    let end = offset
+        .checked_add(I32_FIELD_LEN)
+        .ok_or(ArbitrageError::MathOverflow)?;
+    let bytes = data
+        .get(offset..end)
+        .ok_or(ArbitrageError::InvalidAccount)?
+        .try_into()
+        .map_err(|_| ArbitrageError::InvalidAccount)?;
+    Ok(i32::from_le_bytes(bytes))
 }
 
 fn read_pubkey_from_data(data: &[u8], offset: usize) -> Result<Pubkey> {
@@ -1080,6 +1383,38 @@ mod tests {
             &mut data,
             RAYDIUM_LAUNCHPAD_POOL_QUOTE_VAULT_OFFSET,
             quote_vault,
+        );
+        data
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn orca_whirlpool_pool_data(
+        tick_spacing: u16,
+        tick_current_index: i32,
+        token_mint_a: Pubkey,
+        token_vault_a: Pubkey,
+        token_mint_b: Pubkey,
+        token_vault_b: Pubkey,
+    ) -> Vec<u8> {
+        let mut data = vec![0_u8; ORCA_WHIRLPOOL_TOKEN_VAULT_B_OFFSET + PUBKEY_FIELD_LEN];
+        data[0..8].copy_from_slice(ORCA_WHIRLPOOL_DISCRIMINATOR);
+        data[ORCA_WHIRLPOOL_TICK_SPACING_OFFSET
+            ..ORCA_WHIRLPOOL_TICK_SPACING_OFFSET + U16_FIELD_LEN]
+            .copy_from_slice(&tick_spacing.to_le_bytes());
+        data[ORCA_WHIRLPOOL_TICK_CURRENT_INDEX_OFFSET
+            ..ORCA_WHIRLPOOL_TICK_CURRENT_INDEX_OFFSET + I32_FIELD_LEN]
+            .copy_from_slice(&tick_current_index.to_le_bytes());
+        write_pubkey(&mut data, ORCA_WHIRLPOOL_TOKEN_MINT_A_OFFSET, token_mint_a);
+        write_pubkey(
+            &mut data,
+            ORCA_WHIRLPOOL_TOKEN_VAULT_A_OFFSET,
+            token_vault_a,
+        );
+        write_pubkey(&mut data, ORCA_WHIRLPOOL_TOKEN_MINT_B_OFFSET, token_mint_b);
+        write_pubkey(
+            &mut data,
+            ORCA_WHIRLPOOL_TOKEN_VAULT_B_OFFSET,
+            token_vault_b,
         );
         data
     }
@@ -1707,6 +2042,237 @@ mod tests {
         let err =
             validate_raydium_clmm_semantic_accounts(&wrong_input_vault, &token0_mint, &token1_mint)
                 .unwrap_err();
+        assert_eq!(err, ArbitrageError::InvalidAccount.into());
+    }
+
+    #[test]
+    fn orca_whirlpool_semantic_validation_checks_pool_state_and_pdas() {
+        let program_key = Pubkey::new_unique();
+        let pool_key = Pubkey::new_unique();
+        let token_a_program_key = Pubkey::new_unique();
+        let token_b_program_key = Pubkey::new_unique();
+        let token_mint_a_key = Pubkey::new_unique();
+        let token_mint_b_key = Pubkey::new_unique();
+        let token_vault_a_key = Pubkey::new_unique();
+        let token_vault_b_key = Pubkey::new_unique();
+        let tick_spacing = 64_u16;
+        let tick_current_index = 0_i32;
+        let tick_arrays = orca_whirlpool_directional_tick_array_addresses(
+            pool_key,
+            tick_current_index,
+            tick_spacing,
+            0,
+            &program_key,
+        )
+        .unwrap();
+        let oracle = Pubkey::find_program_address(
+            &[ORCA_WHIRLPOOL_ORACLE_SEED, pool_key.as_ref()],
+            &program_key,
+        )
+        .0;
+
+        let step_accounts = vec![
+            test_account_with_data(
+                program_key,
+                Pubkey::new_unique(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(
+                token_a_program_key,
+                token_a_program_key,
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(
+                token_b_program_key,
+                token_b_program_key,
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(
+                Pubkey::new_unique(),
+                Pubkey::new_unique(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(
+                pool_key,
+                program_key,
+                false,
+                true,
+                false,
+                orca_whirlpool_pool_data(
+                    tick_spacing,
+                    tick_current_index,
+                    token_mint_a_key,
+                    token_vault_a_key,
+                    token_mint_b_key,
+                    token_vault_b_key,
+                ),
+            ),
+            test_account_with_data(
+                token_vault_a_key,
+                token_a_program_key,
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                token_vault_b_key,
+                token_b_program_key,
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                token_mint_a_key,
+                token_a_program_key,
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                token_mint_b_key,
+                token_b_program_key,
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(tick_arrays[0], program_key, false, true, false, vec![]),
+            test_account_with_data(tick_arrays[1], program_key, false, true, false, vec![]),
+            test_account_with_data(tick_arrays[2], program_key, false, true, false, vec![]),
+            test_account_with_data(oracle, program_key, false, true, false, vec![]),
+        ];
+        let token_mint_a = step_accounts[7].clone();
+        let token_mint_b = step_accounts[8].clone();
+        let token_program_a = step_accounts[1].clone();
+        let token_program_b = step_accounts[2].clone();
+
+        assert!(validate_orca_whirlpool_semantic_accounts(
+            &step_accounts,
+            0,
+            &token_mint_a,
+            &token_mint_b,
+            &token_program_a,
+            &token_program_b,
+        )
+        .is_ok());
+
+        let mut uninitialized_oracle = step_accounts.clone();
+        uninitialized_oracle[12] = test_account_with_data(
+            oracle,
+            anchor_lang::system_program::ID,
+            false,
+            true,
+            false,
+            vec![],
+        );
+        assert!(validate_orca_whirlpool_semantic_accounts(
+            &uninitialized_oracle,
+            0,
+            &token_mint_a,
+            &token_mint_b,
+            &token_program_a,
+            &token_program_b,
+        )
+        .is_ok());
+
+        let reverse_tick_arrays = orca_whirlpool_directional_tick_array_addresses(
+            pool_key,
+            tick_current_index,
+            tick_spacing,
+            1,
+            &program_key,
+        )
+        .unwrap();
+        let mut reverse_step_accounts = step_accounts.clone();
+        reverse_step_accounts[5] = step_accounts[6].clone();
+        reverse_step_accounts[6] = step_accounts[5].clone();
+        reverse_step_accounts[9] = test_account_with_data(
+            reverse_tick_arrays[0],
+            program_key,
+            false,
+            true,
+            false,
+            vec![],
+        );
+        reverse_step_accounts[10] = test_account_with_data(
+            reverse_tick_arrays[1],
+            program_key,
+            false,
+            true,
+            false,
+            vec![],
+        );
+        reverse_step_accounts[11] = test_account_with_data(
+            reverse_tick_arrays[2],
+            program_key,
+            false,
+            true,
+            false,
+            vec![],
+        );
+        assert!(validate_orca_whirlpool_semantic_accounts(
+            &reverse_step_accounts,
+            1,
+            &token_mint_b,
+            &token_mint_a,
+            &token_program_b,
+            &token_program_a,
+        )
+        .is_ok());
+
+        let mut wrong_oracle = step_accounts.clone();
+        wrong_oracle[12] = test_account_with_data(
+            Pubkey::new_unique(),
+            program_key,
+            false,
+            true,
+            false,
+            vec![],
+        );
+        let err = validate_orca_whirlpool_semantic_accounts(
+            &wrong_oracle,
+            0,
+            &token_mint_a,
+            &token_mint_b,
+            &token_program_a,
+            &token_program_b,
+        )
+        .unwrap_err();
+        assert_eq!(err, ArbitrageError::InvalidAccount.into());
+
+        let mut wrong_token_program = step_accounts.clone();
+        wrong_token_program[1] = test_account_with_data(
+            Pubkey::new_unique(),
+            Pubkey::new_unique(),
+            false,
+            false,
+            true,
+            vec![],
+        );
+        let err = validate_orca_whirlpool_semantic_accounts(
+            &wrong_token_program,
+            0,
+            &token_mint_a,
+            &token_mint_b,
+            &token_program_a,
+            &token_program_b,
+        )
+        .unwrap_err();
         assert_eq!(err, ArbitrageError::InvalidAccount.into());
     }
 

@@ -18,6 +18,7 @@ pub enum Protocol {
     RaydiumLaunchPad = 3,
     PumpFunSwap = 4,
     PumpFunAMM = 5,
+    OrcaWhirlpool = 6,
 }
 
 impl Protocol {
@@ -28,6 +29,7 @@ impl Protocol {
         Protocol::RaydiumLaunchPad,
         Protocol::PumpFunSwap,
         Protocol::PumpFunAMM,
+        Protocol::OrcaWhirlpool,
     ];
 
     pub const fn contract_id(self) -> u8 {
@@ -38,6 +40,7 @@ impl Protocol {
             Protocol::RaydiumLaunchPad => 3,
             Protocol::PumpFunSwap => 4,
             Protocol::PumpFunAMM => 5,
+            Protocol::OrcaWhirlpool => 6,
         }
     }
 
@@ -49,6 +52,7 @@ impl Protocol {
             Protocol::RaydiumLaunchPad => "RaydiumLaunchpad",
             Protocol::PumpFunSwap => "PumpFunSwap",
             Protocol::PumpFunAMM => "PumpFunAMM",
+            Protocol::OrcaWhirlpool => "OrcaWhirlpool",
         }
     }
 }
@@ -90,7 +94,7 @@ impl TryFrom<u8> for DirectionValue {
 
 #[derive(Clone, Debug, AnchorSerialize, AnchorDeserialize)]
 pub struct SwapStepMeta {
-    pub protocol: Protocol, // 0=CPMM,1=CLMM,2=PoolV4,3=LaunchPad,4=PumpFun,5=PumpFunAMM
+    pub protocol: Protocol, // 0=CPMM,1=CLMM,2=PoolV4,3=LaunchPad,4=PumpFun,5=PumpFunAMM,6=OrcaWhirlpool
     pub accounts_len: u8,   // 本步账户组长度（用于从 remaining_accounts 切片）
     pub direction: u8,      // 协议内方向标记；当前仅允许 0 或 1，具体语义由协议适配层映射
     pub fee_rate: u16,      // 手续费率

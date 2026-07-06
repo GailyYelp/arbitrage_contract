@@ -21,6 +21,8 @@ pub const PUMPFUN_SWAP_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P");
 pub const PUMPFUN_AMM_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA");
+pub const ORCA_WHIRLPOOL_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc");
 pub const MEMO_PROGRAM_V2_ID: Pubkey =
     anchor_lang::pubkey!("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
 
@@ -125,6 +127,7 @@ pub fn expected_protocol_program_id(protocol: Protocol) -> Pubkey {
         Protocol::RaydiumLaunchPad => RAYDIUM_LAUNCHPAD_PROGRAM_ID,
         Protocol::PumpFunSwap => PUMPFUN_SWAP_PROGRAM_ID,
         Protocol::PumpFunAMM => PUMPFUN_AMM_PROGRAM_ID,
+        Protocol::OrcaWhirlpool => ORCA_WHIRLPOOL_PROGRAM_ID,
     }
 }
 
@@ -137,6 +140,7 @@ pub fn expected_fixed_accounts(protocol: Protocol) -> &'static [FixedAccountExpe
         Protocol::RaydiumLaunchPad => RAYDIUM_LAUNCHPAD_FIXED_ACCOUNTS,
         Protocol::PumpFunSwap => PUMPFUN_SWAP_FIXED_ACCOUNTS,
         Protocol::PumpFunAMM => pumpfun_amm_fixed_accounts(),
+        Protocol::OrcaWhirlpool => ORCA_WHIRLPOOL_FIXED_ACCOUNTS,
     }
 }
 
@@ -189,6 +193,12 @@ const RAYDIUM_CPMM_FIXED_ACCOUNTS_MAINNET: &[FixedAccountExpectation] =
 #[cfg(not(feature = "flex"))]
 const RAYDIUM_CLMM_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[FixedAccountExpectation {
     index: 6,
+    key: MEMO_PROGRAM_V2_ID,
+}];
+
+#[cfg(not(feature = "flex"))]
+const ORCA_WHIRLPOOL_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[FixedAccountExpectation {
+    index: 3,
     key: MEMO_PROGRAM_V2_ID,
 }];
 
@@ -326,6 +336,10 @@ mod tests {
         assert_eq!(
             expected_protocol_program_id(Protocol::PumpFunAMM),
             PUMPFUN_AMM_PROGRAM_ID
+        );
+        assert_eq!(
+            expected_protocol_program_id(Protocol::OrcaWhirlpool),
+            ORCA_WHIRLPOOL_PROGRAM_ID
         );
     }
 

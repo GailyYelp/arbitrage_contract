@@ -6,13 +6,15 @@ use crate::instructions::program_ids::{
     validate_step_fixed_accounts, validate_step_program_account,
 };
 use crate::instructions::types::{
-    token_program_for_mint, validate_pumpfun_amm_semantic_accounts,
-    validate_pumpfun_swap_semantic_accounts, validate_raydium_clmm_semantic_accounts,
-    validate_raydium_cpmm_semantic_accounts, validate_raydium_launchpad_semantic_accounts,
-    validate_raydium_pool_v4_authority, validate_raydium_pool_v4_semantic_accounts,
-    validate_token_account_for_mint, validate_token_account_for_mint_and_authority,
+    token_program_for_mint, validate_orca_whirlpool_semantic_accounts,
+    validate_pumpfun_amm_semantic_accounts, validate_pumpfun_swap_semantic_accounts,
+    validate_raydium_clmm_semantic_accounts, validate_raydium_cpmm_semantic_accounts,
+    validate_raydium_launchpad_semantic_accounts, validate_raydium_pool_v4_authority,
+    validate_raydium_pool_v4_semantic_accounts, validate_token_account_for_mint,
+    validate_token_account_for_mint_and_authority,
 };
 use crate::protocal::{
+    orca_whirlpool::{orca_whirlpool_swap, OrcaWhirlpoolAccounts, ORCA_WHIRLPOOL_MIN_ACCOUNTS},
     pumpfun_amm::{pumpfun_amm_swap, PumpFunAmmAccounts, PUMPFUN_AMM_MIN_ACCOUNTS},
     pumpfun_swap::{pumpfun_swap_swap, PumpFunSwapAccounts, PUMPFUN_SWAP_MIN_ACCOUNTS},
     raydium_clmm::{raydium_clmm_swap, RaydiumClmmAccounts, RAYDIUM_CLMM_MIN_ACCOUNTS},
@@ -413,6 +415,63 @@ pub fn execute_arbitrage<'info>(
                     remaining_accounts: step_slice[10..].to_vec(),
                 };
                 pumpfun_amm_swap(account_infos, direction, current_amount, step.fee_rate)
+            }
+            Protocol::OrcaWhirlpool => {
+                require!(
+                    step_slice.len() >= ORCA_WHIRLPOOL_MIN_ACCOUNTS,
+                    ArbitrageError::InvalidAccountCount
+                );
+                validate_token_account_for_mint_and_authority(
+                    &step_slice[5],
+                    in_mint_ai,
+                    in_mint_program_ai,
+                    &step_slice[4],
+                )?;
+                validate_token_account_for_mint_and_authority(
+                    &step_slice[6],
+                    out_mint_ai,
+                    out_mint_program_ai,
+                    &step_slice[4],
+                )?;
+                validate_orca_whirlpool_semantic_accounts(
+                    step_slice,
+                    direction,
+                    in_mint_ai,
+                    out_mint_ai,
+                    in_mint_program_ai,
+                    out_mint_program_ai,
+                )?;
+
+                let (token_owner_account_a, token_vault_a, token_owner_account_b, token_vault_b) =
+                    if direction == 0 {
+                        (user_in_ai, &step_slice[5], user_out_ai, &step_slice[6])
+                    } else {
+                        (user_out_ai, &step_slice[6], user_in_ai, &step_slice[5])
+                    };
+                let account_infos = OrcaWhirlpoolAccounts {
+                    program: &step_slice[0],
+                    payer,
+                    token_program_a: &step_slice[1],
+                    token_program_b: &step_slice[2],
+                    memo_program: &step_slice[3],
+                    whirlpool: &step_slice[4],
+                    token_mint_a: &step_slice[7],
+                    token_mint_b: &step_slice[8],
+                    token_owner_account_a,
+                    token_vault_a,
+                    token_owner_account_b,
+                    token_vault_b,
+                    tick_array_0: &step_slice[9],
+                    tick_array_1: &step_slice[10],
+                    tick_array_2: &step_slice[11],
+                    oracle: &step_slice[12],
+                };
+                orca_whirlpool_swap(
+                    account_infos,
+                    current_amount,
+                    step.min_output_amount,
+                    direction == 0,
+                )
             }
         }?;
 

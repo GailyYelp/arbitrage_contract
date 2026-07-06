@@ -4,9 +4,9 @@ use core::ops::Range;
 
 use crate::errors::ArbitrageError;
 use crate::protocal::{
-    pumpfun_amm::PUMPFUN_AMM_MIN_ACCOUNTS, pumpfun_swap::PUMPFUN_SWAP_MIN_ACCOUNTS,
-    raydium_clmm::RAYDIUM_CLMM_MIN_ACCOUNTS, raydium_cpmm::RAYDIUM_CPMM_MIN_ACCOUNTS,
-    raydium_launchpad::RAYDIUM_LAUNCHPAD_MIN_ACCOUNTS,
+    orca_whirlpool::ORCA_WHIRLPOOL_MIN_ACCOUNTS, pumpfun_amm::PUMPFUN_AMM_MIN_ACCOUNTS,
+    pumpfun_swap::PUMPFUN_SWAP_MIN_ACCOUNTS, raydium_clmm::RAYDIUM_CLMM_MIN_ACCOUNTS,
+    raydium_cpmm::RAYDIUM_CPMM_MIN_ACCOUNTS, raydium_launchpad::RAYDIUM_LAUNCHPAD_MIN_ACCOUNTS,
     raydium_pool_v4::RAYDIUM_POOL_V4_MIN_ACCOUNTS,
 };
 use crate::state::{Protocol, SwapArbParams, REMAINING_ACCOUNTS_FIXED_PREFIX_LEN};
@@ -145,6 +145,12 @@ pub fn validate_step_account_flags<'info>(
         ),
         Protocol::PumpFunSwap => validate_pumpfun_swap_step_account_flags(step_accounts),
         Protocol::PumpFunAMM => validate_pumpfun_amm_step_account_flags(step_accounts),
+        Protocol::OrcaWhirlpool => validate_fixed_len_step_account_flags(
+            step_accounts,
+            ORCA_WHIRLPOOL_MIN_ACCOUNTS,
+            &[0, 1, 2, 3],
+            &[4, 5, 6, 9, 10, 11, 12],
+        ),
     }
 }
 
@@ -222,7 +228,7 @@ fn validate_pumpfun_swap_step_account_flags<'info>(
     step_accounts: &[AccountInfo<'info>],
 ) -> Result<()> {
     require!(
-        step_accounts.len() == 9 || step_accounts.len() == 11,
+        step_accounts.len() == 9 || step_accounts.len() == 11 || step_accounts.len() == 13,
         ArbitrageError::InvalidAccountCount
     );
     validate_step_account_flags_by_index(
@@ -238,7 +244,7 @@ fn validate_pumpfun_amm_step_account_flags<'info>(
     step_accounts: &[AccountInfo<'info>],
 ) -> Result<()> {
     require!(
-        step_accounts.len() == 12 || step_accounts.len() == 14,
+        step_accounts.len() == 12 || step_accounts.len() == 14 || step_accounts.len() == 16,
         ArbitrageError::InvalidAccountCount
     );
     validate_step_account_flags_by_index(
@@ -259,15 +265,25 @@ fn validate_pumpfun_dynamic_suffix_flags<'info>(
         .checked_sub(suffix_start)
         .ok_or(ArbitrageError::InvalidAccountCount)?;
     require!(
-        tail_len == 2 || tail_len == 4,
+        tail_len == 2 || tail_len == 4 || tail_len == 6,
         ArbitrageError::InvalidAccountCount
     );
-    let fee_config_index = step_accounts
-        .len()
-        .checked_sub(2)
-        .ok_or(ArbitrageError::InvalidAccountCount)?;
+    let fee_config_index = match tail_len {
+        2 | 4 => step_accounts
+            .len()
+            .checked_sub(2)
+            .ok_or(ArbitrageError::InvalidAccountCount)?,
+        6 => suffix_start
+            .checked_add(2)
+            .ok_or(ArbitrageError::InvalidAccountCount)?,
+        _ => return Err(ArbitrageError::InvalidAccountCount.into()),
+    };
 
     for account in &step_accounts[suffix_start..fee_config_index] {
+        require!(!account.is_signer, ArbitrageError::InvalidAccount);
+        require!(!account.executable, ArbitrageError::InvalidAccount);
+    }
+    for account in &step_accounts[fee_config_index + 2..] {
         require!(!account.is_signer, ArbitrageError::InvalidAccount);
         require!(!account.executable, ArbitrageError::InvalidAccount);
     }
@@ -513,6 +529,24 @@ mod tests {
         ]
     }
 
+    fn orca_whirlpool_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+        ]
+    }
+
     #[test]
     fn calculates_ranges_after_fixed_mints_and_user_accounts() {
         let steps = vec![step(7), step(8), step(10)];
@@ -656,6 +690,23 @@ mod tests {
 
         let amm_accounts = pumpfun_amm_step_accounts_with_volume();
         assert!(validate_step_account_flags(Protocol::PumpFunAMM, &amm_accounts).is_ok());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_orca_whirlpool_accounts() {
+        let accounts = orca_whirlpool_step_accounts();
+
+        assert!(validate_step_account_flags(Protocol::OrcaWhirlpool, &accounts).is_ok());
+    }
+
+    #[test]
+    fn validate_step_account_flags_rejects_readonly_orca_tick_array() {
+        let mut accounts = orca_whirlpool_step_accounts();
+        accounts[9].is_writable = false;
+
+        let err = validate_step_account_flags(Protocol::OrcaWhirlpool, &accounts).unwrap_err();
+
+        assert_eq!(err, ArbitrageError::InvalidAccount.into());
     }
 
     #[test]

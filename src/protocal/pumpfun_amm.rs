@@ -13,6 +13,7 @@ pub const PUMPFUN_AMM_BUY_DISCRIMINATOR: &[u8; 8] = &[102, 6, 61, 18, 1, 218, 23
 pub const PUMPFUN_AMM_SELL_DISCRIMINATOR: &[u8; 8] = &[51, 230, 133, 164, 1, 127, 131, 173];
 pub const PUMPFUN_AMM_MIN_ACCOUNTS: usize = 10;
 pub const PUMPFUN_BUY_LAMPORT_BUFFER: u64 = 2;
+const TRACK_VOLUME_FALSE: u8 = 0;
 
 #[derive(Clone)]
 pub struct PumpFunAmmAccounts<'info> {
@@ -116,7 +117,7 @@ pub fn pumpfun_amm_swap<'info>(
     account_infos.push(accounts.program.clone());
 
     // 构造 data
-    let mut data = Vec::with_capacity(8 + 8 + 8);
+    let mut data = Vec::with_capacity(8 + 8 + 8 + 1);
     if direction == 0 {
         // sell
         data.extend_from_slice(PUMPFUN_AMM_SELL_DISCRIMINATOR);
@@ -127,6 +128,7 @@ pub fn pumpfun_amm_swap<'info>(
         data.extend_from_slice(PUMPFUN_AMM_BUY_DISCRIMINATOR);
         data.extend_from_slice(&minimum_amount_out.to_le_bytes()); // amount_out
         data.extend_from_slice(&amount_in.to_le_bytes()); // max_sol_cost
+        data.push(TRACK_VOLUME_FALSE);
     }
 
     let program_id = accounts.program.key();
