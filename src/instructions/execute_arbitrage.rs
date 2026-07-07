@@ -316,15 +316,46 @@ pub fn execute_arbitrage<'info>(
                     step_slice.len() >= PUMPFUN_SWAP_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
                 );
-                let (mint, user_token_account, token_program) = if direction == 1 {
-                    (out_mint_ai, user_out_ai, out_mint_program_ai) // buy
+                let (
+                    base_mint,
+                    quote_mint,
+                    associated_base_user,
+                    associated_quote_user,
+                    base_token_program,
+                    quote_token_program,
+                    global_volume_accumulator,
+                    user_volume_accumulator_index,
+                ) = if direction == 1 {
+                    (
+                        out_mint_ai,
+                        in_mint_ai,
+                        user_out_ai,
+                        user_in_ai,
+                        out_mint_program_ai,
+                        in_mint_program_ai,
+                        Some(&step_slice[12]),
+                        13,
+                    ) // buy
                 } else {
-                    (in_mint_ai, user_in_ai, in_mint_program_ai) // sell
+                    (
+                        in_mint_ai,
+                        out_mint_ai,
+                        user_in_ai,
+                        user_out_ai,
+                        in_mint_program_ai,
+                        out_mint_program_ai,
+                        None,
+                        12,
+                    ) // sell
                 };
-                validate_token_account_for_mint(&step_slice[4], mint, token_program)?;
                 validate_pumpfun_swap_semantic_accounts(
                     &step_slice[0],
                     payer,
+                    associated_token_program,
+                    base_mint,
+                    quote_mint,
+                    base_token_program,
+                    quote_token_program,
                     step_slice,
                     direction,
                 )?;
@@ -332,17 +363,32 @@ pub fn execute_arbitrage<'info>(
                 let account_infos = PumpFunSwapAccounts {
                     program: &step_slice[0],
                     global_account: &step_slice[1],
+                    base_mint,
+                    quote_mint,
+                    base_token_program,
+                    quote_token_program,
+                    associated_token_program,
                     fee_recipient: &step_slice[2],
-                    mint,
-                    pool_id: &step_slice[3],
-                    token_vault0: &step_slice[4],
-                    user_token_account,
+                    associated_quote_fee_recipient: &step_slice[3],
+                    buyback_fee_recipient: &step_slice[4],
+                    associated_quote_buyback_fee_recipient: &step_slice[5],
+                    bonding_curve: &step_slice[6],
+                    associated_base_bonding_curve: &step_slice[7],
+                    associated_quote_bonding_curve: &step_slice[8],
                     payer,
+                    associated_base_user,
+                    associated_quote_user,
                     system_program,
-                    creator_vault: &step_slice[5],
-                    token_program,
-                    event_authority: &step_slice[6],
-                    remaining_accounts: step_slice[7..].to_vec(),
+                    creator_vault: &step_slice[9],
+                    associated_creator_vault: &step_slice[10],
+                    sharing_config: &step_slice[11],
+                    global_volume_accumulator,
+                    user_volume_accumulator: &step_slice[user_volume_accumulator_index],
+                    associated_user_volume_accumulator: &step_slice
+                        [user_volume_accumulator_index + 1],
+                    event_authority: &step_slice[user_volume_accumulator_index + 2],
+                    fee_config: &step_slice[user_volume_accumulator_index + 3],
+                    fee_program: &step_slice[user_volume_accumulator_index + 4],
                 };
                 pumpfun_swap_swap(account_infos, direction, current_amount, step.fee_rate)
             }

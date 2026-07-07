@@ -1,5 +1,4 @@
 use crate::errors::ArbitrageError;
-use crate::instructions::types::append_remaining_accounts;
 use crate::instructions::types::checked_balance_delta;
 use crate::instructions::types::read_token_amount;
 use crate::instructions::types::SwapResult;
@@ -11,27 +10,40 @@ use anchor_lang::prelude::*;
 use anchor_lang::solana_program::instruction::{AccountMeta, Instruction};
 use anchor_lang::solana_program::program::invoke;
 
-// PumpSwap 指令选择器 (链上真实的discriminator)
-pub const PUMPFUN_AMM_BUY_DISCRIMINATOR: &[u8; 8] = &[102, 6, 61, 18, 1, 218, 235, 234];
-pub const PUMPFUN_AMM_SELL_DISCRIMINATOR: &[u8; 8] = &[51, 230, 133, 164, 1, 127, 131, 173];
-pub const PUMPFUN_SWAP_MIN_ACCOUNTS: usize = 7;
-const TRACK_VOLUME_FALSE: u8 = 0;
+// Pump bonding-curve V2 instruction discriminators.
+pub const PUMPFUN_SWAP_BUY_V2_DISCRIMINATOR: &[u8; 8] = &[184, 23, 238, 97, 103, 197, 211, 61];
+pub const PUMPFUN_SWAP_SELL_V2_DISCRIMINATOR: &[u8; 8] = &[93, 246, 130, 60, 231, 233, 64, 178];
+pub const PUMPFUN_SWAP_MIN_ACCOUNTS: usize = 17;
 
 #[derive(Clone)]
 pub struct PumpFunSwapAccounts<'info> {
-    pub global_account: &'info AccountInfo<'info>, // 1. global
-    pub fee_recipient: &'info AccountInfo<'info>,  // 2. fee_recipient
-    pub mint: &'info AccountInfo<'info>,           // 3. mint
-    pub pool_id: &'info AccountInfo<'info>,        // 4. pool_id
-    pub token_vault0: &'info AccountInfo<'info>,   // 5. token_vault0
-    pub user_token_account: &'info AccountInfo<'info>, // 6. 用户代币账户
-    pub payer: &'info AccountInfo<'info>,          // 7. payer账户
-    pub system_program: &'info AccountInfo<'info>, // 8. system program
-    pub creator_vault: &'info AccountInfo<'info>,  // 9. creator vault
-    pub token_program: &'info AccountInfo<'info>,  // 10. token_program
-    pub event_authority: &'info AccountInfo<'info>, // 11. event authority
-    pub program: &'info AccountInfo<'info>,        // 12. program
-    pub remaining_accounts: Vec<AccountInfo<'info>>, // 13. remaining accounts (globalVolumeAccumulator + userVolumeAccumulator)
+    pub global_account: &'info AccountInfo<'info>,
+    pub base_mint: &'info AccountInfo<'info>,
+    pub quote_mint: &'info AccountInfo<'info>,
+    pub base_token_program: &'info AccountInfo<'info>,
+    pub quote_token_program: &'info AccountInfo<'info>,
+    pub associated_token_program: &'info AccountInfo<'info>,
+    pub fee_recipient: &'info AccountInfo<'info>,
+    pub associated_quote_fee_recipient: &'info AccountInfo<'info>,
+    pub buyback_fee_recipient: &'info AccountInfo<'info>,
+    pub associated_quote_buyback_fee_recipient: &'info AccountInfo<'info>,
+    pub bonding_curve: &'info AccountInfo<'info>,
+    pub associated_base_bonding_curve: &'info AccountInfo<'info>,
+    pub associated_quote_bonding_curve: &'info AccountInfo<'info>,
+    pub payer: &'info AccountInfo<'info>,
+    pub associated_base_user: &'info AccountInfo<'info>,
+    pub associated_quote_user: &'info AccountInfo<'info>,
+    pub creator_vault: &'info AccountInfo<'info>,
+    pub associated_creator_vault: &'info AccountInfo<'info>,
+    pub sharing_config: &'info AccountInfo<'info>,
+    pub global_volume_accumulator: Option<&'info AccountInfo<'info>>,
+    pub user_volume_accumulator: &'info AccountInfo<'info>,
+    pub associated_user_volume_accumulator: &'info AccountInfo<'info>,
+    pub fee_config: &'info AccountInfo<'info>,
+    pub fee_program: &'info AccountInfo<'info>,
+    pub system_program: &'info AccountInfo<'info>,
+    pub event_authority: &'info AccountInfo<'info>,
+    pub program: &'info AccountInfo<'info>,
 }
 
 pub fn pumpfun_swap_swap<'info>(
@@ -45,16 +57,16 @@ pub fn pumpfun_swap_swap<'info>(
 
     let pre_out = if direction == 0 {
         // sell
-        accounts.payer.try_lamports()?
+        read_token_amount(accounts.associated_quote_user)?
     } else {
         // buy
-        read_token_amount(accounts.user_token_account)?
+        read_token_amount(accounts.associated_base_user)?
     };
 
     // 若为买入且未传 token_amount，则基于池状态与全局费率模拟可买到的最小 token 数量
     let minimum_amount_out = if direction != 0 {
         simulate_pumpfun_swap_buy_amount_by_input(
-            accounts.pool_id,
+            accounts.bonding_curve,
             amount_in,
             total_fee_base_point,
         )?
@@ -64,62 +76,90 @@ pub fn pumpfun_swap_swap<'info>(
 
     let mut metas = vec![
         AccountMeta::new_readonly(accounts.global_account.key(), false),
+        AccountMeta::new_readonly(accounts.base_mint.key(), false),
+        AccountMeta::new_readonly(accounts.quote_mint.key(), false),
+        AccountMeta::new_readonly(accounts.base_token_program.key(), false),
+        AccountMeta::new_readonly(accounts.quote_token_program.key(), false),
+        AccountMeta::new_readonly(accounts.associated_token_program.key(), false),
         AccountMeta::new(accounts.fee_recipient.key(), false),
-        AccountMeta::new_readonly(accounts.mint.key(), false),
-        AccountMeta::new(accounts.pool_id.key(), false),
-        AccountMeta::new(accounts.token_vault0.key(), false),
-        AccountMeta::new(accounts.user_token_account.key(), false),
+        AccountMeta::new(accounts.associated_quote_fee_recipient.key(), false),
+        AccountMeta::new(accounts.buyback_fee_recipient.key(), false),
+        AccountMeta::new(accounts.associated_quote_buyback_fee_recipient.key(), false),
+        AccountMeta::new(accounts.bonding_curve.key(), false),
+        AccountMeta::new(accounts.associated_base_bonding_curve.key(), false),
+        AccountMeta::new(accounts.associated_quote_bonding_curve.key(), false),
         AccountMeta::new(accounts.payer.key(), true),
-        AccountMeta::new_readonly(accounts.system_program.key(), false),
-        AccountMeta::new_readonly(accounts.token_program.key(), false),
+        AccountMeta::new(accounts.associated_base_user.key(), false),
+        AccountMeta::new(accounts.associated_quote_user.key(), false),
         AccountMeta::new(accounts.creator_vault.key(), false),
-        AccountMeta::new_readonly(accounts.event_authority.key(), false),
-        AccountMeta::new_readonly(accounts.program.key(), false),
+        AccountMeta::new(accounts.associated_creator_vault.key(), false),
+        AccountMeta::new_readonly(accounts.sharing_config.key(), false),
     ];
 
     let mut account_infos: Vec<AccountInfo<'info>> = vec![
         accounts.global_account.clone(),
+        accounts.base_mint.clone(),
+        accounts.quote_mint.clone(),
+        accounts.base_token_program.clone(),
+        accounts.quote_token_program.clone(),
+        accounts.associated_token_program.clone(),
         accounts.fee_recipient.clone(),
-        accounts.mint.clone(),
-        accounts.pool_id.clone(),
-        accounts.token_vault0.clone(),
-        accounts.user_token_account.clone(),
+        accounts.associated_quote_fee_recipient.clone(),
+        accounts.buyback_fee_recipient.clone(),
+        accounts.associated_quote_buyback_fee_recipient.clone(),
+        accounts.bonding_curve.clone(),
+        accounts.associated_base_bonding_curve.clone(),
+        accounts.associated_quote_bonding_curve.clone(),
         accounts.payer.clone(),
-        accounts.system_program.clone(),
-        accounts.token_program.clone(),
+        accounts.associated_base_user.clone(),
+        accounts.associated_quote_user.clone(),
         accounts.creator_vault.clone(),
+        accounts.associated_creator_vault.clone(),
+        accounts.sharing_config.clone(),
+    ];
+    if direction != 0 {
+        let global_volume_accumulator = accounts
+            .global_volume_accumulator
+            .ok_or(ArbitrageError::InvalidAccountCount)?;
+        metas.push(AccountMeta::new_readonly(
+            global_volume_accumulator.key(),
+            false,
+        ));
+        account_infos.push(global_volume_accumulator.clone());
+    }
+    metas.extend([
+        AccountMeta::new(accounts.user_volume_accumulator.key(), false),
+        AccountMeta::new(accounts.associated_user_volume_accumulator.key(), false),
+        AccountMeta::new_readonly(accounts.fee_config.key(), false),
+        AccountMeta::new_readonly(accounts.fee_program.key(), false),
+        AccountMeta::new_readonly(accounts.system_program.key(), false),
+        AccountMeta::new_readonly(accounts.event_authority.key(), false),
+        AccountMeta::new_readonly(accounts.program.key(), false),
+    ]);
+    account_infos.extend([
+        accounts.user_volume_accumulator.clone(),
+        accounts.associated_user_volume_accumulator.clone(),
+        accounts.fee_config.clone(),
+        accounts.fee_program.clone(),
+        accounts.system_program.clone(),
         accounts.event_authority.clone(),
         accounts.program.clone(),
-    ];
-    if direction == 0 {
-        // sell
-        // buy: token_program 在 creator_vault 之前
-        // sell: creator_vault 在 token_program 之前
-        metas[8] = AccountMeta::new(accounts.creator_vault.key(), false);
-        metas[9] = AccountMeta::new_readonly(accounts.token_program.key(), false);
-        account_infos[8] = accounts.creator_vault.clone();
-        account_infos[9] = accounts.token_program.clone();
-    }
-
-    // 动态补充剩余账户
-    append_remaining_accounts(&mut metas, &mut account_infos, accounts.remaining_accounts);
-    account_infos.push(accounts.program.clone());
+    ]);
 
     // 构造 data 与账户顺序（严格按 BUY/SELL 对齐）
-    let mut data = Vec::with_capacity(8 + 8 + 8 + 1);
+    let mut data = Vec::with_capacity(8 + 8 + 8);
     // mint --> sol_mint == sell == 0
     // sol_mint --> mint == buy == 1
     if direction == 0 {
         // SELL: data = [SELL, token_amount, min_sol_output] → 使用 amount_in 作为 token_amount，min_out 保持
-        data.extend_from_slice(PUMPFUN_AMM_SELL_DISCRIMINATOR);
+        data.extend_from_slice(PUMPFUN_SWAP_SELL_V2_DISCRIMINATOR);
         data.extend_from_slice(&amount_in.to_le_bytes()); // token_amount
         data.extend_from_slice(&minimum_amount_out.to_le_bytes()); // min_sol_output
     } else {
         // BUY: data = [BUY, token_amount, max_sol_cost] → 使用 min_out 作为 token_amount，上界用 amount_in
-        data.extend_from_slice(PUMPFUN_AMM_BUY_DISCRIMINATOR);
+        data.extend_from_slice(PUMPFUN_SWAP_BUY_V2_DISCRIMINATOR);
         data.extend_from_slice(&minimum_amount_out.to_le_bytes()); // token_amount
         data.extend_from_slice(&amount_in.to_le_bytes()); // max_sol_cost
-        data.push(TRACK_VOLUME_FALSE);
     };
 
     // Instruction
@@ -135,10 +175,10 @@ pub fn pumpfun_swap_swap<'info>(
     // 读取执行后余额并计算真实产出
     let post_out = if direction == 0 {
         // sell
-        accounts.payer.try_lamports()?
+        read_token_amount(accounts.associated_quote_user)?
     } else {
         // buy
-        read_token_amount(accounts.user_token_account)?
+        read_token_amount(accounts.associated_base_user)?
     };
     let amount_out = checked_balance_delta(pre_out, post_out)?;
     // msg!(

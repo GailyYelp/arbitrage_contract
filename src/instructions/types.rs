@@ -11,6 +11,7 @@ pub const PUMPFUN_SWAP_CREATOR_VAULT_SEED: &[u8] = b"creator-vault";
 pub const PUMPFUN_AMM_CREATOR_VAULT_SEED: &[u8] = b"creator_vault";
 pub const PUMPFUN_GLOBAL_VOLUME_ACCUMULATOR_SEED: &[u8] = b"global_volume_accumulator";
 pub const PUMPFUN_USER_VOLUME_ACCUMULATOR_SEED: &[u8] = b"user_volume_accumulator";
+pub const PUMPFUN_SHARING_CONFIG_SEED: &[u8] = b"sharing-config";
 const RAYDIUM_POOL_V4_NONCE_OFFSET: usize = 8;
 const U8_FIELD_LEN: usize = 1;
 const U16_FIELD_LEN: usize = 2;
@@ -544,18 +545,17 @@ pub fn validate_raydium_launchpad_semantic_accounts<'info>(
 pub fn validate_pumpfun_swap_semantic_accounts<'info>(
     program: &AccountInfo<'info>,
     payer: &AccountInfo<'info>,
+    associated_token_program: &AccountInfo<'info>,
+    base_mint: &AccountInfo<'info>,
+    quote_mint: &AccountInfo<'info>,
+    base_token_program: &AccountInfo<'info>,
+    quote_token_program: &AccountInfo<'info>,
     step_accounts: &[AccountInfo<'info>],
     direction: u8,
 ) -> Result<()> {
     let expected_len = match direction {
-        0 => 9,
-        1 => {
-            require!(
-                step_accounts.len() == 11 || step_accounts.len() == 13,
-                ArbitrageError::InvalidAccountCount
-            );
-            step_accounts.len()
-        }
+        0 => 17,
+        1 => 18,
         _ => return Err(ArbitrageError::InvalidInstructionData.into()),
     };
     require!(
@@ -563,7 +563,7 @@ pub fn validate_pumpfun_swap_semantic_accounts<'info>(
         ArbitrageError::InvalidAccountCount
     );
 
-    let data = step_accounts[3].try_borrow_data()?;
+    let data = step_accounts[6].try_borrow_data()?;
     require!(
         data.starts_with(PUMPFUN_SWAP_BONDING_CURVE_DISCRIMINATOR),
         ArbitrageError::InvalidAccount
@@ -575,14 +575,92 @@ pub fn validate_pumpfun_swap_semantic_accounts<'info>(
     )
     .0;
     require_keys_eq!(
-        step_accounts[5].key(),
+        step_accounts[9].key(),
         expected_creator_vault,
         ArbitrageError::InvalidAccount
     );
 
-    let fee_config_index = if direction == 1 { 9 } else { expected_len - 2 };
+    require_keys_eq!(
+        step_accounts[7].key(),
+        associated_token_address_with_program_id(
+            step_accounts[6].key,
+            base_mint.key,
+            base_token_program.key,
+            associated_token_program.key,
+        ),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[8].key(),
+        associated_token_address_with_program_id(
+            step_accounts[6].key,
+            quote_mint.key,
+            quote_token_program.key,
+            associated_token_program.key,
+        ),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[3].key(),
+        associated_token_address_with_program_id(
+            step_accounts[2].key,
+            quote_mint.key,
+            quote_token_program.key,
+            associated_token_program.key,
+        ),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[5].key(),
+        associated_token_address_with_program_id(
+            step_accounts[4].key,
+            quote_mint.key,
+            quote_token_program.key,
+            associated_token_program.key,
+        ),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[10].key(),
+        associated_token_address_with_program_id(
+            &expected_creator_vault,
+            quote_mint.key,
+            quote_token_program.key,
+            associated_token_program.key,
+        ),
+        ArbitrageError::InvalidAccount
+    );
+
+    let fee_config_index = expected_len - 2;
+    let expected_sharing_config = Pubkey::find_program_address(
+        &[PUMPFUN_SHARING_CONFIG_SEED, base_mint.key.as_ref()],
+        step_accounts[fee_config_index + 1].key,
+    )
+    .0;
+    require_keys_eq!(
+        step_accounts[11].key(),
+        expected_sharing_config,
+        ArbitrageError::InvalidAccount
+    );
+
     if direction == 1 {
-        validate_pumpfun_volume_accounts(program, payer, &step_accounts[7], &step_accounts[8])?;
+        validate_pumpfun_volume_accounts(program, payer, &step_accounts[12], &step_accounts[13])?;
+        validate_associated_pumpfun_user_volume_account(
+            associated_token_program,
+            quote_mint,
+            quote_token_program,
+            &step_accounts[13],
+            &step_accounts[14],
+        )?;
+    } else {
+        validate_pumpfun_user_volume_account(program, payer, &step_accounts[12])?;
+        validate_associated_pumpfun_user_volume_account(
+            associated_token_program,
+            quote_mint,
+            quote_token_program,
+            &step_accounts[12],
+            &step_accounts[13],
+        )?;
     }
     validate_pumpfun_fee_config_accounts(
         &step_accounts[fee_config_index],
@@ -973,6 +1051,44 @@ fn validate_pumpfun_volume_accounts<'info>(
     require_keys_eq!(
         user_volume_accumulator.key(),
         expected_user,
+        ArbitrageError::InvalidAccount
+    );
+    Ok(())
+}
+
+fn validate_pumpfun_user_volume_account<'info>(
+    program: &AccountInfo<'info>,
+    payer: &AccountInfo<'info>,
+    user_volume_accumulator: &AccountInfo<'info>,
+) -> Result<()> {
+    let expected_user = Pubkey::find_program_address(
+        &[PUMPFUN_USER_VOLUME_ACCUMULATOR_SEED, payer.key.as_ref()],
+        program.key,
+    )
+    .0;
+    require_keys_eq!(
+        user_volume_accumulator.key(),
+        expected_user,
+        ArbitrageError::InvalidAccount
+    );
+    Ok(())
+}
+
+fn validate_associated_pumpfun_user_volume_account<'info>(
+    associated_token_program: &AccountInfo<'info>,
+    quote_mint: &AccountInfo<'info>,
+    quote_token_program: &AccountInfo<'info>,
+    user_volume_accumulator: &AccountInfo<'info>,
+    associated_user_volume_accumulator: &AccountInfo<'info>,
+) -> Result<()> {
+    require_keys_eq!(
+        associated_user_volume_accumulator.key(),
+        associated_token_address_with_program_id(
+            user_volume_accumulator.key,
+            quote_mint.key,
+            quote_token_program.key,
+            associated_token_program.key,
+        ),
         ArbitrageError::InvalidAccount
     );
     Ok(())
@@ -2679,10 +2795,53 @@ mod tests {
     #[test]
     fn pumpfun_swap_semantic_validation_checks_creator_volume_and_fee_config() {
         let payer_key = Pubkey::new_unique();
+        let base_mint_key = Pubkey::new_unique();
+        let quote_mint_key = Pubkey::new_unique();
+        let base_token_program_key = Pubkey::new_unique();
+        let quote_token_program_key = Pubkey::new_unique();
+        let associated_token_program_key = Pubkey::new_unique();
         let creator = Pubkey::new_unique();
+        let bonding_curve = Pubkey::new_unique();
+        let fee_recipient = Pubkey::new_unique();
+        let buyback_fee_recipient = Pubkey::new_unique();
         let creator_vault = Pubkey::find_program_address(
             &[PUMPFUN_SWAP_CREATOR_VAULT_SEED, creator.as_ref()],
             &PUMPFUN_SWAP_PROGRAM_ID,
+        )
+        .0;
+        let associated_quote_fee_recipient = associated_token_address_with_program_id(
+            &fee_recipient,
+            &quote_mint_key,
+            &quote_token_program_key,
+            &associated_token_program_key,
+        );
+        let associated_quote_buyback_fee_recipient = associated_token_address_with_program_id(
+            &buyback_fee_recipient,
+            &quote_mint_key,
+            &quote_token_program_key,
+            &associated_token_program_key,
+        );
+        let associated_base_bonding_curve = associated_token_address_with_program_id(
+            &bonding_curve,
+            &base_mint_key,
+            &base_token_program_key,
+            &associated_token_program_key,
+        );
+        let associated_quote_bonding_curve = associated_token_address_with_program_id(
+            &bonding_curve,
+            &quote_mint_key,
+            &quote_token_program_key,
+            &associated_token_program_key,
+        );
+        let associated_creator_vault = associated_token_address_with_program_id(
+            &creator_vault,
+            &quote_mint_key,
+            &quote_token_program_key,
+            &associated_token_program_key,
+        );
+        let sharing_config = Pubkey::find_program_address(
+            &[PUMPFUN_SHARING_CONFIG_SEED, base_mint_key.as_ref()],
+            &PUMPFUN_SWAP_FEE_CONFIG_PROGRAM_ID,
         )
         .0;
         let global_volume = Pubkey::find_program_address(
@@ -2695,6 +2854,12 @@ mod tests {
             &PUMPFUN_SWAP_PROGRAM_ID,
         )
         .0;
+        let associated_user_volume = associated_token_address_with_program_id(
+            &user_volume,
+            &quote_mint_key,
+            &quote_token_program_key,
+            &associated_token_program_key,
+        );
 
         let program = test_account_with_data(
             PUMPFUN_SWAP_PROGRAM_ID,
@@ -2706,6 +2871,46 @@ mod tests {
         );
         let payer =
             test_account_with_data(payer_key, Pubkey::new_unique(), true, true, false, vec![]);
+        let associated_token_program = test_account_with_data(
+            associated_token_program_key,
+            Pubkey::new_unique(),
+            false,
+            false,
+            true,
+            vec![],
+        );
+        let base_mint = test_account_with_data(
+            base_mint_key,
+            base_token_program_key,
+            false,
+            false,
+            false,
+            vec![],
+        );
+        let quote_mint = test_account_with_data(
+            quote_mint_key,
+            quote_token_program_key,
+            false,
+            false,
+            false,
+            vec![],
+        );
+        let base_token_program = test_account_with_data(
+            base_token_program_key,
+            Pubkey::new_unique(),
+            false,
+            false,
+            true,
+            vec![],
+        );
+        let quote_token_program = test_account_with_data(
+            quote_token_program_key,
+            Pubkey::new_unique(),
+            false,
+            false,
+            true,
+            vec![],
+        );
         let step_accounts = vec![
             program.clone(),
             test_account_with_data(
@@ -2717,7 +2922,7 @@ mod tests {
                 vec![],
             ),
             test_account_with_data(
-                Pubkey::new_unique(),
+                fee_recipient,
                 Pubkey::new_unique(),
                 false,
                 true,
@@ -2725,7 +2930,31 @@ mod tests {
                 vec![],
             ),
             test_account_with_data(
+                associated_quote_fee_recipient,
                 Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                buyback_fee_recipient,
+                Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                associated_quote_buyback_fee_recipient,
+                Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                bonding_curve,
                 Pubkey::new_unique(),
                 false,
                 true,
@@ -2733,7 +2962,15 @@ mod tests {
                 pumpfun_swap_bonding_curve_data(creator),
             ),
             test_account_with_data(
+                associated_base_bonding_curve,
                 Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                associated_quote_bonding_curve,
                 Pubkey::new_unique(),
                 false,
                 true,
@@ -2749,7 +2986,15 @@ mod tests {
                 vec![],
             ),
             test_account_with_data(
+                associated_creator_vault,
                 Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                sharing_config,
                 Pubkey::new_unique(),
                 false,
                 false,
@@ -2760,7 +3005,7 @@ mod tests {
                 global_volume,
                 Pubkey::new_unique(),
                 false,
-                true,
+                false,
                 false,
                 vec![],
             ),
@@ -2769,6 +3014,22 @@ mod tests {
                 Pubkey::new_unique(),
                 false,
                 true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                associated_user_volume,
+                Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                Pubkey::new_unique(),
+                Pubkey::new_unique(),
+                false,
+                false,
                 false,
                 vec![],
             ),
@@ -2790,12 +3051,21 @@ mod tests {
             ),
         ];
 
-        assert!(
-            validate_pumpfun_swap_semantic_accounts(&program, &payer, &step_accounts, 1).is_ok()
-        );
+        assert!(validate_pumpfun_swap_semantic_accounts(
+            &program,
+            &payer,
+            &associated_token_program,
+            &base_mint,
+            &quote_mint,
+            &base_token_program,
+            &quote_token_program,
+            &step_accounts,
+            1,
+        )
+        .is_ok());
 
         let mut wrong_user_volume = step_accounts.clone();
-        wrong_user_volume[8] = test_account_with_data(
+        wrong_user_volume[13] = test_account_with_data(
             Pubkey::new_unique(),
             Pubkey::new_unique(),
             false,
@@ -2803,8 +3073,18 @@ mod tests {
             false,
             vec![],
         );
-        let err = validate_pumpfun_swap_semantic_accounts(&program, &payer, &wrong_user_volume, 1)
-            .unwrap_err();
+        let err = validate_pumpfun_swap_semantic_accounts(
+            &program,
+            &payer,
+            &associated_token_program,
+            &base_mint,
+            &quote_mint,
+            &base_token_program,
+            &quote_token_program,
+            &wrong_user_volume,
+            1,
+        )
+        .unwrap_err();
         assert_eq!(err, ArbitrageError::InvalidAccount.into());
     }
 

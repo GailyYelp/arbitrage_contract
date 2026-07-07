@@ -5,8 +5,8 @@ use core::ops::Range;
 use crate::errors::ArbitrageError;
 use crate::protocal::{
     orca_whirlpool::ORCA_WHIRLPOOL_MIN_ACCOUNTS, pumpfun_amm::PUMPFUN_AMM_MIN_ACCOUNTS,
-    pumpfun_swap::PUMPFUN_SWAP_MIN_ACCOUNTS, raydium_clmm::RAYDIUM_CLMM_MIN_ACCOUNTS,
-    raydium_cpmm::RAYDIUM_CPMM_MIN_ACCOUNTS, raydium_launchpad::RAYDIUM_LAUNCHPAD_MIN_ACCOUNTS,
+    raydium_clmm::RAYDIUM_CLMM_MIN_ACCOUNTS, raydium_cpmm::RAYDIUM_CPMM_MIN_ACCOUNTS,
+    raydium_launchpad::RAYDIUM_LAUNCHPAD_MIN_ACCOUNTS,
     raydium_pool_v4::RAYDIUM_POOL_V4_MIN_ACCOUNTS,
 };
 use crate::state::{Protocol, SwapArbParams, REMAINING_ACCOUNTS_FIXED_PREFIX_LEN};
@@ -228,16 +228,43 @@ fn validate_pumpfun_swap_step_account_flags<'info>(
     step_accounts: &[AccountInfo<'info>],
 ) -> Result<()> {
     require!(
-        step_accounts.len() == 9 || step_accounts.len() == 11 || step_accounts.len() == 13,
+        step_accounts.len() == 17 || step_accounts.len() == 18,
         ArbitrageError::InvalidAccountCount
     );
-    validate_step_account_flags_by_index(
-        step_accounts,
-        PUMPFUN_SWAP_MIN_ACCOUNTS,
-        &[0],
-        &[2, 3, 4, 5],
-    )?;
-    validate_pumpfun_dynamic_suffix_flags(step_accounts, PUMPFUN_SWAP_MIN_ACCOUNTS)
+    require!(step_accounts[0].executable, ArbitrageError::InvalidAccount);
+    require!(
+        !step_accounts[0].is_writable,
+        ArbitrageError::InvalidAccount
+    );
+    let fee_program_index = step_accounts.len() - 1;
+    require!(
+        step_accounts[fee_program_index].executable,
+        ArbitrageError::InvalidAccount
+    );
+    require!(
+        !step_accounts[fee_program_index].is_writable,
+        ArbitrageError::InvalidAccount
+    );
+
+    let writable_indices: &[usize] = if step_accounts.len() == 18 {
+        &[2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14]
+    } else {
+        &[2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13]
+    };
+    for (index, account) in step_accounts.iter().enumerate() {
+        require!(!account.is_signer, ArbitrageError::InvalidAccount);
+        if index == 0 || index == fee_program_index {
+            continue;
+        }
+        if writable_indices.contains(&index) {
+            require!(account.is_writable, ArbitrageError::InvalidAccount);
+            require!(!account.executable, ArbitrageError::InvalidAccount);
+        } else {
+            require!(!account.is_writable, ArbitrageError::InvalidAccount);
+            require!(!account.executable, ArbitrageError::InvalidAccount);
+        }
+    }
+    Ok(())
 }
 
 fn validate_pumpfun_amm_step_account_flags<'info>(
@@ -502,9 +529,16 @@ mod tests {
             writable_step_account(),
             writable_step_account(),
             writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
             readonly_step_account(),
             writable_step_account(),
             writable_step_account(),
+            readonly_step_account(),
             readonly_step_account(),
             executable_step_account(),
         ]
@@ -712,7 +746,7 @@ mod tests {
     #[test]
     fn validate_step_account_flags_rejects_non_executable_pumpfun_fee_program() {
         let mut accounts = pumpfun_swap_buy_step_accounts();
-        accounts[10].executable = false;
+        accounts[17].executable = false;
 
         let err = validate_step_account_flags(Protocol::PumpFunSwap, &accounts).unwrap_err();
 
