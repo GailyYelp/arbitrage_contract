@@ -11,7 +11,7 @@ pub const RAYDIUM_LAUNCHPAD_BUY_EXACT_IN_SELECTOR: &[u8; 8] =
 // 9527de9bd37c981a hex -> u8 array
 pub const RAYDIUM_LAUNCHPAD_SELL_EXACT_IN_SELECTOR: &[u8; 8] =
     &[149, 39, 222, 155, 211, 124, 152, 26];
-pub const RAYDIUM_LAUNCHPAD_MIN_ACCOUNTS: usize = 8;
+pub const RAYDIUM_LAUNCHPAD_MIN_ACCOUNTS: usize = 11;
 
 #[derive(Clone)]
 pub struct RaydiumLaunchpadAccounts<'info> {
@@ -30,9 +30,9 @@ pub struct RaydiumLaunchpadAccounts<'info> {
     pub quote_token_program: &'info AccountInfo<'info>, // 13. 计价代币program
     pub event_authority: &'info AccountInfo<'info>,  // 14. event authority账户
     pub program: &'info AccountInfo<'info>,          // 15. program账户
-                                                     // pub system_program: &'info AccountInfo<'info>,   // 16. system program
-                                                     // pub observation_state: &'info AccountInfo<'info>, // 17. observation账户
-                                                     // pub observation_state2: &'info AccountInfo<'info>, // 18. observation账户
+    pub system_program: &'info AccountInfo<'info>,   // 16. system program
+    pub platform_fee_vault: &'info AccountInfo<'info>, // 17. platform claim fee vault
+    pub creator_fee_vault: &'info AccountInfo<'info>, // 18. creator claim fee vault
 }
 
 pub fn raydium_launchpad_swap<'info>(
@@ -50,26 +50,7 @@ pub fn raydium_launchpad_swap<'info>(
     let pre_out = read_token_amount(output_token_account)?;
 
     // 构造 Raydium Launchpad 交换指令
-    let metas = vec![
-        AccountMeta::new_readonly(accounts.payer.key(), true),
-        AccountMeta::new_readonly(accounts.authority.key(), false),
-        AccountMeta::new_readonly(accounts.global_config.key(), false),
-        AccountMeta::new_readonly(accounts.platform_config.key(), false),
-        AccountMeta::new(accounts.pool_state.key(), false),
-        AccountMeta::new(accounts.user_base_token.key(), false),
-        AccountMeta::new(accounts.user_quote_token.key(), false),
-        AccountMeta::new(accounts.base_vault.key(), false),
-        AccountMeta::new(accounts.quote_vault.key(), false),
-        AccountMeta::new_readonly(accounts.base_mint.key(), false),
-        AccountMeta::new_readonly(accounts.quote_mint.key(), false),
-        AccountMeta::new_readonly(accounts.base_token_program.key(), false),
-        AccountMeta::new_readonly(accounts.quote_token_program.key(), false),
-        AccountMeta::new_readonly(accounts.event_authority.key(), false),
-        AccountMeta::new_readonly(accounts.program.key(), false),
-        // AccountMeta::new_readonly(accounts.system_program.key(), false),
-        // AccountMeta::new(accounts.observation_state.key(), false),
-        // AccountMeta::new(accounts.observation_state2.key(), false),
-    ];
+    let metas = raydium_launchpad_account_metas(&accounts);
 
     let account_infos: Vec<AccountInfo<'info>> = vec![
         accounts.payer.clone(),
@@ -87,10 +68,9 @@ pub fn raydium_launchpad_swap<'info>(
         accounts.quote_token_program.clone(),
         accounts.event_authority.clone(),
         accounts.program.clone(),
-        // accounts.system_program.clone(),
-        // accounts.observation_state.clone(),
-        // accounts.observation_state2.clone(),
-        // Raydium Launchpad 程序账户
+        accounts.system_program.clone(),
+        accounts.platform_fee_vault.clone(),
+        accounts.creator_fee_vault.clone(),
         accounts.program.clone(),
     ];
 
@@ -126,6 +106,29 @@ pub fn raydium_launchpad_swap<'info>(
     })
 }
 
+fn raydium_launchpad_account_metas(accounts: &RaydiumLaunchpadAccounts<'_>) -> Vec<AccountMeta> {
+    vec![
+        AccountMeta::new(accounts.payer.key(), true),
+        AccountMeta::new_readonly(accounts.authority.key(), false),
+        AccountMeta::new_readonly(accounts.global_config.key(), false),
+        AccountMeta::new_readonly(accounts.platform_config.key(), false),
+        AccountMeta::new(accounts.pool_state.key(), false),
+        AccountMeta::new(accounts.user_base_token.key(), false),
+        AccountMeta::new(accounts.user_quote_token.key(), false),
+        AccountMeta::new(accounts.base_vault.key(), false),
+        AccountMeta::new(accounts.quote_vault.key(), false),
+        AccountMeta::new_readonly(accounts.base_mint.key(), false),
+        AccountMeta::new_readonly(accounts.quote_mint.key(), false),
+        AccountMeta::new_readonly(accounts.base_token_program.key(), false),
+        AccountMeta::new_readonly(accounts.quote_token_program.key(), false),
+        AccountMeta::new_readonly(accounts.event_authority.key(), false),
+        AccountMeta::new_readonly(accounts.program.key(), false),
+        AccountMeta::new_readonly(accounts.system_program.key(), false),
+        AccountMeta::new(accounts.platform_fee_vault.key(), false),
+        AccountMeta::new(accounts.creator_fee_vault.key(), false),
+    ]
+}
+
 fn launchpad_exact_in_selector(direction: u8) -> Result<&'static [u8; 8]> {
     match direction {
         0 => Ok(RAYDIUM_LAUNCHPAD_SELL_EXACT_IN_SELECTOR),
@@ -145,6 +148,42 @@ fn launchpad_direction_outputs_base(direction: u8) -> Result<bool> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn test_account() -> AccountInfo<'static> {
+        let key = Box::leak(Box::new(Pubkey::new_unique()));
+        let owner = Box::leak(Box::new(Pubkey::new_unique()));
+        let lamports = Box::leak(Box::new(0_u64));
+        let data = Box::leak(Vec::<u8>::new().into_boxed_slice());
+
+        AccountInfo::new(key, false, true, lamports, data, owner, false, 0)
+    }
+
+    fn leaked_test_account() -> &'static AccountInfo<'static> {
+        Box::leak(Box::new(test_account()))
+    }
+
+    fn test_launchpad_accounts() -> RaydiumLaunchpadAccounts<'static> {
+        RaydiumLaunchpadAccounts {
+            payer: leaked_test_account(),
+            authority: leaked_test_account(),
+            global_config: leaked_test_account(),
+            platform_config: leaked_test_account(),
+            pool_state: leaked_test_account(),
+            user_base_token: leaked_test_account(),
+            user_quote_token: leaked_test_account(),
+            base_vault: leaked_test_account(),
+            quote_vault: leaked_test_account(),
+            base_mint: leaked_test_account(),
+            quote_mint: leaked_test_account(),
+            base_token_program: leaked_test_account(),
+            quote_token_program: leaked_test_account(),
+            event_authority: leaked_test_account(),
+            program: leaked_test_account(),
+            system_program: leaked_test_account(),
+            platform_fee_vault: leaked_test_account(),
+            creator_fee_vault: leaked_test_account(),
+        }
+    }
 
     #[test]
     fn direction_zero_is_sell_exact_in_and_outputs_quote() {
@@ -176,5 +215,16 @@ mod tests {
     fn invalid_direction_is_rejected() {
         assert!(launchpad_exact_in_selector(2).is_err());
         assert!(launchpad_direction_outputs_base(2).is_err());
+    }
+
+    #[test]
+    fn account_metas_mark_payer_writable_signer() {
+        let launchpad_accounts = test_launchpad_accounts();
+
+        let metas = raydium_launchpad_account_metas(&launchpad_accounts);
+
+        assert_eq!(metas.len(), 18);
+        assert!(metas[0].is_signer);
+        assert!(metas[0].is_writable);
     }
 }

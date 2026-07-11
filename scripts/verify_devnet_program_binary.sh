@@ -14,8 +14,10 @@ Options:
   -h, --help                  Show this help.
 
 This script is read-only with respect to Solana. It dumps the deployed program
-binary through RPC, compares it with the local build, and exits non-zero when
-they differ.
+binary through RPC, compares the deployed code prefix with the local build, and
+exits non-zero when they differ. If the on-chain ProgramData account was
+extended beyond the current ELF length, the extra dump bytes must be zero
+padding.
 USAGE
 }
 
@@ -130,14 +132,38 @@ local_size="$(file_size_bytes "$local_so")"
 dump_size="$(file_size_bytes "$dump_path")"
 local_sha="$(file_sha256 "$local_so")"
 dump_sha="$(file_sha256 "$dump_path")"
+dump_prefix_path="$(mktemp "/private/tmp/raindarker-${program_id}-prefix.XXXXXX")"
+trap 'rm -f "$dump_prefix_path"' EXIT
+head -c "$local_size" "$dump_path" > "$dump_prefix_path"
+dump_prefix_sha="$(file_sha256 "$dump_prefix_path")"
 
 info "local size: $local_size"
 info "chain size: $dump_size"
 info "local sha256: $local_sha"
 info "chain sha256: $dump_sha"
+info "chain prefix sha256: $dump_prefix_sha"
 
-if [ "$local_sha" != "$dump_sha" ]; then
+if [ "$dump_size" -lt "$local_size" ]; then
+  die "deployed program binary is shorter than local build"
+fi
+
+if [ "$local_sha" != "$dump_prefix_sha" ]; then
   die "deployed program binary does not match local build"
+fi
+
+padding_nonzero_bytes=0
+if [ "$dump_size" -gt "$local_size" ]; then
+  padding_start=$((local_size + 1))
+  padding_nonzero_bytes="$(
+    tail -c +"$padding_start" "$dump_path" \
+      | LC_ALL=C tr -d '\000' \
+      | wc -c \
+      | tr -d '[:space:]'
+  )"
+fi
+info "chain padding non-zero bytes: $padding_nonzero_bytes"
+if [ "$padding_nonzero_bytes" != "0" ]; then
+  die "deployed ProgramData padding contains non-zero bytes"
 fi
 
 info "deployed program binary matches local build"

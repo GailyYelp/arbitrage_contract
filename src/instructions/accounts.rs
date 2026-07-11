@@ -4,10 +4,30 @@ use core::ops::Range;
 
 use crate::errors::ArbitrageError;
 use crate::protocal::{
-    orca_whirlpool::ORCA_WHIRLPOOL_MIN_ACCOUNTS, pumpfun_amm::PUMPFUN_AMM_MIN_ACCOUNTS,
-    raydium_clmm::RAYDIUM_CLMM_MIN_ACCOUNTS, raydium_cpmm::RAYDIUM_CPMM_MIN_ACCOUNTS,
+    aldrin_v2::ALDRIN_V2_MIN_ACCOUNTS,
+    bonk_swap::BONK_SWAP_MIN_ACCOUNTS,
+    gamma_swap::GAMMA_SWAP_MIN_ACCOUNTS,
+    invariant::INVARIANT_MIN_ACCOUNTS,
+    lifinity_amm_v1::LIFINITY_AMM_V1_MIN_ACCOUNTS,
+    lifinity_amm_v2::LIFINITY_AMM_V2_MIN_ACCOUNTS,
+    manifest::MANIFEST_MIN_ACCOUNTS,
+    mercurial_stable_swap::MERCURIAL_STABLE_SWAP_MIN_ACCOUNTS,
+    meteora_damm_v1::METEORA_DAMM_V1_MIN_ACCOUNTS,
+    meteora_damm_v2::METEORA_DAMM_V2_MIN_ACCOUNTS,
+    meteora_dbc::METEORA_DBC_MIN_ACCOUNTS,
+    meteora_dlmm::{METEORA_DLMM_FIXED_STEP_ACCOUNTS, METEORA_DLMM_MIN_ACCOUNTS},
+    openbook_v2::OPENBOOK_V2_MIN_ACCOUNTS,
+    orca_token_swap::ORCA_TOKEN_SWAP_MIN_ACCOUNTS,
+    orca_whirlpool::ORCA_WHIRLPOOL_MIN_ACCOUNTS,
+    phoenix::PHOENIX_MIN_ACCOUNTS,
+    pumpfun_amm::PUMPFUN_AMM_MIN_ACCOUNTS,
+    raydium_clmm::RAYDIUM_CLMM_MIN_ACCOUNTS,
+    raydium_cpmm::RAYDIUM_CPMM_MIN_ACCOUNTS,
     raydium_launchpad::RAYDIUM_LAUNCHPAD_MIN_ACCOUNTS,
     raydium_pool_v4::RAYDIUM_POOL_V4_MIN_ACCOUNTS,
+    raydium_stable_swap::RAYDIUM_STABLE_SWAP_MIN_ACCOUNTS,
+    stabble_swap::STABBLE_SWAP_MIN_ACCOUNTS,
+    woofi_swap::WOOFI_SWAP_MIN_ACCOUNTS,
 };
 use crate::state::{Protocol, SwapArbParams, REMAINING_ACCOUNTS_FIXED_PREFIX_LEN};
 
@@ -118,6 +138,12 @@ pub fn validate_step_account_flags<'info>(
     step_accounts: &[AccountInfo<'info>],
 ) -> Result<()> {
     match protocol {
+        Protocol::AldrinV2 => validate_fixed_len_step_account_flags(
+            step_accounts,
+            ALDRIN_V2_MIN_ACCOUNTS,
+            &[0],
+            &[3, 4, 5, 6],
+        ),
         Protocol::RaydiumCPMM => validate_fixed_len_step_account_flags(
             step_accounts,
             RAYDIUM_CPMM_MIN_ACCOUNTS,
@@ -131,17 +157,58 @@ pub fn validate_step_account_flags<'info>(
             &[0, 6],
             &[2, 3, 4, 5],
         ),
+        Protocol::ByrealCLMM => validate_variable_len_step_account_flags(
+            step_accounts,
+            RAYDIUM_CLMM_MIN_ACCOUNTS,
+            7,
+            &[0, 6],
+            &[2, 3, 4, 5],
+        ),
+        Protocol::PancakeSwap => validate_variable_len_step_account_flags(
+            step_accounts,
+            RAYDIUM_CLMM_MIN_ACCOUNTS,
+            7,
+            &[0, 6],
+            &[2, 3, 4, 5],
+        ),
+        Protocol::StabbleCLMM => validate_variable_len_step_account_flags(
+            step_accounts,
+            RAYDIUM_CLMM_MIN_ACCOUNTS,
+            7,
+            &[0, 6],
+            &[2, 3, 4, 5],
+        ),
+        Protocol::StabbleStableSwap | Protocol::StabbleWeightedSwap => {
+            validate_fixed_len_step_account_flags(
+                step_accounts,
+                STABBLE_SWAP_MIN_ACCOUNTS,
+                &[0, 10, 11],
+                &[3, 4, 5, 6],
+            )
+        }
+        Protocol::GammaSwap => validate_fixed_len_step_account_flags(
+            step_accounts,
+            GAMMA_SWAP_MIN_ACCOUNTS,
+            &[0, 8, 9],
+            &[3, 6, 7, 10],
+        ),
         Protocol::RaydiumPoolV4 => validate_fixed_len_step_account_flags(
             step_accounts,
             RAYDIUM_POOL_V4_MIN_ACCOUNTS,
             &[0, 7],
             &[1, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13],
         ),
+        Protocol::RaydiumStableSwap => validate_fixed_len_step_account_flags(
+            step_accounts,
+            RAYDIUM_STABLE_SWAP_MIN_ACCOUNTS,
+            &[0, 7],
+            &[1, 3, 4, 5, 8, 9, 10, 11, 12, 13],
+        ),
         Protocol::RaydiumLaunchPad => validate_fixed_len_step_account_flags(
             step_accounts,
             RAYDIUM_LAUNCHPAD_MIN_ACCOUNTS,
-            &[0],
-            &[4, 5, 6],
+            &[0, 8],
+            &[4, 5, 6, 9, 10],
         ),
         Protocol::PumpFunSwap => validate_pumpfun_swap_step_account_flags(step_accounts),
         Protocol::PumpFunAMM => validate_pumpfun_amm_step_account_flags(step_accounts),
@@ -150,6 +217,102 @@ pub fn validate_step_account_flags<'info>(
             ORCA_WHIRLPOOL_MIN_ACCOUNTS,
             &[0, 1, 2, 3],
             &[4, 5, 6, 9, 10, 11, 12],
+        ),
+        Protocol::OrcaTokenSwapV2
+        | Protocol::OrcaTokenSwapV1
+        | Protocol::SarosSwap
+        | Protocol::SplTokenSwap
+        | Protocol::DooarSwap
+        | Protocol::PenguinSwap => validate_fixed_len_step_account_flags(
+            step_accounts,
+            ORCA_TOKEN_SWAP_MIN_ACCOUNTS,
+            &[0],
+            &[3, 4, 5, 6],
+        ),
+        Protocol::SenchaSwap => validate_fixed_len_step_account_flags(
+            step_accounts,
+            crate::protocal::sencha_swap::SENCHA_SWAP_MIN_ACCOUNTS,
+            &[0],
+            &[1, 2, 3, 4, 5],
+        ),
+        Protocol::SaberStableSwap => validate_fixed_len_step_account_flags(
+            step_accounts,
+            crate::protocal::saber_stable_swap::SABER_STABLE_SWAP_MIN_ACCOUNTS,
+            &[0],
+            &[3, 4, 5, 6],
+        ),
+        Protocol::MercurialStableSwap => validate_fixed_len_step_account_flags(
+            step_accounts,
+            MERCURIAL_STABLE_SWAP_MIN_ACCOUNTS,
+            &[0],
+            &[3, 4],
+        ),
+        Protocol::Invariant => validate_fixed_len_step_account_flags(
+            step_accounts,
+            INVARIANT_MIN_ACCOUNTS,
+            &[0],
+            &[2, 3, 4, 5],
+        ),
+        Protocol::BonkSwap => validate_fixed_len_step_account_flags(
+            step_accounts,
+            BONK_SWAP_MIN_ACCOUNTS,
+            &[0],
+            &[2, 3, 4, 5, 6, 7],
+        ),
+        Protocol::Manifest => validate_fixed_len_step_account_flags(
+            step_accounts,
+            MANIFEST_MIN_ACCOUNTS,
+            &[0, 6, 7],
+            &[1, 4, 5],
+        ),
+        Protocol::OpenBookV2 => validate_fixed_len_step_account_flags(
+            step_accounts,
+            OPENBOOK_V2_MIN_ACCOUNTS,
+            &[0, 8, 9],
+            &[1, 3, 4, 5, 6, 7],
+        ),
+        Protocol::Phoenix => validate_fixed_len_step_account_flags(
+            step_accounts,
+            PHOENIX_MIN_ACCOUNTS,
+            &[0, 7],
+            &[2, 5, 6],
+        ),
+        Protocol::LifinityAmmV2 => validate_fixed_len_step_account_flags(
+            step_accounts,
+            LIFINITY_AMM_V2_MIN_ACCOUNTS,
+            &[0, 9],
+            &[2, 5, 6, 7, 8],
+        ),
+        Protocol::LifinityAmmV1 => validate_fixed_len_step_account_flags(
+            step_accounts,
+            LIFINITY_AMM_V1_MIN_ACCOUNTS,
+            &[0, 9],
+            &[5, 6, 7, 8, 12],
+        ),
+        Protocol::MeteoraDammV2 => validate_fixed_len_step_account_flags(
+            step_accounts,
+            METEORA_DAMM_V2_MIN_ACCOUNTS,
+            &[0],
+            &[2, 3, 4],
+        ),
+        Protocol::MeteoraDammV1 => validate_fixed_len_step_account_flags(
+            step_accounts,
+            METEORA_DAMM_V1_MIN_ACCOUNTS,
+            &[0, 12],
+            &[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+        ),
+        Protocol::MeteoraDbc => validate_fixed_len_step_account_flags(
+            step_accounts,
+            METEORA_DBC_MIN_ACCOUNTS,
+            &[0],
+            &[3, 4, 5],
+        ),
+        Protocol::MeteoraDlmm => validate_meteora_dlmm_step_account_flags(step_accounts),
+        Protocol::WoofiSwap => validate_fixed_len_step_account_flags(
+            step_accounts,
+            WOOFI_SWAP_MIN_ACCOUNTS,
+            &[0, 2],
+            &[3, 4, 5, 6, 7, 8, 9, 10, 11, 13],
         ),
     }
 }
@@ -283,6 +446,47 @@ fn validate_pumpfun_amm_step_account_flags<'info>(
     validate_pumpfun_dynamic_suffix_flags(step_accounts, PUMPFUN_AMM_MIN_ACCOUNTS)
 }
 
+fn validate_meteora_dlmm_step_account_flags<'info>(
+    step_accounts: &[AccountInfo<'info>],
+) -> Result<()> {
+    require!(
+        step_accounts.len() >= METEORA_DLMM_MIN_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+
+    for (index, account) in step_accounts.iter().enumerate() {
+        require!(!account.is_signer, ArbitrageError::InvalidAccount);
+        if index < METEORA_DLMM_FIXED_STEP_ACCOUNTS {
+            match index {
+                0..=3 => {
+                    require!(!account.is_writable, ArbitrageError::InvalidAccount);
+                    require!(account.executable, ArbitrageError::InvalidAccount);
+                }
+                4 | 5 | 6 | 9 => {
+                    require!(account.is_writable, ArbitrageError::InvalidAccount);
+                    require!(!account.executable, ArbitrageError::InvalidAccount);
+                }
+                7 | 8 | 11 => {
+                    require!(!account.is_writable, ArbitrageError::InvalidAccount);
+                    require!(!account.executable, ArbitrageError::InvalidAccount);
+                }
+                10 => {
+                    if account.executable {
+                        require!(!account.is_writable, ArbitrageError::InvalidAccount);
+                    } else {
+                        require!(account.is_writable, ArbitrageError::InvalidAccount);
+                    }
+                }
+                _ => return Err(ArbitrageError::InvalidAccount.into()),
+            }
+        } else {
+            require!(account.is_writable, ArbitrageError::InvalidAccount);
+            require!(!account.executable, ArbitrageError::InvalidAccount);
+        }
+    }
+    Ok(())
+}
+
 fn validate_pumpfun_dynamic_suffix_flags<'info>(
     step_accounts: &[AccountInfo<'info>],
     suffix_start: usize,
@@ -295,16 +499,8 @@ fn validate_pumpfun_dynamic_suffix_flags<'info>(
         tail_len == 2 || tail_len == 4 || tail_len == 6,
         ArbitrageError::InvalidAccountCount
     );
-    let fee_config_index = match tail_len {
-        2 | 4 => step_accounts
-            .len()
-            .checked_sub(2)
-            .ok_or(ArbitrageError::InvalidAccountCount)?,
-        6 => suffix_start
-            .checked_add(2)
-            .ok_or(ArbitrageError::InvalidAccountCount)?,
-        _ => return Err(ArbitrageError::InvalidAccountCount.into()),
-    };
+    let fee_config_index =
+        pumpfun_dynamic_suffix_fee_config_index(step_accounts, suffix_start, tail_len)?;
 
     for account in &step_accounts[suffix_start..fee_config_index] {
         require!(!account.is_signer, ArbitrageError::InvalidAccount);
@@ -326,6 +522,32 @@ fn validate_pumpfun_dynamic_suffix_flags<'info>(
     require!(fee_program.executable, ArbitrageError::InvalidAccount);
 
     Ok(())
+}
+
+fn pumpfun_dynamic_suffix_fee_config_index<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    suffix_start: usize,
+    tail_len: usize,
+) -> Result<usize> {
+    match tail_len {
+        2 => Ok(suffix_start),
+        4 => {
+            let buyback_only_fee_program_index = suffix_start
+                .checked_add(1)
+                .ok_or(ArbitrageError::InvalidAccountCount)?;
+            if step_accounts[buyback_only_fee_program_index].executable {
+                Ok(suffix_start)
+            } else {
+                suffix_start
+                    .checked_add(2)
+                    .ok_or(ArbitrageError::InvalidAccountCount.into())
+            }
+        }
+        6 => suffix_start
+            .checked_add(2)
+            .ok_or(ArbitrageError::InvalidAccountCount.into()),
+        _ => Err(ArbitrageError::InvalidAccountCount.into()),
+    }
 }
 
 pub fn calculate_step_ranges(
@@ -521,6 +743,75 @@ mod tests {
         ]
     }
 
+    fn stabble_swap_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+        ]
+    }
+
+    fn gamma_swap_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+            writable_step_account(),
+        ]
+    }
+
+    fn raydium_launchpad_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            executable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+        ]
+    }
+
+    fn raydium_stable_swap_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            executable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+        ]
+    }
+
     fn pumpfun_swap_buy_step_accounts() -> Vec<AccountInfo<'static>> {
         vec![
             executable_step_account(),
@@ -563,6 +854,25 @@ mod tests {
         ]
     }
 
+    fn pumpfun_amm_step_accounts_with_buyback_only() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            executable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+        ]
+    }
+
     fn orca_whirlpool_step_accounts() -> Vec<AccountInfo<'static>> {
         vec![
             executable_step_account(),
@@ -578,6 +888,234 @@ mod tests {
             writable_step_account(),
             writable_step_account(),
             writable_step_account(),
+        ]
+    }
+
+    fn orca_token_swap_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+        ]
+    }
+
+    fn sencha_swap_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+        ]
+    }
+
+    fn saber_stable_swap_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+        ]
+    }
+
+    fn mercurial_stable_swap_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+        ]
+    }
+
+    fn invariant_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+        ]
+    }
+
+    fn manifest_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+        ]
+    }
+
+    fn openbook_v2_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+        ]
+    }
+
+    fn aldrin_v2_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+        ]
+    }
+
+    fn phoenix_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            executable_step_account(),
+        ]
+    }
+
+    fn lifinity_amm_v2_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            executable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+        ]
+    }
+
+    fn lifinity_amm_v1_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            executable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+        ]
+    }
+
+    fn meteora_damm_v2_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+        ]
+    }
+
+    fn meteora_dbc_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+        ]
+    }
+
+    fn meteora_dlmm_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            executable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+        ]
+    }
+
+    fn meteora_damm_v1_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            executable_step_account(),
+        ]
+    }
+
+    fn woofi_swap_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            executable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
         ]
     }
 
@@ -708,6 +1246,55 @@ mod tests {
     }
 
     #[test]
+    fn validate_step_account_flags_accepts_stabble_swap_accounts() {
+        let accounts = stabble_swap_step_accounts();
+
+        assert!(validate_step_account_flags(Protocol::StabbleStableSwap, &accounts).is_ok());
+        assert!(validate_step_account_flags(Protocol::StabbleWeightedSwap, &accounts).is_ok());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_gamma_swap_accounts() {
+        let accounts = gamma_swap_step_accounts();
+
+        assert!(validate_step_account_flags(Protocol::GammaSwap, &accounts).is_ok());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_raydium_launchpad_accounts() {
+        let accounts = raydium_launchpad_step_accounts();
+
+        assert!(validate_step_account_flags(Protocol::RaydiumLaunchPad, &accounts).is_ok());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_raydium_stable_swap_accounts() {
+        let accounts = raydium_stable_swap_step_accounts();
+
+        assert!(validate_step_account_flags(Protocol::RaydiumStableSwap, &accounts).is_ok());
+    }
+
+    #[test]
+    fn validate_step_account_flags_rejects_non_executable_launchpad_system_program() {
+        let mut accounts = raydium_launchpad_step_accounts();
+        accounts[8].executable = false;
+
+        let err = validate_step_account_flags(Protocol::RaydiumLaunchPad, &accounts).unwrap_err();
+
+        assert_eq!(err, ArbitrageError::InvalidAccount.into());
+    }
+
+    #[test]
+    fn validate_step_account_flags_rejects_readonly_launchpad_fee_vault() {
+        let mut accounts = raydium_launchpad_step_accounts();
+        accounts[9].is_writable = false;
+
+        let err = validate_step_account_flags(Protocol::RaydiumLaunchPad, &accounts).unwrap_err();
+
+        assert_eq!(err, ArbitrageError::InvalidAccount.into());
+    }
+
+    #[test]
     fn validate_step_account_flags_rejects_signer_dynamic_account() {
         let mut accounts = clmm_step_accounts();
         accounts[7].is_signer = true;
@@ -724,6 +1311,11 @@ mod tests {
 
         let amm_accounts = pumpfun_amm_step_accounts_with_volume();
         assert!(validate_step_account_flags(Protocol::PumpFunAMM, &amm_accounts).is_ok());
+
+        let buyback_only_amm_accounts = pumpfun_amm_step_accounts_with_buyback_only();
+        assert!(
+            validate_step_account_flags(Protocol::PumpFunAMM, &buyback_only_amm_accounts).is_ok()
+        );
     }
 
     #[test]
@@ -734,11 +1326,208 @@ mod tests {
     }
 
     #[test]
+    fn validate_step_account_flags_accepts_token_swap_variant_accounts() {
+        let accounts = orca_token_swap_step_accounts();
+
+        assert!(validate_step_account_flags(Protocol::OrcaTokenSwapV2, &accounts).is_ok());
+        assert!(validate_step_account_flags(Protocol::OrcaTokenSwapV1, &accounts).is_ok());
+        assert!(validate_step_account_flags(Protocol::SarosSwap, &accounts).is_ok());
+        assert!(validate_step_account_flags(Protocol::SplTokenSwap, &accounts).is_ok());
+        assert!(validate_step_account_flags(Protocol::DooarSwap, &accounts).is_ok());
+        assert!(validate_step_account_flags(Protocol::PenguinSwap, &accounts).is_ok());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_manifest_accounts() {
+        let accounts = manifest_step_accounts();
+
+        assert!(validate_step_account_flags(Protocol::Manifest, &accounts).is_ok());
+    }
+
+    #[test]
+    fn validate_step_account_flags_checks_openbook_v2_accounts() {
+        let accounts = openbook_v2_step_accounts();
+        assert!(validate_step_account_flags(Protocol::OpenBookV2, &accounts).is_ok());
+
+        let mut readonly_bids = openbook_v2_step_accounts();
+        readonly_bids[3].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::OpenBookV2, &readonly_bids).is_err());
+
+        let mut writable_authority = openbook_v2_step_accounts();
+        writable_authority[2].is_writable = true;
+        assert!(validate_step_account_flags(Protocol::OpenBookV2, &writable_authority).is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_checks_aldrin_v2_accounts() {
+        let accounts = aldrin_v2_step_accounts();
+        assert!(validate_step_account_flags(Protocol::AldrinV2, &accounts).is_ok());
+
+        let mut writable_pool = aldrin_v2_step_accounts();
+        writable_pool[1].is_writable = true;
+        assert!(validate_step_account_flags(Protocol::AldrinV2, &writable_pool).is_err());
+
+        let mut readonly_vault = aldrin_v2_step_accounts();
+        readonly_vault[4].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::AldrinV2, &readonly_vault).is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_sencha_swap_accounts() {
+        let accounts = sencha_swap_step_accounts();
+
+        assert!(validate_step_account_flags(Protocol::SenchaSwap, &accounts).is_ok());
+
+        let mut readonly_pool = sencha_swap_step_accounts();
+        readonly_pool[1].is_writable = false;
+        let err = validate_step_account_flags(Protocol::SenchaSwap, &readonly_pool).unwrap_err();
+        assert_eq!(err, ArbitrageError::InvalidAccount.into());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_saber_stable_swap_accounts() {
+        let accounts = saber_stable_swap_step_accounts();
+
+        assert!(validate_step_account_flags(Protocol::SaberStableSwap, &accounts).is_ok());
+
+        let mut writable_pool = saber_stable_swap_step_accounts();
+        writable_pool[1].is_writable = true;
+        let err =
+            validate_step_account_flags(Protocol::SaberStableSwap, &writable_pool).unwrap_err();
+        assert_eq!(err, ArbitrageError::InvalidAccount.into());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_mercurial_stable_swap_accounts() {
+        let accounts = mercurial_stable_swap_step_accounts();
+
+        assert!(validate_step_account_flags(Protocol::MercurialStableSwap, &accounts).is_ok());
+
+        let mut readonly_reserve = mercurial_stable_swap_step_accounts();
+        readonly_reserve[3].is_writable = false;
+        let err = validate_step_account_flags(Protocol::MercurialStableSwap, &readonly_reserve)
+            .unwrap_err();
+        assert_eq!(err, ArbitrageError::InvalidAccount.into());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_invariant_accounts() {
+        let accounts = invariant_step_accounts();
+        assert!(validate_step_account_flags(Protocol::Invariant, &accounts).is_ok());
+
+        let mut readonly_tickmap = invariant_step_accounts();
+        readonly_tickmap[3].is_writable = false;
+        let err = validate_step_account_flags(Protocol::Invariant, &readonly_tickmap).unwrap_err();
+        assert_eq!(err, ArbitrageError::InvalidAccount.into());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_phoenix_accounts() {
+        assert!(validate_step_account_flags(Protocol::Phoenix, &phoenix_step_accounts()).is_ok());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_lifinity_amm_v2_accounts() {
+        assert!(validate_step_account_flags(
+            Protocol::LifinityAmmV2,
+            &lifinity_amm_v2_step_accounts(),
+        )
+        .is_ok());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_lifinity_amm_v1_accounts() {
+        assert!(validate_step_account_flags(
+            Protocol::LifinityAmmV1,
+            &lifinity_amm_v1_step_accounts(),
+        )
+        .is_ok());
+
+        let mut writable_amm = lifinity_amm_v1_step_accounts();
+        writable_amm[2].is_writable = true;
+        assert!(validate_step_account_flags(Protocol::LifinityAmmV1, &writable_amm).is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_rejects_writable_manifest_mint() {
+        let mut accounts = manifest_step_accounts();
+        accounts[2].is_writable = true;
+
+        let err = validate_step_account_flags(Protocol::Manifest, &accounts).unwrap_err();
+        assert_eq!(err, ArbitrageError::InvalidAccount.into());
+    }
+
+    #[test]
+    fn validate_step_account_flags_rejects_readonly_orca_token_swap_pool_mint() {
+        let mut accounts = orca_token_swap_step_accounts();
+        accounts[5].is_writable = false;
+
+        let err = validate_step_account_flags(Protocol::OrcaTokenSwapV2, &accounts).unwrap_err();
+
+        assert_eq!(err, ArbitrageError::InvalidAccount.into());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_meteora_damm_v2_accounts() {
+        let accounts = meteora_damm_v2_step_accounts();
+
+        assert!(validate_step_account_flags(Protocol::MeteoraDammV2, &accounts).is_ok());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_meteora_dbc_accounts() {
+        let accounts = meteora_dbc_step_accounts();
+
+        assert!(validate_step_account_flags(Protocol::MeteoraDbc, &accounts).is_ok());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_meteora_dlmm_accounts() {
+        let accounts = meteora_dlmm_step_accounts();
+
+        assert!(validate_step_account_flags(Protocol::MeteoraDlmm, &accounts).is_ok());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_meteora_damm_v1_accounts() {
+        let accounts = meteora_damm_v1_step_accounts();
+
+        assert!(validate_step_account_flags(Protocol::MeteoraDammV1, &accounts).is_ok());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_woofi_swap_accounts() {
+        let accounts = woofi_swap_step_accounts();
+
+        assert!(validate_step_account_flags(Protocol::WoofiSwap, &accounts).is_ok());
+    }
+
+    #[test]
+    fn validate_step_account_flags_rejects_readonly_meteora_damm_v1_vault() {
+        let mut accounts = meteora_damm_v1_step_accounts();
+        accounts[3].is_writable = false;
+
+        let err = validate_step_account_flags(Protocol::MeteoraDammV1, &accounts).unwrap_err();
+
+        assert_eq!(err, ArbitrageError::InvalidAccount.into());
+    }
+
+    #[test]
     fn validate_step_account_flags_rejects_readonly_orca_tick_array() {
         let mut accounts = orca_whirlpool_step_accounts();
         accounts[9].is_writable = false;
 
         let err = validate_step_account_flags(Protocol::OrcaWhirlpool, &accounts).unwrap_err();
+
+        assert_eq!(err, ArbitrageError::InvalidAccount.into());
+    }
+
+    #[test]
+    fn validate_step_account_flags_rejects_readonly_meteora_dlmm_bin_array() {
+        let mut accounts = meteora_dlmm_step_accounts();
+        accounts[12].is_writable = false;
+
+        let err = validate_step_account_flags(Protocol::MeteoraDlmm, &accounts).unwrap_err();
 
         assert_eq!(err, ArbitrageError::InvalidAccount.into());
     }

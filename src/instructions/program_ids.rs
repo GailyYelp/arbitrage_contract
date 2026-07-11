@@ -3,6 +3,9 @@ use anchor_lang::prelude::*;
 use crate::errors::ArbitrageError;
 use crate::state::Protocol;
 
+pub const ALDRIN_V2_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("CURVGoZn8zycx6FXwwevgBTB2gVvdbGTEpvMJDbgs2t4");
+
 pub const RAYDIUM_CPMM_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C");
 pub const RAYDIUM_CPMM_PROGRAM_ID_DEVNET: Pubkey =
@@ -11,18 +14,90 @@ pub const RAYDIUM_CLMM_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK");
 pub const RAYDIUM_CLMM_PROGRAM_ID_DEVNET: Pubkey =
     anchor_lang::pubkey!("devi51mZmdwUJGU9hjN27vEz64Gps7uUefqxg27EAtH");
+pub const BYREAL_CLMM_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("REALQqNEomY6cQGZJUGwywTBD2UmDT32rZcNnfxQ5N2");
+pub const PANCAKE_SWAP_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("HpNfyc2Saw7RKkQd8nEL4khUcuPhQ7WwY1B2qjx8jxFq");
+pub const STABBLE_CLMM_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("6dMXqGZ3ga2dikrYS9ovDXgHGh5RUsb2RTUj6hrQXhk6");
+pub const STABBLE_STABLE_SWAP_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("swapNyd8XiQwJ6ianp9snpu4brUqFxadzvHebnAXjJZ");
+pub const STABBLE_WEIGHTED_SWAP_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("swapFpHZwjELNnjvThjajtiVmkz3yPQEHjLtka2fwHW");
+pub const GAMMA_SWAP_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("GAMMA7meSFWaBXF25oSUgmGRwaW6sCMFLmBNiMSdbHVT");
+pub const RAYDIUM_STABLE_SWAP_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("5quBtoiQqxF9Jv6KYKctB59NT3gtJD2Y65kdnB1Uev3h");
+pub const WOOFI_SWAP_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("WooFif76YGRNjk1pA8wCsN67aQsD9f9iLsz4NcJ1AVb");
 pub const RAYDIUM_POOL_V4_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8");
 pub const RAYDIUM_POOL_V4_PROGRAM_ID_DEVNET: Pubkey =
     anchor_lang::pubkey!("DRaya7Kj3aMWQSy19kSjvmuwq9docCHofyP9kanQGaav");
 pub const RAYDIUM_LAUNCHPAD_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("LanMV9sAd7wArD4vJFi2qDdfnVhFxYSUg6eADduJ3uj");
+pub const RAYDIUM_LAUNCHPAD_PROGRAM_ID_DEVNET: Pubkey =
+    anchor_lang::pubkey!("DRay6fNdQ5J82H7xV6uq2aV3mNrUZ1J4PgSKsWgptcm6");
 pub const PUMPFUN_SWAP_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P");
 pub const PUMPFUN_AMM_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA");
 pub const ORCA_WHIRLPOOL_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc");
+pub const ORCA_TOKEN_SWAP_V2_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("9W959DqEETiGZocYWCQPaJ6sBmUzgfxXfqGeTEdp3aQP");
+pub const ORCA_TOKEN_SWAP_V2_PROGRAM_ID_DEVNET: Pubkey =
+    anchor_lang::pubkey!("3xQ8SWv2GaFXXpHZNqkXsdxq5DZciHBz6ZFoPPfbFd7U");
+pub const ORCA_TOKEN_SWAP_V1_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("DjVE6JNiYqPL2QXyCUUh8rNjHrbz9hXHNYt99MQ59qw1");
+pub const SAROS_SWAP_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("SSwapUtytfBdBn1b9NUGG6foMVPtcWgpRU32HToDUZr");
+pub const SPL_TOKEN_SWAP_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("SwaPpA9LAaLfeLi3a68M4DjnLqgtticKg6CnyNwgAC8");
+pub const DOOAR_SWAP_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("Dooar9JkhdZ7J3LHN3A7YCuoGRUggXhQaG4kijfLGU2j");
+pub const PENGUIN_SWAP_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("PSwapMdSai8tjrEXcxFeQth87xC4rRsa4VA5mhGhXkP");
+pub const SENCHA_SWAP_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("SCHAtsf8mbjyjiv4LkhLKutTf6JnZAbdJKFkXQNMFHZ");
+pub const SABER_STABLE_SWAP_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("SSwpkEEcbUqx4vtoEByFjSkhKdCT862DNVb52nZg1UZ");
+pub const MERCURIAL_STABLE_SWAP_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("MERLuDFBMmsHnsBPZw2sDQZHvXFMwp8EdjudcU2HKky");
+pub const INVARIANT_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("HyaB3W9q6XdA5xwpU4XnSZV94htfmbmqJXZcEbRaJutt");
+pub const INVARIANT_PROGRAM_ID_DEVNET: Pubkey =
+    anchor_lang::pubkey!("D8Xd5VFXJeANivc4LXEzYqiE8q2CGVbjym5JiynPCP6J");
+pub const BONK_SWAP_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("BSwp6bEBihVLdqJRKGgzjcGLHkcTuzmSo1TQkHepzH8p");
+pub const BONK_SWAP_STATE: Pubkey =
+    anchor_lang::pubkey!("2QWN6WjrJ3RAk51ecxLxaLPfFCYLAnmWJwJ1oKA92CRD");
+pub const BONK_SWAP_PROGRAM_AUTHORITY: Pubkey =
+    anchor_lang::pubkey!("8NyaPDJeC2eaBGpkRpZKnD9S448AZGgjSvumFe92DRK2");
+pub const BONK_SWAP_REFERRER: Pubkey =
+    anchor_lang::pubkey!("BUX7s2ef2htTGb2KKoPHWkmzxPj4nTWMWRgs5CSbQxf9");
+pub const MANIFEST_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("MNFSTqtC93rEfYHB6hF82sKdZpUDFWkViLByLd1k1Ms");
+pub const OPENBOOK_V2_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("opnb2LAfJYbRMAHHvqjCwQxanZn7ReEHp1k81EohpZb");
+pub const PHOENIX_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("PhoeNiXZ8ByJGLkxNfZRnkUfjvmuYqLR89jjFHGqdXY");
+pub const LIFINITY_AMM_V2_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("2wT8Yq49kHgDzXuPxZSaeLaH1qbmGXtEyPy64bL7aD3c");
+pub const LIFINITY_AMM_V1_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("EewxydAPCCVuNEyrVN68PuSYdQ7wKn27V9Gjeoi8dy3S");
+pub const PHOENIX_LOG_AUTHORITY: Pubkey =
+    anchor_lang::pubkey!("7aDTsspkQNGKmrexAN7FLx9oxU3iPczSSvHNggyuqYkR");
+pub const METEORA_DAMM_V1_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("Eo7WjKq67rjJQSZxS6z3YkapzY3eMj6Xy8X5EQVn5UaB");
+pub const METEORA_DAMM_V2_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("cpamdpZCGKUy5JxQXB4dcpGPiikHawvSWAd6mEn1sGG");
+pub const METEORA_DBC_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("dbcij3LWUppWqq96dh6gJWwBifmcGfLSB5D4DuSMaqN");
+pub const METEORA_DLMM_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo");
+pub const METEORA_VAULT_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("24Uqj9JCLxUeoC3hGfh5W3s9FM9uCHDS2SG3LYwBpyTi");
 pub const MEMO_PROGRAM_V2_ID: Pubkey =
     anchor_lang::pubkey!("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
 
@@ -32,8 +107,13 @@ pub const RAYDIUM_CPMM_AUTHORITY_ID_DEVNET: Pubkey =
     anchor_lang::pubkey!("7rQ1QFNosMkUCuh7Z7fPbTHvh73b68sQYdirycEzJVuw");
 pub const RAYDIUM_LAUNCHPAD_AUTHORITY: Pubkey =
     anchor_lang::pubkey!("WLHv2UAZm6z4KyaaELi5pjdbJh6RESMva1Rnn8pJVVh");
+pub const RAYDIUM_LAUNCHPAD_AUTHORITY_DEVNET: Pubkey =
+    anchor_lang::pubkey!("5xqNaZXX5eUi4p5HU4oz9i5QnwRNT2y6oN7yyn4qENeq");
 pub const RAYDIUM_LAUNCHPAD_EVENT_AUTHORITY: Pubkey =
     anchor_lang::pubkey!("2DPAtwB8L12vrMRExbLuyGnC7n2J5LNoZQSejeQGpwkr");
+pub const RAYDIUM_LAUNCHPAD_EVENT_AUTHORITY_DEVNET: Pubkey =
+    anchor_lang::pubkey!("4uAB7seenFJKPUXqYewAdfra2u6baBgjiXU8x1SC7Ycz");
+pub const RAYDIUM_LAUNCHPAD_EVENT_AUTHORITY_SEED: &[u8] = b"__event_authority";
 pub const PUMPFUN_SWAP_GLOBAL_ACCOUNT: Pubkey =
     anchor_lang::pubkey!("4wTV1YmiEkRvAtNtsSGPtUrqRYQMe5SKy2uB4Jjaxnjf");
 pub const PUMPFUN_SWAP_FEE_RECIPIENT: Pubkey =
@@ -123,11 +203,40 @@ pub fn expected_protocol_program_id(protocol: Protocol) -> Pubkey {
     match protocol {
         Protocol::RaydiumCPMM => raydium_cpmm_program_id(),
         Protocol::RaydiumCLMM => raydium_clmm_program_id(),
+        Protocol::ByrealCLMM => BYREAL_CLMM_PROGRAM_ID,
+        Protocol::PancakeSwap => PANCAKE_SWAP_PROGRAM_ID,
+        Protocol::StabbleCLMM => STABBLE_CLMM_PROGRAM_ID,
+        Protocol::StabbleStableSwap => STABBLE_STABLE_SWAP_PROGRAM_ID,
+        Protocol::StabbleWeightedSwap => STABBLE_WEIGHTED_SWAP_PROGRAM_ID,
+        Protocol::GammaSwap => GAMMA_SWAP_PROGRAM_ID,
+        Protocol::RaydiumStableSwap => RAYDIUM_STABLE_SWAP_PROGRAM_ID,
+        Protocol::WoofiSwap => WOOFI_SWAP_PROGRAM_ID,
         Protocol::RaydiumPoolV4 => raydium_pool_v4_program_id(),
-        Protocol::RaydiumLaunchPad => RAYDIUM_LAUNCHPAD_PROGRAM_ID,
+        Protocol::RaydiumLaunchPad => raydium_launchpad_program_id(),
         Protocol::PumpFunSwap => PUMPFUN_SWAP_PROGRAM_ID,
         Protocol::PumpFunAMM => PUMPFUN_AMM_PROGRAM_ID,
         Protocol::OrcaWhirlpool => ORCA_WHIRLPOOL_PROGRAM_ID,
+        Protocol::OrcaTokenSwapV2 => orca_token_swap_v2_program_id(),
+        Protocol::OrcaTokenSwapV1 => ORCA_TOKEN_SWAP_V1_PROGRAM_ID,
+        Protocol::SarosSwap => SAROS_SWAP_PROGRAM_ID,
+        Protocol::SplTokenSwap => SPL_TOKEN_SWAP_PROGRAM_ID,
+        Protocol::DooarSwap => DOOAR_SWAP_PROGRAM_ID,
+        Protocol::PenguinSwap => PENGUIN_SWAP_PROGRAM_ID,
+        Protocol::SenchaSwap => SENCHA_SWAP_PROGRAM_ID,
+        Protocol::SaberStableSwap => SABER_STABLE_SWAP_PROGRAM_ID,
+        Protocol::MercurialStableSwap => MERCURIAL_STABLE_SWAP_PROGRAM_ID,
+        Protocol::Invariant => invariant_program_id(),
+        Protocol::BonkSwap => BONK_SWAP_PROGRAM_ID,
+        Protocol::Manifest => MANIFEST_PROGRAM_ID,
+        Protocol::OpenBookV2 => OPENBOOK_V2_PROGRAM_ID,
+        Protocol::AldrinV2 => ALDRIN_V2_PROGRAM_ID,
+        Protocol::Phoenix => PHOENIX_PROGRAM_ID,
+        Protocol::LifinityAmmV2 => LIFINITY_AMM_V2_PROGRAM_ID,
+        Protocol::LifinityAmmV1 => LIFINITY_AMM_V1_PROGRAM_ID,
+        Protocol::MeteoraDammV2 => METEORA_DAMM_V2_PROGRAM_ID,
+        Protocol::MeteoraDammV1 => METEORA_DAMM_V1_PROGRAM_ID,
+        Protocol::MeteoraDbc => METEORA_DBC_PROGRAM_ID,
+        Protocol::MeteoraDlmm => METEORA_DLMM_PROGRAM_ID,
     }
 }
 
@@ -136,11 +245,40 @@ pub fn expected_fixed_accounts(protocol: Protocol) -> &'static [FixedAccountExpe
     match protocol {
         Protocol::RaydiumCPMM => raydium_cpmm_fixed_accounts(),
         Protocol::RaydiumCLMM => RAYDIUM_CLMM_FIXED_ACCOUNTS,
+        Protocol::ByrealCLMM => BYREAL_CLMM_FIXED_ACCOUNTS,
+        Protocol::PancakeSwap => PANCAKE_SWAP_FIXED_ACCOUNTS,
+        Protocol::StabbleCLMM => STABBLE_CLMM_FIXED_ACCOUNTS,
+        Protocol::StabbleStableSwap => NO_FIXED_ACCOUNTS,
+        Protocol::StabbleWeightedSwap => NO_FIXED_ACCOUNTS,
+        Protocol::GammaSwap => NO_FIXED_ACCOUNTS,
+        Protocol::RaydiumStableSwap => NO_FIXED_ACCOUNTS,
+        Protocol::WoofiSwap => NO_FIXED_ACCOUNTS,
         Protocol::RaydiumPoolV4 => NO_FIXED_ACCOUNTS,
-        Protocol::RaydiumLaunchPad => RAYDIUM_LAUNCHPAD_FIXED_ACCOUNTS,
+        Protocol::RaydiumLaunchPad => raydium_launchpad_fixed_accounts(),
         Protocol::PumpFunSwap => PUMPFUN_SWAP_FIXED_ACCOUNTS,
         Protocol::PumpFunAMM => pumpfun_amm_fixed_accounts(),
         Protocol::OrcaWhirlpool => ORCA_WHIRLPOOL_FIXED_ACCOUNTS,
+        Protocol::OrcaTokenSwapV2 => NO_FIXED_ACCOUNTS,
+        Protocol::OrcaTokenSwapV1 => NO_FIXED_ACCOUNTS,
+        Protocol::SarosSwap => NO_FIXED_ACCOUNTS,
+        Protocol::SplTokenSwap => NO_FIXED_ACCOUNTS,
+        Protocol::DooarSwap => NO_FIXED_ACCOUNTS,
+        Protocol::PenguinSwap => NO_FIXED_ACCOUNTS,
+        Protocol::SenchaSwap => NO_FIXED_ACCOUNTS,
+        Protocol::SaberStableSwap => NO_FIXED_ACCOUNTS,
+        Protocol::MercurialStableSwap => NO_FIXED_ACCOUNTS,
+        Protocol::Invariant => NO_FIXED_ACCOUNTS,
+        Protocol::BonkSwap => NO_FIXED_ACCOUNTS,
+        Protocol::Manifest => NO_FIXED_ACCOUNTS,
+        Protocol::OpenBookV2 => OPENBOOK_V2_FIXED_ACCOUNTS,
+        Protocol::AldrinV2 => NO_FIXED_ACCOUNTS,
+        Protocol::Phoenix => PHOENIX_FIXED_ACCOUNTS,
+        Protocol::LifinityAmmV2 => LIFINITY_AMM_V2_FIXED_ACCOUNTS,
+        Protocol::LifinityAmmV1 => LIFINITY_AMM_V1_FIXED_ACCOUNTS,
+        Protocol::MeteoraDammV2 => NO_FIXED_ACCOUNTS,
+        Protocol::MeteoraDammV1 => METEORA_DAMM_V1_FIXED_ACCOUNTS,
+        Protocol::MeteoraDbc => NO_FIXED_ACCOUNTS,
+        Protocol::MeteoraDlmm => METEORA_DLMM_FIXED_ACCOUNTS,
     }
 }
 
@@ -174,8 +312,82 @@ fn raydium_pool_v4_program_id() -> Pubkey {
     RAYDIUM_POOL_V4_PROGRAM_ID
 }
 
+#[cfg(all(feature = "devnet", not(feature = "flex")))]
+fn raydium_launchpad_program_id() -> Pubkey {
+    RAYDIUM_LAUNCHPAD_PROGRAM_ID_DEVNET
+}
+
+#[cfg(all(feature = "devnet", not(feature = "flex")))]
+fn orca_token_swap_v2_program_id() -> Pubkey {
+    ORCA_TOKEN_SWAP_V2_PROGRAM_ID_DEVNET
+}
+
+#[cfg(all(feature = "devnet", not(feature = "flex")))]
+fn invariant_program_id() -> Pubkey {
+    INVARIANT_PROGRAM_ID_DEVNET
+}
+
+#[cfg(all(not(feature = "devnet"), not(feature = "flex")))]
+fn invariant_program_id() -> Pubkey {
+    INVARIANT_PROGRAM_ID
+}
+
+#[cfg(all(not(feature = "devnet"), not(feature = "flex")))]
+fn orca_token_swap_v2_program_id() -> Pubkey {
+    ORCA_TOKEN_SWAP_V2_PROGRAM_ID
+}
+
+#[cfg(all(not(feature = "devnet"), not(feature = "flex")))]
+fn raydium_launchpad_program_id() -> Pubkey {
+    RAYDIUM_LAUNCHPAD_PROGRAM_ID
+}
+
 #[cfg(not(feature = "flex"))]
 const NO_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[];
+
+const PHOENIX_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[
+    FixedAccountExpectation {
+        index: 1,
+        key: PHOENIX_LOG_AUTHORITY,
+    },
+    FixedAccountExpectation {
+        index: 7,
+        key: anchor_spl::token::ID,
+    },
+];
+
+const OPENBOOK_V2_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[
+    FixedAccountExpectation {
+        index: 8,
+        key: anchor_spl::token::ID,
+    },
+    FixedAccountExpectation {
+        index: 9,
+        key: anchor_lang::system_program::ID,
+    },
+];
+
+const LIFINITY_AMM_V2_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[
+    FixedAccountExpectation {
+        index: 0,
+        key: LIFINITY_AMM_V2_PROGRAM_ID,
+    },
+    FixedAccountExpectation {
+        index: 9,
+        key: anchor_spl::token::ID,
+    },
+];
+
+const LIFINITY_AMM_V1_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[
+    FixedAccountExpectation {
+        index: 0,
+        key: LIFINITY_AMM_V1_PROGRAM_ID,
+    },
+    FixedAccountExpectation {
+        index: 9,
+        key: anchor_spl::token::ID,
+    },
+];
 
 #[cfg(all(feature = "devnet", not(feature = "flex")))]
 const RAYDIUM_CPMM_FIXED_ACCOUNTS_DEVNET: &[FixedAccountExpectation] = &[FixedAccountExpectation {
@@ -197,13 +409,55 @@ const RAYDIUM_CLMM_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[FixedAccountEx
 }];
 
 #[cfg(not(feature = "flex"))]
+const BYREAL_CLMM_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[FixedAccountExpectation {
+    index: 6,
+    key: MEMO_PROGRAM_V2_ID,
+}];
+
+#[cfg(not(feature = "flex"))]
+const PANCAKE_SWAP_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[FixedAccountExpectation {
+    index: 6,
+    key: MEMO_PROGRAM_V2_ID,
+}];
+
+#[cfg(not(feature = "flex"))]
+const STABBLE_CLMM_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[FixedAccountExpectation {
+    index: 6,
+    key: MEMO_PROGRAM_V2_ID,
+}];
+
+#[cfg(not(feature = "flex"))]
 const ORCA_WHIRLPOOL_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[FixedAccountExpectation {
     index: 3,
     key: MEMO_PROGRAM_V2_ID,
 }];
 
 #[cfg(not(feature = "flex"))]
-const RAYDIUM_LAUNCHPAD_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[
+const METEORA_DLMM_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[FixedAccountExpectation {
+    index: 3,
+    key: MEMO_PROGRAM_V2_ID,
+}];
+
+#[cfg(not(feature = "flex"))]
+const METEORA_DAMM_V1_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[FixedAccountExpectation {
+    index: 12,
+    key: METEORA_VAULT_PROGRAM_ID,
+}];
+
+#[cfg(all(feature = "devnet", not(feature = "flex")))]
+const RAYDIUM_LAUNCHPAD_FIXED_ACCOUNTS_DEVNET: &[FixedAccountExpectation] = &[
+    FixedAccountExpectation {
+        index: 1,
+        key: RAYDIUM_LAUNCHPAD_AUTHORITY_DEVNET,
+    },
+    FixedAccountExpectation {
+        index: 7,
+        key: RAYDIUM_LAUNCHPAD_EVENT_AUTHORITY_DEVNET,
+    },
+];
+
+#[cfg(all(not(feature = "devnet"), not(feature = "flex")))]
+const RAYDIUM_LAUNCHPAD_FIXED_ACCOUNTS_MAINNET: &[FixedAccountExpectation] = &[
     FixedAccountExpectation {
         index: 1,
         key: RAYDIUM_LAUNCHPAD_AUTHORITY,
@@ -223,10 +477,6 @@ const PUMPFUN_SWAP_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[
     FixedAccountExpectation {
         index: 2,
         key: PUMPFUN_SWAP_FEE_RECIPIENT,
-    },
-    FixedAccountExpectation {
-        index: 6,
-        key: PUMPFUN_SWAP_EVENT_AUTHORITY,
     },
 ];
 
@@ -273,6 +523,16 @@ fn raydium_cpmm_fixed_accounts() -> &'static [FixedAccountExpectation] {
 }
 
 #[cfg(all(feature = "devnet", not(feature = "flex")))]
+fn raydium_launchpad_fixed_accounts() -> &'static [FixedAccountExpectation] {
+    RAYDIUM_LAUNCHPAD_FIXED_ACCOUNTS_DEVNET
+}
+
+#[cfg(all(not(feature = "devnet"), not(feature = "flex")))]
+fn raydium_launchpad_fixed_accounts() -> &'static [FixedAccountExpectation] {
+    RAYDIUM_LAUNCHPAD_FIXED_ACCOUNTS_MAINNET
+}
+
+#[cfg(all(feature = "devnet", not(feature = "flex")))]
 fn pumpfun_amm_fixed_accounts() -> &'static [FixedAccountExpectation] {
     PUMPFUN_AMM_FIXED_ACCOUNTS_DEVNET
 }
@@ -288,6 +548,23 @@ mod tests {
 
     const CUSTOM_PROGRAM_ID: Pubkey =
         anchor_lang::pubkey!("BPFLoaderUpgradeab1e11111111111111111111111");
+
+    fn expected_launchpad_fixed_keys() -> (Pubkey, Pubkey) {
+        #[cfg(feature = "devnet")]
+        {
+            (
+                RAYDIUM_LAUNCHPAD_AUTHORITY_DEVNET,
+                RAYDIUM_LAUNCHPAD_EVENT_AUTHORITY_DEVNET,
+            )
+        }
+        #[cfg(not(feature = "devnet"))]
+        {
+            (
+                RAYDIUM_LAUNCHPAD_AUTHORITY,
+                RAYDIUM_LAUNCHPAD_EVENT_AUTHORITY,
+            )
+        }
+    }
 
     #[cfg(not(feature = "flex"))]
     #[test]
@@ -325,9 +602,15 @@ mod tests {
             RAYDIUM_POOL_V4_PROGRAM_ID_DEVNET
         );
 
+        #[cfg(not(feature = "devnet"))]
         assert_eq!(
             expected_protocol_program_id(Protocol::RaydiumLaunchPad),
             RAYDIUM_LAUNCHPAD_PROGRAM_ID
+        );
+        #[cfg(feature = "devnet")]
+        assert_eq!(
+            expected_protocol_program_id(Protocol::RaydiumLaunchPad),
+            RAYDIUM_LAUNCHPAD_PROGRAM_ID_DEVNET
         );
         assert_eq!(
             expected_protocol_program_id(Protocol::PumpFunSwap),
@@ -340,6 +623,46 @@ mod tests {
         assert_eq!(
             expected_protocol_program_id(Protocol::OrcaWhirlpool),
             ORCA_WHIRLPOOL_PROGRAM_ID
+        );
+        assert_eq!(
+            expected_protocol_program_id(Protocol::MeteoraDammV2),
+            METEORA_DAMM_V2_PROGRAM_ID
+        );
+        assert_eq!(
+            expected_protocol_program_id(Protocol::MeteoraDammV1),
+            METEORA_DAMM_V1_PROGRAM_ID
+        );
+        assert_eq!(
+            expected_protocol_program_id(Protocol::MeteoraDbc),
+            METEORA_DBC_PROGRAM_ID
+        );
+        assert_eq!(
+            expected_protocol_program_id(Protocol::MeteoraDlmm),
+            METEORA_DLMM_PROGRAM_ID
+        );
+        assert_eq!(
+            expected_protocol_program_id(Protocol::PancakeSwap),
+            PANCAKE_SWAP_PROGRAM_ID
+        );
+        assert_eq!(
+            expected_protocol_program_id(Protocol::StabbleCLMM),
+            STABBLE_CLMM_PROGRAM_ID
+        );
+        assert_eq!(
+            expected_protocol_program_id(Protocol::StabbleStableSwap),
+            STABBLE_STABLE_SWAP_PROGRAM_ID
+        );
+        assert_eq!(
+            expected_protocol_program_id(Protocol::StabbleWeightedSwap),
+            STABBLE_WEIGHTED_SWAP_PROGRAM_ID
+        );
+        assert_eq!(
+            expected_protocol_program_id(Protocol::GammaSwap),
+            GAMMA_SWAP_PROGRAM_ID
+        );
+        assert_eq!(
+            expected_protocol_program_id(Protocol::WoofiSwap),
+            WOOFI_SWAP_PROGRAM_ID
         );
     }
 
@@ -363,9 +686,10 @@ mod tests {
     #[cfg(not(feature = "flex"))]
     #[test]
     fn fixed_account_validation_accepts_expected_keys() {
+        let (authority, event_authority) = expected_launchpad_fixed_keys();
         let mut keys = [Pubkey::default(); 8];
-        keys[1] = RAYDIUM_LAUNCHPAD_AUTHORITY;
-        keys[7] = RAYDIUM_LAUNCHPAD_EVENT_AUTHORITY;
+        keys[1] = authority;
+        keys[7] = event_authority;
 
         assert!(
             validate_protocol_fixed_account_keys(Protocol::RaydiumLaunchPad, |index| {
@@ -378,8 +702,9 @@ mod tests {
     #[cfg(not(feature = "flex"))]
     #[test]
     fn fixed_account_validation_rejects_wrong_key() {
+        let (authority, _) = expected_launchpad_fixed_keys();
         let mut keys = [Pubkey::default(); 8];
-        keys[1] = RAYDIUM_LAUNCHPAD_AUTHORITY;
+        keys[1] = authority;
         keys[7] = CUSTOM_PROGRAM_ID;
 
         let err = validate_protocol_fixed_account_keys(Protocol::RaydiumLaunchPad, |index| {
@@ -393,7 +718,8 @@ mod tests {
     #[cfg(not(feature = "flex"))]
     #[test]
     fn fixed_account_validation_rejects_missing_key() {
-        let keys = [RAYDIUM_LAUNCHPAD_AUTHORITY];
+        let (authority, _) = expected_launchpad_fixed_keys();
+        let keys = [authority];
 
         let err = validate_protocol_fixed_account_keys(Protocol::RaydiumLaunchPad, |index| {
             keys.get(index).copied()
@@ -428,6 +754,26 @@ mod tests {
                 keys.get(index).copied()
             })
             .is_ok()
+        );
+    }
+
+    #[test]
+    fn raydium_launchpad_event_authorities_match_anchor_event_pdas() {
+        assert_eq!(
+            Pubkey::find_program_address(
+                &[RAYDIUM_LAUNCHPAD_EVENT_AUTHORITY_SEED],
+                &RAYDIUM_LAUNCHPAD_PROGRAM_ID
+            )
+            .0,
+            RAYDIUM_LAUNCHPAD_EVENT_AUTHORITY
+        );
+        assert_eq!(
+            Pubkey::find_program_address(
+                &[RAYDIUM_LAUNCHPAD_EVENT_AUTHORITY_SEED],
+                &RAYDIUM_LAUNCHPAD_PROGRAM_ID_DEVNET
+            )
+            .0,
+            RAYDIUM_LAUNCHPAD_EVENT_AUTHORITY_DEVNET
         );
     }
 }

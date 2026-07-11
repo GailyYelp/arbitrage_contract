@@ -114,8 +114,16 @@ mod tests {
         ("src/lib.rs", include_str!("lib.rs")),
         ("src/protocal/mod.rs", include_str!("protocal/mod.rs")),
         (
+            "src/protocal/gamma_swap.rs",
+            include_str!("protocal/gamma_swap.rs"),
+        ),
+        (
             "src/protocal/orca_whirlpool.rs",
             include_str!("protocal/orca_whirlpool.rs"),
+        ),
+        (
+            "src/protocal/meteora_dlmm.rs",
+            include_str!("protocal/meteora_dlmm.rs"),
         ),
         (
             "src/protocal/pumpfun_amm.rs",
@@ -140,6 +148,10 @@ mod tests {
         (
             "src/protocal/raydium_pool_v4.rs",
             include_str!("protocal/raydium_pool_v4.rs"),
+        ),
+        (
+            "src/protocal/stabble_swap.rs",
+            include_str!("protocal/stabble_swap.rs"),
         ),
         ("src/state.rs", include_str!("state.rs")),
     ];
