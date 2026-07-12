@@ -114,6 +114,10 @@ mod tests {
         ("src/lib.rs", include_str!("lib.rs")),
         ("src/protocal/mod.rs", include_str!("protocal/mod.rs")),
         (
+            "src/protocal/metadao_futarchy.rs",
+            include_str!("protocal/metadao_futarchy.rs"),
+        ),
+        (
             "src/protocal/gamma_swap.rs",
             include_str!("protocal/gamma_swap.rs"),
         ),

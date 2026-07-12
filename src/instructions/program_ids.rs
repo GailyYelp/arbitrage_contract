@@ -5,6 +5,8 @@ use crate::state::Protocol;
 
 pub const ALDRIN_V2_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("CURVGoZn8zycx6FXwwevgBTB2gVvdbGTEpvMJDbgs2t4");
+pub const ALDRIN_V1_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("AMM55ShdkoGRB5jVYPjWziwk8m5MpwyDgsMWHaMSQWH6");
 
 pub const RAYDIUM_CPMM_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C");
@@ -26,10 +28,62 @@ pub const STABBLE_WEIGHTED_SWAP_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("swapFpHZwjELNnjvThjajtiVmkz3yPQEHjLtka2fwHW");
 pub const GAMMA_SWAP_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("GAMMA7meSFWaBXF25oSUgmGRwaW6sCMFLmBNiMSdbHVT");
+pub const GAVEL_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("srAMMzfVHVAtgSJc8iH6CfKzuWuUTzLHVCE81QU1rgi");
+pub const OMNIPAIR_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("omnixgS8fnqHfCcTGKWj6JtKjzpJZ1Y5y9pyFkQDkYE");
+pub const SCALE_AMM_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("SCALEwAvEK5gtkdHiFzXfPgtk2YwJxPDzaV3aDmR7tA");
+pub const SCALE_VMM_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("SCALEWoRSpVZpMRqHEcDfNvBh3nUSe34jDr9r689gLa");
+pub const VIRTUALS_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("5U3EU2ubXtK84QcRjWVmYt9RaDyA8gKxdUrPFXmZyaki");
 pub const RAYDIUM_STABLE_SWAP_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("5quBtoiQqxF9Jv6KYKctB59NT3gtJD2Y65kdnB1Uev3h");
+pub const RAYDIUM_STABLE_SWAP_PROGRAM_ID_DEVNET: Pubkey =
+    anchor_lang::pubkey!("DRayDdXc1NZQ9C3hRWmoSf8zK4iapgMnjdNZWrfwsP8m");
 pub const WOOFI_SWAP_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("WooFif76YGRNjk1pA8wCsN67aQsD9f9iLsz4NcJ1AVb");
+pub const SOLFI_V2_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("SV2EYYJyRz2YhfXwXnhNAevDEui5Q6yrfyo13WtupPF");
+pub const SOLFI_V1_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("SoLFiHG9TfgtdUXUjWAxi3LtvYuFyDLVhBWxdMZxyCe");
+pub const FLUXBEAM_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("FLUXubRmkEi2q6K3Y9kBPg9248ggaZVsoSFhtJHSrm1X");
+pub const CREMA_CLMM_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("CLMM9tUoggJu2wagPkkqs9eFG4BWhVBZWkP1qv3Sp7tR");
+pub const SANCTUM_ROUTER_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("stkitrT1Uoy18Dk1fTrgPw8W6MVzoCfYoAFT4MLsmhq");
+pub const MOONIT_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("MoonCVVNZFSYkqNXP6bxHLPL6QQJiMagDL3qcqUQTrG");
+pub const BOOP_FUN_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("boop8hVGQGqehUK2iVEMEnMrL5RbjywRzHKBmBE7ry4");
+pub const HEAVEN_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("HEAVENoP2qxoeuF8Dj2oT1GHEnu49U5mJYkdeC8BAX2o");
+pub const SAROS_DLMM_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("1qbkdrr3z4ryLA7pZykqxvxWPoeifcVKo6ZG9CfkvVE");
+pub const SAROS_DLMM_PROGRAM_ID_DEVNET: Pubkey =
+    anchor_lang::pubkey!("EZoLi7fVCWjns7ukzjggSeDpG2GEGJbGs3MTRxAE29d4");
+pub const PERENA_NUMERAIRE_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("NUMERUNsFCP3kuNmWZuXtm1AaQCPj9uw6Guv2Ekoi5P");
+pub const PERENA_STAR_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("save8RQVPMWNTzU18t3GBvBkN9hT7jsGjiCQ28FpD9H");
+pub const METADAO_FUTARCHY_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("FUTARELBfJfQ8RDGhg1wdhddq1odMAJUePHFuBYfUxKq");
+pub const SERUM_V3_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin");
+pub const SANCTUM_INFINITY_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("5ocnV1qiCgaQR8Jb8xWnVbApfaygJ8tNoZfgPwsgx9kx");
+pub const HUMIDIFI_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("9H6tua7jkLhdm3w8BvgpTn5LZNU7g4ZynDmCiNN3q6Rp");
+pub const OBRIC_V2_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("obriQD1zbpyLz95G5n7nJe6a4DPjpFwa5XYPoNm113y");
+pub const TESSERA_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("TessVdML9pBGgG9yGks7o4HewRaXVAMuoVj4x83GLQH");
+pub const GOONFI_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("goonERTdGsjnkZqWuVjs73BZ3Pb9qoCUdBUL17BnS5j");
+pub const GOONFI_V2_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("goonuddtQRrWqqn5nFyczVKaie28f3kDkHWkHtURSLE");
 pub const RAYDIUM_POOL_V4_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8");
 pub const RAYDIUM_POOL_V4_PROGRAM_ID_DEVNET: Pubkey =
@@ -209,7 +263,7 @@ pub fn expected_protocol_program_id(protocol: Protocol) -> Pubkey {
         Protocol::StabbleStableSwap => STABBLE_STABLE_SWAP_PROGRAM_ID,
         Protocol::StabbleWeightedSwap => STABBLE_WEIGHTED_SWAP_PROGRAM_ID,
         Protocol::GammaSwap => GAMMA_SWAP_PROGRAM_ID,
-        Protocol::RaydiumStableSwap => RAYDIUM_STABLE_SWAP_PROGRAM_ID,
+        Protocol::RaydiumStableSwap => raydium_stable_swap_program_id(),
         Protocol::WoofiSwap => WOOFI_SWAP_PROGRAM_ID,
         Protocol::RaydiumPoolV4 => raydium_pool_v4_program_id(),
         Protocol::RaydiumLaunchPad => raydium_launchpad_program_id(),
@@ -230,6 +284,31 @@ pub fn expected_protocol_program_id(protocol: Protocol) -> Pubkey {
         Protocol::Manifest => MANIFEST_PROGRAM_ID,
         Protocol::OpenBookV2 => OPENBOOK_V2_PROGRAM_ID,
         Protocol::AldrinV2 => ALDRIN_V2_PROGRAM_ID,
+        Protocol::AldrinV1 => ALDRIN_V1_PROGRAM_ID,
+        Protocol::SolFiV2 => SOLFI_V2_PROGRAM_ID,
+        Protocol::SolFiV1 => SOLFI_V1_PROGRAM_ID,
+        Protocol::FluxBeam => FLUXBEAM_PROGRAM_ID,
+        Protocol::CremaClmm => CREMA_CLMM_PROGRAM_ID,
+        Protocol::SanctumRouter => SANCTUM_ROUTER_PROGRAM_ID,
+        Protocol::Moonit => MOONIT_PROGRAM_ID,
+        Protocol::BoopFun => BOOP_FUN_PROGRAM_ID,
+        Protocol::Heaven => HEAVEN_PROGRAM_ID,
+        Protocol::SarosDlmm => saros_dlmm_program_id(),
+        Protocol::PerenaNumeraire => PERENA_NUMERAIRE_PROGRAM_ID,
+        Protocol::PerenaStar => PERENA_STAR_PROGRAM_ID,
+        Protocol::MetaDaoFutarchy => METADAO_FUTARCHY_PROGRAM_ID,
+        Protocol::Gavel => GAVEL_PROGRAM_ID,
+        Protocol::Omnipair => OMNIPAIR_PROGRAM_ID,
+        Protocol::ScaleAmm => SCALE_AMM_PROGRAM_ID,
+        Protocol::ScaleVmm => SCALE_VMM_PROGRAM_ID,
+        Protocol::Virtuals => VIRTUALS_PROGRAM_ID,
+        Protocol::SerumV3 => SERUM_V3_PROGRAM_ID,
+        Protocol::SanctumInfinity => SANCTUM_INFINITY_PROGRAM_ID,
+        Protocol::HumidiFi => HUMIDIFI_PROGRAM_ID,
+        Protocol::ObricV2 => OBRIC_V2_PROGRAM_ID,
+        Protocol::Tessera => TESSERA_PROGRAM_ID,
+        Protocol::GoonFi => GOONFI_PROGRAM_ID,
+        Protocol::GoonFiV2 => GOONFI_V2_PROGRAM_ID,
         Protocol::Phoenix => PHOENIX_PROGRAM_ID,
         Protocol::LifinityAmmV2 => LIFINITY_AMM_V2_PROGRAM_ID,
         Protocol::LifinityAmmV1 => LIFINITY_AMM_V1_PROGRAM_ID,
@@ -272,6 +351,31 @@ pub fn expected_fixed_accounts(protocol: Protocol) -> &'static [FixedAccountExpe
         Protocol::Manifest => NO_FIXED_ACCOUNTS,
         Protocol::OpenBookV2 => OPENBOOK_V2_FIXED_ACCOUNTS,
         Protocol::AldrinV2 => NO_FIXED_ACCOUNTS,
+        Protocol::AldrinV1 => NO_FIXED_ACCOUNTS,
+        Protocol::SolFiV2 => NO_FIXED_ACCOUNTS,
+        Protocol::SolFiV1 => NO_FIXED_ACCOUNTS,
+        Protocol::FluxBeam => NO_FIXED_ACCOUNTS,
+        Protocol::CremaClmm => NO_FIXED_ACCOUNTS,
+        Protocol::SanctumRouter => NO_FIXED_ACCOUNTS,
+        Protocol::Moonit => NO_FIXED_ACCOUNTS,
+        Protocol::BoopFun => NO_FIXED_ACCOUNTS,
+        Protocol::Heaven => NO_FIXED_ACCOUNTS,
+        Protocol::SarosDlmm => NO_FIXED_ACCOUNTS,
+        Protocol::PerenaNumeraire => NO_FIXED_ACCOUNTS,
+        Protocol::PerenaStar => PERENA_STAR_FIXED_ACCOUNTS,
+        Protocol::MetaDaoFutarchy => NO_FIXED_ACCOUNTS,
+        Protocol::Gavel => NO_FIXED_ACCOUNTS,
+        Protocol::Omnipair => NO_FIXED_ACCOUNTS,
+        Protocol::ScaleAmm => NO_FIXED_ACCOUNTS,
+        Protocol::ScaleVmm => NO_FIXED_ACCOUNTS,
+        Protocol::Virtuals => NO_FIXED_ACCOUNTS,
+        Protocol::SerumV3 => NO_FIXED_ACCOUNTS,
+        Protocol::SanctumInfinity => SANCTUM_INFINITY_FIXED_ACCOUNTS,
+        Protocol::HumidiFi => NO_FIXED_ACCOUNTS,
+        Protocol::ObricV2 => NO_FIXED_ACCOUNTS,
+        Protocol::Tessera => NO_FIXED_ACCOUNTS,
+        Protocol::GoonFi => NO_FIXED_ACCOUNTS,
+        Protocol::GoonFiV2 => NO_FIXED_ACCOUNTS,
         Protocol::Phoenix => PHOENIX_FIXED_ACCOUNTS,
         Protocol::LifinityAmmV2 => LIFINITY_AMM_V2_FIXED_ACCOUNTS,
         Protocol::LifinityAmmV1 => LIFINITY_AMM_V1_FIXED_ACCOUNTS,
@@ -300,6 +404,16 @@ fn raydium_clmm_program_id() -> Pubkey {
 #[cfg(all(not(feature = "devnet"), not(feature = "flex")))]
 fn raydium_clmm_program_id() -> Pubkey {
     RAYDIUM_CLMM_PROGRAM_ID
+}
+
+#[cfg(all(feature = "devnet", not(feature = "flex")))]
+fn raydium_stable_swap_program_id() -> Pubkey {
+    RAYDIUM_STABLE_SWAP_PROGRAM_ID_DEVNET
+}
+
+#[cfg(all(not(feature = "devnet"), not(feature = "flex")))]
+fn raydium_stable_swap_program_id() -> Pubkey {
+    RAYDIUM_STABLE_SWAP_PROGRAM_ID
 }
 
 #[cfg(all(feature = "devnet", not(feature = "flex")))]
@@ -332,6 +446,16 @@ fn invariant_program_id() -> Pubkey {
     INVARIANT_PROGRAM_ID
 }
 
+#[cfg(all(feature = "devnet", not(feature = "flex")))]
+fn saros_dlmm_program_id() -> Pubkey {
+    SAROS_DLMM_PROGRAM_ID_DEVNET
+}
+
+#[cfg(all(not(feature = "devnet"), not(feature = "flex")))]
+fn saros_dlmm_program_id() -> Pubkey {
+    SAROS_DLMM_PROGRAM_ID
+}
+
 #[cfg(all(not(feature = "devnet"), not(feature = "flex")))]
 fn orca_token_swap_v2_program_id() -> Pubkey {
     ORCA_TOKEN_SWAP_V2_PROGRAM_ID
@@ -344,6 +468,28 @@ fn raydium_launchpad_program_id() -> Pubkey {
 
 #[cfg(not(feature = "flex"))]
 const NO_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[];
+
+const SANCTUM_INFINITY_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[
+    FixedAccountExpectation {
+        index: 1,
+        key: crate::protocal::sanctum_infinity::SANCTUM_INFINITY_POOL_STATE,
+    },
+    FixedAccountExpectation {
+        index: 2,
+        key: crate::protocal::sanctum_infinity::SANCTUM_INFINITY_LST_STATE_LIST,
+    },
+];
+
+const PERENA_STAR_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[
+    FixedAccountExpectation {
+        index: 1,
+        key: crate::protocal::perena_star::PERENA_STAR_BANK_STATE,
+    },
+    FixedAccountExpectation {
+        index: 2,
+        key: crate::protocal::perena_star::PERENA_STAR_USDC_VAULT,
+    },
+];
 
 const PHOENIX_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[
     FixedAccountExpectation {
@@ -593,6 +739,17 @@ mod tests {
 
         #[cfg(not(feature = "devnet"))]
         assert_eq!(
+            expected_protocol_program_id(Protocol::RaydiumStableSwap),
+            RAYDIUM_STABLE_SWAP_PROGRAM_ID
+        );
+        #[cfg(feature = "devnet")]
+        assert_eq!(
+            expected_protocol_program_id(Protocol::RaydiumStableSwap),
+            RAYDIUM_STABLE_SWAP_PROGRAM_ID_DEVNET
+        );
+
+        #[cfg(not(feature = "devnet"))]
+        assert_eq!(
             expected_protocol_program_id(Protocol::RaydiumPoolV4),
             RAYDIUM_POOL_V4_PROGRAM_ID
         );
@@ -611,6 +768,16 @@ mod tests {
         assert_eq!(
             expected_protocol_program_id(Protocol::RaydiumLaunchPad),
             RAYDIUM_LAUNCHPAD_PROGRAM_ID_DEVNET
+        );
+        #[cfg(not(feature = "devnet"))]
+        assert_eq!(
+            expected_protocol_program_id(Protocol::SarosDlmm),
+            SAROS_DLMM_PROGRAM_ID
+        );
+        #[cfg(feature = "devnet")]
+        assert_eq!(
+            expected_protocol_program_id(Protocol::SarosDlmm),
+            SAROS_DLMM_PROGRAM_ID_DEVNET
         );
         assert_eq!(
             expected_protocol_program_id(Protocol::PumpFunSwap),

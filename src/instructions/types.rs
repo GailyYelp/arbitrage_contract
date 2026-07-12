@@ -10,6 +10,7 @@ use crate::instructions::program_ids::{
 };
 
 pub const RAYDIUM_POOL_V4_AUTHORITY_SEED: &[u8] = b"amm authority";
+pub const RAYDIUM_STABLE_SWAP_AUTHORITY_SEED: &[u8] = b"stable_authority";
 pub const PUMPFUN_SWAP_CREATOR_VAULT_SEED: &[u8] = b"creator-vault";
 pub const PUMPFUN_AMM_CREATOR_VAULT_SEED: &[u8] = b"creator_vault";
 pub const PUMPFUN_GLOBAL_VOLUME_ACCUMULATOR_SEED: &[u8] = b"global_volume_accumulator";
@@ -40,7 +41,6 @@ const RAYDIUM_POOL_V4_MARKET_PROGRAM_OFFSET: usize =
     RAYDIUM_POOL_V4_MARKET_OFFSET + PUBKEY_FIELD_LEN;
 const RAYDIUM_POOL_V4_TARGET_ORDERS_OFFSET: usize =
     RAYDIUM_POOL_V4_MARKET_PROGRAM_OFFSET + PUBKEY_FIELD_LEN;
-const RAYDIUM_STABLE_SWAP_NONCE_OFFSET: usize = 16;
 const RAYDIUM_STABLE_SWAP_U64_PREFIX_FIELDS: usize = 20;
 const RAYDIUM_STABLE_SWAP_FEES_U64_FIELDS: usize = 8;
 const RAYDIUM_STABLE_SWAP_OUTPUT_DATA_LEN: usize = (10 * U64_FIELD_LEN) + (4 * U128_FIELD_LEN);
@@ -63,6 +63,143 @@ const RAYDIUM_STABLE_SWAP_MARKET_OFFSET: usize =
     RAYDIUM_STABLE_SWAP_OPEN_ORDERS_OFFSET + PUBKEY_FIELD_LEN;
 const RAYDIUM_STABLE_SWAP_MARKET_PROGRAM_OFFSET: usize =
     RAYDIUM_STABLE_SWAP_MARKET_OFFSET + PUBKEY_FIELD_LEN;
+const SOLFI_V2_ORACLE_OFFSET: usize = 24;
+const SOLFI_V2_BASE_MINT_OFFSET: usize = 56;
+const SOLFI_V2_QUOTE_MINT_OFFSET: usize = 88;
+const SOLFI_V2_BASE_VAULT_OFFSET: usize = 120;
+const SOLFI_V2_QUOTE_VAULT_OFFSET: usize = 152;
+const SOLFI_V2_BASE_TOKEN_PROGRAM_OFFSET: usize = 184;
+const SOLFI_V2_QUOTE_TOKEN_PROGRAM_OFFSET: usize = 216;
+const SOLFI_V2_GLOBAL_CONFIG_OFFSET: usize = 256;
+const SOLFI_V2_MARKET_DATA_LEN: usize = 1_728;
+const SOLFI_V2_INSTRUCTION_SYSVAR: Pubkey =
+    anchor_lang::pubkey!("Sysvar1nstructions1111111111111111111111111");
+const SOLFI_V1_BASE_MINT_OFFSET: usize = 2_664;
+const SOLFI_V1_QUOTE_MINT_OFFSET: usize = 2_696;
+const SOLFI_V1_BASE_VAULT_OFFSET: usize = 2_736;
+const SOLFI_V1_QUOTE_VAULT_OFFSET: usize = 2_768;
+const SOLFI_V1_MARKET_DATA_LEN: usize = 2_800;
+const SOLFI_V1_TOKEN_PROGRAM: Pubkey =
+    anchor_lang::pubkey!("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+const SOLFI_V1_INSTRUCTION_SYSVAR: Pubkey =
+    anchor_lang::pubkey!("Sysvar1nstructions1111111111111111111111111");
+const HUMIDIFI_CLOCK_SYSVAR: Pubkey =
+    anchor_lang::pubkey!("SysvarC1ock11111111111111111111111111111111");
+const HUMIDIFI_INSTRUCTION_SYSVAR: Pubkey =
+    anchor_lang::pubkey!("Sysvar1nstructions1111111111111111111111111");
+const OBRIC_V2_MARKET_DATA_LEN: usize = 666;
+const OBRIC_V2_MARKET_DISCRIMINATOR: &[u8; 8] = &[0x3b, 0xde, 0x0f, 0xec, 0x62, 0x66, 0x5a, 0xe0];
+const OBRIC_V2_INITIALIZED_OFFSET: usize = 8;
+const OBRIC_V2_X_PRICE_FEED_OFFSET: usize = 9;
+const OBRIC_V2_Y_PRICE_FEED_OFFSET: usize = 41;
+const OBRIC_V2_RESERVE_X_OFFSET: usize = 73;
+const OBRIC_V2_RESERVE_Y_OFFSET: usize = 105;
+const OBRIC_V2_REFERENCE_ACCOUNT_X_OFFSET: usize = 137;
+const OBRIC_V2_REFERENCE_ACCOUNT_Y_OFFSET: usize = 169;
+const OBRIC_V2_MINT_X_OFFSET: usize = 202;
+const OBRIC_V2_MINT_Y_OFFSET: usize = 234;
+const OBRIC_V2_THIRD_REFERENCE_ORACLE: Pubkey =
+    anchor_lang::pubkey!("6YawcNeZ74tRyCv4UfGydYMr7eho7vbUR6ScVffxKAb3");
+const TESSERA_POOL_ACCOUNT_LEN: usize = 1_264;
+const TESSERA_GLOBAL_STATE_ACCOUNT_LEN: usize = 10_240;
+const TESSERA_BASE_MINT_OFFSET: usize = 24;
+const TESSERA_QUOTE_MINT_OFFSET: usize = 56;
+const TESSERA_INSTRUCTION_SYSVAR: Pubkey =
+    anchor_lang::pubkey!("Sysvar1nstructions1111111111111111111111111");
+const GOONFI_MARKET_ACCOUNT_LEN: usize = 856;
+const GOONFI_BASE_MINT_OFFSET: usize = 256;
+const GOONFI_QUOTE_MINT_OFFSET: usize = 288;
+const GOONFI_BASE_VAULT_OFFSET: usize = 320;
+const GOONFI_QUOTE_VAULT_OFFSET: usize = 352;
+const GOONFI_BLACKLIST_SEED: &[u8] = b"blacklist";
+const GOONFI_INSTRUCTION_SYSVAR: Pubkey =
+    anchor_lang::pubkey!("Sysvar1nstructions1111111111111111111111111");
+const GOONFI_V2_MARKET_ACCOUNT_LEN: usize = 2_048;
+const GOONFI_V2_BASE_MINT_OFFSET: usize = 80;
+const GOONFI_V2_QUOTE_MINT_OFFSET: usize = 112;
+const GOONFI_V2_BASE_VAULT_OFFSET: usize = 144;
+const GOONFI_V2_QUOTE_VAULT_OFFSET: usize = 176;
+const GOONFI_V2_PRICE_ACCOUNT_OFFSET: usize = 208;
+const GOONFI_V2_PRICE_ACCOUNT_LEN: usize = 32;
+const GOONFI_V2_PRICE_PROGRAM: Pubkey =
+    anchor_lang::pubkey!("dijkbkCAKfFTCxQg3u1pg82gVU1jJGHBBRcteD11mBu");
+const GOONFI_V2_GLOBAL_STATE: Pubkey =
+    anchor_lang::pubkey!("BNrK9LpEn65QA4TyBLVSMdngW3XHj3xLfFPwGdCBv8wV");
+const GOONFI_V2_VOTE_ACCOUNT: Pubkey =
+    anchor_lang::pubkey!("J1to1yufRnoWn81KYg1XkTWzmKjnYSnmE2VY8DGUJ9Qv");
+const GOONFI_V2_VOTE_PROGRAM: Pubkey =
+    anchor_lang::pubkey!("Vote111111111111111111111111111111111111111");
+const GOONFI_V2_INSTRUCTION_SYSVAR: Pubkey =
+    anchor_lang::pubkey!("Sysvar1nstructions1111111111111111111111111");
+const MOONIT_CURVE_DISCRIMINATOR: &[u8; 8] = &[8, 91, 83, 28, 132, 216, 248, 22];
+const MOONIT_CONFIG_DISCRIMINATOR: &[u8; 8] = &[189, 255, 97, 70, 186, 189, 24, 102];
+const MOONIT_CURVE_MIN_LEN: usize = 84;
+const MOONIT_CONFIG_MIN_LEN: usize = 171;
+const MOONIT_MINT_OFFSET: usize = 24;
+const MOONIT_TOTAL_SUPPLY_OFFSET: usize = 8;
+const MOONIT_CURVE_AMOUNT_OFFSET: usize = 16;
+const MOONIT_COLLATERAL_CURRENCY_OFFSET: usize = 57;
+const MOONIT_CURVE_TYPE_OFFSET: usize = 58;
+const MOONIT_CONFIG_HELIO_FEE_OFFSET: usize = 104;
+const MOONIT_CONFIG_DEX_FEE_OFFSET: usize = 136;
+const MOONIT_CONFIG_FEE_BPS_OFFSET: usize = 168;
+const MOONIT_DEX_FEE: Pubkey = anchor_lang::pubkey!("3udvfL24waJcLhskRAsStNMoNUvtyXdxrWQz4hgi953N");
+const MOONIT_HELIO_FEE: Pubkey =
+    anchor_lang::pubkey!("5K5RtTWzzLp4P8Npi84ocf7F1vBsAu29N1irG4iiUnzt");
+const MOONIT_WSOL_MINT: Pubkey =
+    anchor_lang::pubkey!("So11111111111111111111111111111111111111112");
+const BOOP_FUN_CURVE_DISCRIMINATOR: &[u8; 8] = &[23, 183, 248, 55, 96, 216, 172, 96];
+const BOOP_FUN_CONFIG_DISCRIMINATOR: &[u8; 8] = &[155, 12, 170, 224, 30, 250, 204, 130];
+const BOOP_FUN_CURVE_LEN: usize = 125;
+const BOOP_FUN_MINT_OFFSET: usize = 40;
+const BOOP_FUN_VIRTUAL_SOL_OFFSET: usize = 72;
+const BOOP_FUN_VIRTUAL_TOKEN_OFFSET: usize = 80;
+const BOOP_FUN_SOL_RESERVES_OFFSET: usize = 104;
+const BOOP_FUN_TOKEN_RESERVES_OFFSET: usize = 112;
+const BOOP_FUN_DAMPING_OFFSET: usize = 120;
+const BOOP_FUN_STATUS_OFFSET: usize = 124;
+const BOOP_FUN_WSOL_MINT: Pubkey =
+    anchor_lang::pubkey!("So11111111111111111111111111111111111111112");
+const HEAVEN_POOL_DISCRIMINATOR: &[u8; 8] = &[190, 158, 220, 130, 15, 162, 132, 252];
+const HEAVEN_CONFIG_DISCRIMINATOR: &[u8; 8] = &[207, 91, 250, 28, 152, 179, 215, 209];
+const HEAVEN_CHAINLINK_FEED_DISCRIMINATOR: &[u8; 8] = &[96, 179, 69, 66, 128, 129, 73, 117];
+const HEAVEN_POOL_LEN: usize = 2_304;
+const HEAVEN_POOL_TYPE_OFFSET: usize = 90;
+const HEAVEN_TOKEN_A_RESERVE_OFFSET: usize = 456;
+const HEAVEN_TOKEN_B_RESERVE_OFFSET: usize = 464;
+const HEAVEN_TOKEN_A_VAULT_OFFSET: usize = 664;
+const HEAVEN_TOKEN_B_VAULT_OFFSET: usize = 696;
+const HEAVEN_CONFIG_OFFSET: usize = 728;
+const HEAVEN_KEY_OFFSET: usize = 760;
+const HEAVEN_TOKEN_A_MINT_OFFSET: usize = 792;
+const HEAVEN_TOKEN_A_PROGRAM_OFFSET: usize = 825;
+const HEAVEN_TOKEN_B_MINT_OFFSET: usize = 857;
+const HEAVEN_TOKEN_B_PROGRAM_OFFSET: usize = 890;
+const HEAVEN_ALLOW_SWAP_OFFSET: usize = 922;
+const HEAVEN_INSTRUCTION_SYSVAR: Pubkey =
+    anchor_lang::pubkey!("Sysvar1nstructions1111111111111111111111111");
+const HEAVEN_CHAINLINK_PROGRAM: Pubkey =
+    anchor_lang::pubkey!("HEvSKofvBgfaexv23kMabbYqxasxU3mQ4ibBMEmJWHny");
+const HEAVEN_SOL_USD_FEED: Pubkey =
+    anchor_lang::pubkey!("CH31Xns5z3M1cTAbKW34jcxPPciazARpijcHj9rxtemt");
+const HEAVEN_WSOL_MINT: Pubkey =
+    anchor_lang::pubkey!("So11111111111111111111111111111111111111112");
+const SAROS_DLMM_PAIR_DISCRIMINATOR: &[u8; 8] = &[85, 72, 49, 176, 182, 228, 141, 82];
+const SAROS_DLMM_BIN_ARRAY_DISCRIMINATOR: &[u8; 8] = &[92, 142, 92, 220, 5, 148, 70, 181];
+const SAROS_DLMM_PAIR_LEN: usize = 204;
+const SAROS_DLMM_BIN_ARRAY_LEN: usize = 8_248;
+const SAROS_DLMM_PAIR_MINT_X_OFFSET: usize = 43;
+const SAROS_DLMM_PAIR_MINT_Y_OFFSET: usize = 75;
+const SAROS_DLMM_PAIR_ACTIVE_ID_OFFSET: usize = 127;
+const SAROS_DLMM_PAIR_HOOK_FLAG_OFFSET: usize = 171;
+const SAROS_DLMM_BIN_ARRAY_PAIR_OFFSET: usize = 8;
+const SAROS_DLMM_BIN_ARRAY_INDEX_OFFSET: usize = 8_232;
+const SAROS_DLMM_MEMO_PROGRAM: Pubkey =
+    anchor_lang::pubkey!("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
+const SAROS_DLMM_REWARDER_HOOK_PROGRAM: Pubkey =
+    anchor_lang::pubkey!("mdmavMvJpF4ZcLJNg6VSjuKVMiBo5uKwERTg1ZB9yUH");
+const SAROS_DLMM_REWARDER_HOOK_PROGRAM_DEVNET: Pubkey =
+    anchor_lang::pubkey!("GPeBPLGzkxsdqTLw1pBjtiDMbk7xF88V1eokjfZNsFky");
 const RAYDIUM_CPMM_POOL_STATE_DISCRIMINATOR: &[u8; 8] = &[247, 237, 227, 245, 215, 195, 222, 70];
 const RAYDIUM_CPMM_POOL_AMM_CONFIG_OFFSET: usize = 8;
 const RAYDIUM_CPMM_POOL_CREATOR_OFFSET: usize =
@@ -231,6 +368,57 @@ const INVARIANT_MAX_SQRT_PRICE: u128 = 65_535_383_934_512_647_000_000_000_000;
 const INVARIANT_STATE_SEED: &[u8] = b"statev1";
 const INVARIANT_AUTHORITY_SEED: &[u8] = b"Invariant";
 const INVARIANT_POOL_SEED: &[u8] = b"poolv1";
+const CREMA_CONFIG_ACCOUNT_LEN: usize = 138;
+const CREMA_CONFIG_DISCRIMINATOR: &[u8; 8] = &[40, 174, 244, 248, 111, 209, 177, 215];
+const CREMA_POOL_ACCOUNT_LEN: usize = 748;
+const CREMA_POOL_DISCRIMINATOR: &[u8; 8] = &[170, 160, 33, 122, 149, 217, 183, 244];
+const CREMA_TICK_ARRAY_MAP_ACCOUNT_LEN: usize = 876;
+const CREMA_TICK_ARRAY_MAP_DISCRIMINATOR: &[u8; 8] = &[108, 203, 48, 165, 116, 213, 96, 221];
+const CREMA_TICK_ARRAY_ACCOUNT_LEN: usize = 8_556;
+const CREMA_TICK_ARRAY_DISCRIMINATOR: &[u8; 8] = &[69, 97, 189, 190, 110, 7, 66, 187];
+const CREMA_POOL_CONFIG_OFFSET: usize = 8;
+const CREMA_TOKEN_A_MINT_OFFSET: usize = 40;
+const CREMA_TOKEN_B_MINT_OFFSET: usize = 72;
+const CREMA_TOKEN_A_VAULT_OFFSET: usize = 104;
+const CREMA_TOKEN_B_VAULT_OFFSET: usize = 136;
+const CREMA_TICK_SPACING_OFFSET: usize = 168;
+const CREMA_FEE_RATE_OFFSET: usize = 172;
+const CREMA_LIQUIDITY_OFFSET: usize = 174;
+const CREMA_SQRT_PRICE_OFFSET: usize = 190;
+const CREMA_CURRENT_TICK_OFFSET: usize = 206;
+const CREMA_POOL_BUMP_OFFSET: usize = 258;
+const CREMA_PAUSE_OFFSET: usize = 747;
+const CREMA_TICK_ARRAY_INDEX_OFFSET: usize = 8;
+const CREMA_TICK_ARRAY_SPACING_OFFSET: usize = 10;
+const CREMA_TICK_ARRAY_POOL_OFFSET: usize = 12;
+const CREMA_FEE_DENOMINATOR: u32 = 1_000_000;
+const CREMA_MIN_TICK: i32 = -443_636;
+const CREMA_MAX_TICK: i32 = 443_636;
+const CREMA_MIN_SQRT_PRICE_X64: u128 = 4_295_048_016;
+const CREMA_MAX_SQRT_PRICE_X64: u128 = 79_226_673_515_401_279_992_447_579_055;
+const CREMA_CONFIG_SEED: &[u8] = b"clmmconfig";
+const CREMA_POOL_SEED: &[u8] = b"clmmpool";
+const CREMA_TICK_ARRAY_MAP_SEED: &[u8] = b"tick_array_map";
+const CREMA_TICK_ARRAY_SEED: &[u8] = b"tick_array";
+const SANCTUM_STAKE_POOL_MIN_ACCOUNT_LEN: usize = 282;
+const SANCTUM_RESERVE_OFFSET: usize = 130;
+const SANCTUM_POOL_MINT_OFFSET: usize = 162;
+const SANCTUM_MANAGER_FEE_OFFSET: usize = 194;
+const SANCTUM_TOKEN_PROGRAM_OFFSET: usize = 226;
+const SANCTUM_TOTAL_LAMPORTS_OFFSET: usize = 258;
+const SANCTUM_POOL_TOKEN_SUPPLY_OFFSET: usize = 266;
+const SANCTUM_FEE_SEED: &[u8] = b"fee";
+const SANCTUM_WITHDRAW_SEED: &[u8] = b"withdraw";
+const SANCTUM_SPL_STAKE_POOL_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy");
+const SANCTUM_WSOL_MINT: Pubkey =
+    anchor_lang::pubkey!("So11111111111111111111111111111111111111112");
+const SANCTUM_WSOL_BRIDGE_IN: Pubkey =
+    anchor_lang::pubkey!("7UWZDKjBT1dTvAzdjoSCYKnML3SPt9tfFkANGarEq5r3");
+const SANCTUM_SOL_BRIDGE_OUT: Pubkey =
+    anchor_lang::pubkey!("75jTZDE78xpBJokeB2BcimRNY5BZ7U45bWhpgUrTzWZC");
+const SANCTUM_WSOL_FEE_TOKEN_ACCOUNT: Pubkey =
+    anchor_lang::pubkey!("D3DxbHp7YvgdD2iH8GfsGWdFE5gp37aoYjp4jW5jNMjH");
 const BONK_SWAP_POOL_ACCOUNT_LEN: usize = 417;
 const BONK_SWAP_POOL_DISCRIMINATOR: &[u8; 8] = &[241, 154, 109, 4, 17, 177, 109, 188];
 const BONK_SWAP_STATE_ACCOUNT_LEN: usize = 74;
@@ -254,6 +442,7 @@ const BONK_SWAP_FEE_SCALE: u128 = 1_000_000_000_000;
 const BONK_SWAP_STATE_SEED: &[u8] = b"bonkswapstatev1";
 const BONK_SWAP_POOL_SEED: &[u8] = b"bonkswappoolv1";
 const ALDRIN_V2_POOL_ACCOUNT_LEN: usize = 474;
+const ALDRIN_V1_POOL_ACCOUNT_LEN: usize = 441;
 const ALDRIN_V2_STABLE_CURVE_ACCOUNT_LEN: usize = 16;
 const ALDRIN_V2_POOL_DISCRIMINATOR: &[u8; 8] = &[241, 154, 109, 4, 17, 177, 109, 188];
 const ALDRIN_V2_STABLE_CURVE_DISCRIMINATOR: &[u8; 8] = &[160, 34, 225, 172, 72, 171, 72, 146];
@@ -584,15 +773,11 @@ pub fn validate_raydium_pool_v4_semantic_accounts<'info>(
 
 pub fn validate_raydium_stable_swap_authority<'info>(
     program: &AccountInfo<'info>,
-    pool_state: &AccountInfo<'info>,
+    _pool_state: &AccountInfo<'info>,
     authority: &AccountInfo<'info>,
 ) -> Result<()> {
-    let data = pool_state.try_borrow_data()?;
-    let nonce = read_u64_from_data(&data, RAYDIUM_STABLE_SWAP_NONCE_OFFSET)?;
-    let nonce = u8::try_from(nonce).map_err(|_| ArbitrageError::InvalidAccount)?;
     let expected_authority =
-        Pubkey::create_program_address(&[RAYDIUM_POOL_V4_AUTHORITY_SEED, &[nonce]], program.key)
-            .map_err(|_| ArbitrageError::InvalidAccount)?;
+        Pubkey::find_program_address(&[RAYDIUM_STABLE_SWAP_AUTHORITY_SEED], program.key).0;
     require_keys_eq!(
         authority.key(),
         expected_authority,
@@ -674,6 +859,621 @@ pub fn validate_raydium_stable_swap_semantic_accounts<'info>(
         );
     }
 
+    Ok(())
+}
+
+pub fn validate_solfi_v2_semantic_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    direction: u8,
+    input_mint: &AccountInfo<'info>,
+    output_mint: &AccountInfo<'info>,
+    input_token_program: &AccountInfo<'info>,
+    output_token_program: &AccountInfo<'info>,
+) -> Result<()> {
+    require!(
+        step_accounts.len() >= 11,
+        ArbitrageError::InvalidAccountCount
+    );
+    require_keys_eq!(
+        step_accounts[1].owner.key(),
+        step_accounts[0].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[3].owner.key(),
+        step_accounts[0].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[10].key(),
+        SOLFI_V2_INSTRUCTION_SYSVAR,
+        ArbitrageError::InvalidAccount
+    );
+    let data = step_accounts[1].try_borrow_data()?;
+    let market = read_solfi_v2_semantic_keys(&data)?;
+    for (actual, expected) in [
+        (&step_accounts[2], market.oracle),
+        (&step_accounts[3], market.global_config),
+        (&step_accounts[4], market.base_vault),
+        (&step_accounts[5], market.quote_vault),
+        (&step_accounts[6], market.base_mint),
+        (&step_accounts[7], market.quote_mint),
+        (&step_accounts[8], market.base_token_program),
+        (&step_accounts[9], market.quote_token_program),
+    ] {
+        require_keys_eq!(actual.key(), expected, ArbitrageError::InvalidAccount);
+    }
+    let (
+        expected_input_mint,
+        expected_output_mint,
+        expected_input_program,
+        expected_output_program,
+    ) = match direction {
+        0 => (
+            market.base_mint,
+            market.quote_mint,
+            market.base_token_program,
+            market.quote_token_program,
+        ),
+        1 => (
+            market.quote_mint,
+            market.base_mint,
+            market.quote_token_program,
+            market.base_token_program,
+        ),
+        _ => return Err(ArbitrageError::InvalidInstructionData.into()),
+    };
+    require_keys_eq!(
+        input_mint.key(),
+        expected_input_mint,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        output_mint.key(),
+        expected_output_mint,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        input_token_program.key(),
+        expected_input_program,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        output_token_program.key(),
+        expected_output_program,
+        ArbitrageError::InvalidAccount
+    );
+    Ok(())
+}
+
+pub fn validate_solfi_v1_semantic_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    direction: u8,
+    input_mint: &AccountInfo<'info>,
+    output_mint: &AccountInfo<'info>,
+    input_token_program: &AccountInfo<'info>,
+    output_token_program: &AccountInfo<'info>,
+) -> Result<()> {
+    require!(
+        step_accounts.len() >= 6,
+        ArbitrageError::InvalidAccountCount
+    );
+    require_keys_eq!(
+        step_accounts[1].owner.key(),
+        step_accounts[0].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[4].key(),
+        SOLFI_V1_TOKEN_PROGRAM,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[5].key(),
+        SOLFI_V1_INSTRUCTION_SYSVAR,
+        ArbitrageError::InvalidAccount
+    );
+    let data = step_accounts[1].try_borrow_data()?;
+    let market = read_solfi_v1_semantic_keys(&data)?;
+    require_keys_eq!(
+        step_accounts[2].key(),
+        market.base_vault,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[3].key(),
+        market.quote_vault,
+        ArbitrageError::InvalidAccount
+    );
+    let (expected_input_mint, expected_output_mint) = match direction {
+        0 => (market.base_mint, market.quote_mint),
+        1 => (market.quote_mint, market.base_mint),
+        _ => return Err(ArbitrageError::InvalidInstructionData.into()),
+    };
+    require_keys_eq!(
+        input_mint.key(),
+        expected_input_mint,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        output_mint.key(),
+        expected_output_mint,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        input_token_program.key(),
+        SOLFI_V1_TOKEN_PROGRAM,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        output_token_program.key(),
+        SOLFI_V1_TOKEN_PROGRAM,
+        ArbitrageError::InvalidAccount
+    );
+    Ok(())
+}
+
+pub fn validate_humidifi_semantic_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    direction: u8,
+    input_mint: &AccountInfo<'info>,
+    output_mint: &AccountInfo<'info>,
+    input_token_program: &AccountInfo<'info>,
+    output_token_program: &AccountInfo<'info>,
+) -> Result<u64> {
+    require!(
+        step_accounts.len() == 13,
+        ArbitrageError::InvalidAccountCount
+    );
+    require!(direction <= 1, ArbitrageError::InvalidInstructionData);
+    require_keys_eq!(
+        step_accounts[1].owner.key(),
+        step_accounts[0].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[4].key(),
+        if direction == 0 {
+            input_mint.key()
+        } else {
+            output_mint.key()
+        },
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        step_accounts[5].key(),
+        if direction == 0 {
+            output_mint.key()
+        } else {
+            input_mint.key()
+        },
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        step_accounts[6].key(),
+        if direction == 0 {
+            input_token_program.key()
+        } else {
+            output_token_program.key()
+        },
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[7].key(),
+        if direction == 0 {
+            output_token_program.key()
+        } else {
+            input_token_program.key()
+        },
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[8].key(),
+        HUMIDIFI_CLOCK_SYSVAR,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[9].key(),
+        HUMIDIFI_INSTRUCTION_SYSVAR,
+        ArbitrageError::InvalidAccount
+    );
+    let param = step_accounts[12].key().to_bytes();
+    require!(
+        param[8] == crate::protocal::humidifi::HUMIDIFI_SWAP_V3_SELECTOR,
+        ArbitrageError::InvalidInstructionData
+    );
+    require!(
+        param[9..].iter().all(|byte| *byte == 0),
+        ArbitrageError::InvalidInstructionData
+    );
+    let swap_id = u64::from_le_bytes(
+        param[..8]
+            .try_into()
+            .map_err(|_| ArbitrageError::InvalidInstructionData)?,
+    );
+    require!(swap_id > 0, ArbitrageError::InvalidInstructionData);
+    Ok(swap_id)
+}
+
+pub fn validate_obric_v2_semantic_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    direction: u8,
+    input_mint: &AccountInfo<'info>,
+    output_mint: &AccountInfo<'info>,
+    input_token_program: &AccountInfo<'info>,
+    output_token_program: &AccountInfo<'info>,
+) -> Result<()> {
+    require!(
+        step_accounts.len() == 10,
+        ArbitrageError::InvalidAccountCount
+    );
+    require!(direction <= 1, ArbitrageError::InvalidInstructionData);
+    require_keys_eq!(
+        step_accounts[1].owner.key(),
+        step_accounts[0].key(),
+        ArbitrageError::InvalidAccount
+    );
+    let data = step_accounts[1].try_borrow_data()?;
+    let market = read_obric_v2_semantic_keys(&data)?;
+    for (actual, expected) in [
+        (&step_accounts[2], market.reference_account_y),
+        (&step_accounts[3], OBRIC_V2_THIRD_REFERENCE_ORACLE),
+        (&step_accounts[4], market.reserve_x),
+        (&step_accounts[5], market.reserve_y),
+        (&step_accounts[6], market.x_price_feed),
+        (&step_accounts[7], market.x_price_feed),
+        (&step_accounts[8], market.y_price_feed),
+    ] {
+        require_keys_eq!(actual.key(), expected, ArbitrageError::InvalidAccount);
+    }
+    require_keys_eq!(
+        market.reference_account_x,
+        market.x_price_feed,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[9].key(),
+        input_token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[9].key(),
+        output_token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    let (expected_input_mint, expected_output_mint) = if direction == 0 {
+        (market.mint_x, market.mint_y)
+    } else {
+        (market.mint_y, market.mint_x)
+    };
+    require_keys_eq!(
+        input_mint.key(),
+        expected_input_mint,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        output_mint.key(),
+        expected_output_mint,
+        ArbitrageError::InvalidTokenMint
+    );
+    Ok(())
+}
+
+pub fn validate_tessera_semantic_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    direction: u8,
+    input_mint: &AccountInfo<'info>,
+    output_mint: &AccountInfo<'info>,
+    input_token_program: &AccountInfo<'info>,
+    output_token_program: &AccountInfo<'info>,
+) -> Result<()> {
+    require!(
+        step_accounts.len() == 10,
+        ArbitrageError::InvalidAccountCount
+    );
+    require!(direction <= 1, ArbitrageError::InvalidInstructionData);
+    for account in [&step_accounts[1], &step_accounts[2]] {
+        require_keys_eq!(
+            account.owner.key(),
+            step_accounts[0].key(),
+            ArbitrageError::InvalidAccount
+        );
+    }
+    require!(
+        step_accounts[1].data_len() == TESSERA_GLOBAL_STATE_ACCOUNT_LEN,
+        ArbitrageError::InvalidAccount
+    );
+    let pool_data = step_accounts[2].try_borrow_data()?;
+    require!(
+        pool_data.len() == TESSERA_POOL_ACCOUNT_LEN,
+        ArbitrageError::InvalidAccount
+    );
+    let base_mint = read_pubkey_from_data(&pool_data, TESSERA_BASE_MINT_OFFSET)?;
+    let quote_mint = read_pubkey_from_data(&pool_data, TESSERA_QUOTE_MINT_OFFSET)?;
+    require_keys_eq!(
+        step_accounts[5].key(),
+        base_mint,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        step_accounts[6].key(),
+        quote_mint,
+        ArbitrageError::InvalidTokenMint
+    );
+    validate_token_account_for_mint_and_authority(
+        &step_accounts[3],
+        &step_accounts[5],
+        &step_accounts[7],
+        &step_accounts[1],
+    )?;
+    validate_token_account_for_mint_and_authority(
+        &step_accounts[4],
+        &step_accounts[6],
+        &step_accounts[8],
+        &step_accounts[1],
+    )?;
+    let (
+        expected_input_mint,
+        expected_output_mint,
+        expected_input_program,
+        expected_output_program,
+    ) = if direction == 0 {
+        (
+            base_mint,
+            quote_mint,
+            step_accounts[7].key(),
+            step_accounts[8].key(),
+        )
+    } else {
+        (
+            quote_mint,
+            base_mint,
+            step_accounts[8].key(),
+            step_accounts[7].key(),
+        )
+    };
+    require_keys_eq!(
+        input_mint.key(),
+        expected_input_mint,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        output_mint.key(),
+        expected_output_mint,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        input_token_program.key(),
+        expected_input_program,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        output_token_program.key(),
+        expected_output_program,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[9].key(),
+        TESSERA_INSTRUCTION_SYSVAR,
+        ArbitrageError::InvalidAccount
+    );
+    Ok(())
+}
+
+pub fn validate_goonfi_semantic_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    payer: &AccountInfo<'info>,
+    direction: u8,
+    input_mint: &AccountInfo<'info>,
+    output_mint: &AccountInfo<'info>,
+    input_token_program: &AccountInfo<'info>,
+    output_token_program: &AccountInfo<'info>,
+) -> Result<u8> {
+    require!(
+        step_accounts.len() == 7,
+        ArbitrageError::InvalidAccountCount
+    );
+    require!(direction <= 1, ArbitrageError::InvalidInstructionData);
+    require_keys_eq!(
+        step_accounts[1].owner.key(),
+        step_accounts[0].key(),
+        ArbitrageError::InvalidAccount
+    );
+    let market_data = step_accounts[1].try_borrow_data()?;
+    require!(
+        market_data.len() == GOONFI_MARKET_ACCOUNT_LEN,
+        ArbitrageError::InvalidAccount
+    );
+    let base_mint = read_pubkey_from_data(&market_data, GOONFI_BASE_MINT_OFFSET)?;
+    let quote_mint = read_pubkey_from_data(&market_data, GOONFI_QUOTE_MINT_OFFSET)?;
+    require_keys_eq!(
+        step_accounts[2].key(),
+        read_pubkey_from_data(&market_data, GOONFI_BASE_VAULT_OFFSET)?,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[3].key(),
+        read_pubkey_from_data(&market_data, GOONFI_QUOTE_VAULT_OFFSET)?,
+        ArbitrageError::InvalidAccount
+    );
+    let (expected_input_mint, expected_output_mint, base_mint_ai, quote_mint_ai) = if direction == 0
+    {
+        (base_mint, quote_mint, input_mint, output_mint)
+    } else {
+        (quote_mint, base_mint, output_mint, input_mint)
+    };
+    require_keys_eq!(
+        input_mint.key(),
+        expected_input_mint,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        output_mint.key(),
+        expected_output_mint,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        input_token_program.key(),
+        step_accounts[6].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        output_token_program.key(),
+        step_accounts[6].key(),
+        ArbitrageError::InvalidAccount
+    );
+    validate_token_account_for_mint_and_authority(
+        &step_accounts[2],
+        base_mint_ai,
+        &step_accounts[6],
+        &step_accounts[1],
+    )?;
+    validate_token_account_for_mint_and_authority(
+        &step_accounts[3],
+        quote_mint_ai,
+        &step_accounts[6],
+        &step_accounts[1],
+    )?;
+    let (blacklist, bump) = Pubkey::find_program_address(
+        &[GOONFI_BLACKLIST_SEED, payer.key().as_ref()],
+        &step_accounts[0].key(),
+    );
+    require_keys_eq!(
+        step_accounts[4].key(),
+        blacklist,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[5].key(),
+        GOONFI_INSTRUCTION_SYSVAR,
+        ArbitrageError::InvalidAccount
+    );
+    Ok(bump)
+}
+
+pub fn validate_goonfi_v2_semantic_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    direction: u8,
+    input_mint: &AccountInfo<'info>,
+    output_mint: &AccountInfo<'info>,
+    input_token_program: &AccountInfo<'info>,
+    output_token_program: &AccountInfo<'info>,
+) -> Result<()> {
+    require!(
+        step_accounts.len() == 10,
+        ArbitrageError::InvalidAccountCount
+    );
+    require!(direction <= 1, ArbitrageError::InvalidInstructionData);
+    require_keys_eq!(
+        step_accounts[1].owner.key(),
+        step_accounts[0].key(),
+        ArbitrageError::InvalidAccount
+    );
+    let market_data = step_accounts[1].try_borrow_data()?;
+    require!(
+        market_data.len() == GOONFI_V2_MARKET_ACCOUNT_LEN,
+        ArbitrageError::InvalidAccount
+    );
+    let base_mint = read_pubkey_from_data(&market_data, GOONFI_V2_BASE_MINT_OFFSET)?;
+    let quote_mint = read_pubkey_from_data(&market_data, GOONFI_V2_QUOTE_MINT_OFFSET)?;
+    require_keys_eq!(
+        step_accounts[2].key(),
+        read_pubkey_from_data(&market_data, GOONFI_V2_BASE_VAULT_OFFSET)?,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[3].key(),
+        read_pubkey_from_data(&market_data, GOONFI_V2_QUOTE_VAULT_OFFSET)?,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[4].key(),
+        read_pubkey_from_data(&market_data, GOONFI_V2_PRICE_ACCOUNT_OFFSET)?,
+        ArbitrageError::InvalidAccount
+    );
+    drop(market_data);
+
+    let (expected_input_mint, expected_output_mint, base_mint_ai, quote_mint_ai) = if direction == 0
+    {
+        (base_mint, quote_mint, input_mint, output_mint)
+    } else {
+        (quote_mint, base_mint, output_mint, input_mint)
+    };
+    require_keys_eq!(
+        input_mint.key(),
+        expected_input_mint,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        output_mint.key(),
+        expected_output_mint,
+        ArbitrageError::InvalidTokenMint
+    );
+    let (expected_input_program, expected_output_program) = if direction == 0 {
+        (step_accounts[7].key(), step_accounts[8].key())
+    } else {
+        (step_accounts[8].key(), step_accounts[7].key())
+    };
+    require_keys_eq!(
+        input_token_program.key(),
+        expected_input_program,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        output_token_program.key(),
+        expected_output_program,
+        ArbitrageError::InvalidAccount
+    );
+    validate_token_account_for_mint_and_authority(
+        &step_accounts[2],
+        base_mint_ai,
+        &step_accounts[7],
+        &step_accounts[1],
+    )?;
+    validate_token_account_for_mint_and_authority(
+        &step_accounts[3],
+        quote_mint_ai,
+        &step_accounts[8],
+        &step_accounts[1],
+    )?;
+    require_keys_eq!(
+        step_accounts[4].owner.key(),
+        GOONFI_V2_PRICE_PROGRAM,
+        ArbitrageError::InvalidAccount
+    );
+    require!(
+        step_accounts[4].data_len() == GOONFI_V2_PRICE_ACCOUNT_LEN,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[5].key(),
+        GOONFI_V2_GLOBAL_STATE,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[5].owner.key(),
+        step_accounts[0].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require!(
+        step_accounts[5].data_len() > 0,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[6].key(),
+        GOONFI_V2_INSTRUCTION_SYSVAR,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[9].key(),
+        GOONFI_V2_VOTE_ACCOUNT,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[9].owner.key(),
+        GOONFI_V2_VOTE_PROGRAM,
+        ArbitrageError::InvalidAccount
+    );
     Ok(())
 }
 
@@ -964,6 +1764,142 @@ pub fn validate_orca_token_swap_semantic_accounts<'info>(
         step_accounts[6].key(),
         ArbitrageError::InvalidAccount
     );
+
+    let nonce = data[ORCA_TOKEN_SWAP_NONCE_OFFSET];
+    let expected_authority = Pubkey::create_program_address(
+        &[step_accounts[1].key().as_ref(), &[nonce]],
+        &step_accounts[0].key(),
+    )
+    .map_err(|_| ArbitrageError::InvalidAccount)?;
+    require_keys_eq!(
+        expected_authority,
+        step_accounts[2].key(),
+        ArbitrageError::InvalidAccount
+    );
+
+    let curve_type = data[ORCA_TOKEN_SWAP_CURVE_TYPE_OFFSET];
+    require!(
+        curve_type == 0 || curve_type == 2,
+        ArbitrageError::InvalidAccount
+    );
+    if curve_type == 2 {
+        require!(
+            read_u64_from_data(&data, ORCA_TOKEN_SWAP_CURVE_PARAMETER_OFFSET)? > 0,
+            ArbitrageError::InvalidAccount
+        );
+    }
+    Ok(())
+}
+
+pub fn validate_fluxbeam_semantic_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    direction: u8,
+    input_mint: &AccountInfo<'info>,
+    output_mint: &AccountInfo<'info>,
+    input_token_program: &AccountInfo<'info>,
+    output_token_program: &AccountInfo<'info>,
+) -> Result<()> {
+    require!(
+        step_accounts.len() == 12,
+        ArbitrageError::InvalidAccountCount
+    );
+    require!(direction <= 1, ArbitrageError::InvalidInstructionData);
+    require_keys_eq!(
+        step_accounts[1].owner.key(),
+        step_accounts[0].key(),
+        ArbitrageError::InvalidAccount
+    );
+    let data = step_accounts[1].try_borrow_data()?;
+    require!(
+        data.len() == ORCA_TOKEN_SWAP_STATE_LEN,
+        ArbitrageError::InvalidAccount
+    );
+    require!(
+        data[ORCA_TOKEN_SWAP_VERSION_OFFSET] == 1 && data[ORCA_TOKEN_SWAP_INITIALIZED_OFFSET] == 1,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        read_pubkey_from_data(&data, ORCA_TOKEN_SWAP_TOKEN_PROGRAM_OFFSET)?,
+        step_accounts[11].key(),
+        ArbitrageError::InvalidAccount
+    );
+
+    let token_a_vault = read_pubkey_from_data(&data, ORCA_TOKEN_SWAP_TOKEN_A_VAULT_OFFSET)?;
+    let token_b_vault = read_pubkey_from_data(&data, ORCA_TOKEN_SWAP_TOKEN_B_VAULT_OFFSET)?;
+    let token_a_mint = read_pubkey_from_data(&data, ORCA_TOKEN_SWAP_TOKEN_A_MINT_OFFSET)?;
+    let token_b_mint = read_pubkey_from_data(&data, ORCA_TOKEN_SWAP_TOKEN_B_MINT_OFFSET)?;
+    let (expected_input_vault, expected_output_vault, expected_input_mint, expected_output_mint) =
+        if direction == 0 {
+            (token_a_vault, token_b_vault, token_a_mint, token_b_mint)
+        } else {
+            (token_b_vault, token_a_vault, token_b_mint, token_a_mint)
+        };
+    require_keys_eq!(
+        expected_input_vault,
+        step_accounts[3].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        expected_output_vault,
+        step_accounts[4].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        expected_input_mint,
+        input_mint.key(),
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        expected_output_mint,
+        output_mint.key(),
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        input_mint.key(),
+        step_accounts[7].key(),
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        output_mint.key(),
+        step_accounts[8].key(),
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        input_token_program.key(),
+        step_accounts[9].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        output_token_program.key(),
+        step_accounts[10].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        input_mint.owner.key(),
+        step_accounts[9].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        output_mint.owner.key(),
+        step_accounts[10].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        read_pubkey_from_data(&data, ORCA_TOKEN_SWAP_POOL_MINT_OFFSET)?,
+        step_accounts[5].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[5].owner.key(),
+        step_accounts[11].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        read_pubkey_from_data(&data, ORCA_TOKEN_SWAP_POOL_FEE_ACCOUNT_OFFSET)?,
+        step_accounts[6].key(),
+        ArbitrageError::InvalidAccount
+    );
+    validate_token_account_for_mint(&step_accounts[6], &step_accounts[5], &step_accounts[11])?;
 
     let nonce = data[ORCA_TOKEN_SWAP_NONCE_OFFSET];
     let expected_authority = Pubkey::create_program_address(
@@ -1336,6 +2272,1158 @@ pub fn validate_invariant_semantic_accounts<'info>(
         ArbitrageError::InvalidTokenMint
     );
     Ok(())
+}
+
+pub fn validate_crema_clmm_semantic_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    direction: u8,
+    input_mint: &AccountInfo<'info>,
+    output_mint: &AccountInfo<'info>,
+) -> Result<()> {
+    require!(
+        (8..=10).contains(&step_accounts.len()),
+        ArbitrageError::InvalidAccountCount
+    );
+    require!(direction <= 1, ArbitrageError::InvalidInstructionData);
+    let program_id = step_accounts[0].key();
+    for index in [1_usize, 2, 5] {
+        require_keys_eq!(
+            step_accounts[index].owner.key(),
+            program_id,
+            ArbitrageError::InvalidAccount
+        );
+    }
+    require_keys_eq!(
+        step_accounts[6].key(),
+        anchor_spl::token::ID,
+        ArbitrageError::InvalidAccount
+    );
+
+    let (expected_config, _) = Pubkey::find_program_address(&[CREMA_CONFIG_SEED], &program_id);
+    require_keys_eq!(
+        expected_config,
+        step_accounts[1].key(),
+        ArbitrageError::InvalidAccount
+    );
+    let config_data = step_accounts[1].try_borrow_data()?;
+    require!(
+        config_data.len() == CREMA_CONFIG_ACCOUNT_LEN
+            && config_data.starts_with(CREMA_CONFIG_DISCRIMINATOR),
+        ArbitrageError::InvalidAccount
+    );
+    drop(config_data);
+
+    let pool_data = step_accounts[2].try_borrow_data()?;
+    require!(
+        pool_data.len() == CREMA_POOL_ACCOUNT_LEN
+            && pool_data.starts_with(CREMA_POOL_DISCRIMINATOR),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        read_pubkey_from_data(&pool_data, CREMA_POOL_CONFIG_OFFSET)?,
+        step_accounts[1].key(),
+        ArbitrageError::InvalidAccount
+    );
+    let token_a = read_pubkey_from_data(&pool_data, CREMA_TOKEN_A_MINT_OFFSET)?;
+    let token_b = read_pubkey_from_data(&pool_data, CREMA_TOKEN_B_MINT_OFFSET)?;
+    require!(token_a != token_b, ArbitrageError::InvalidAccount);
+    require_keys_eq!(
+        read_pubkey_from_data(&pool_data, CREMA_TOKEN_A_VAULT_OFFSET)?,
+        step_accounts[3].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        read_pubkey_from_data(&pool_data, CREMA_TOKEN_B_VAULT_OFFSET)?,
+        step_accounts[4].key(),
+        ArbitrageError::InvalidAccount
+    );
+    let tick_spacing = read_u16_from_data(&pool_data, CREMA_TICK_SPACING_OFFSET)?;
+    let fee_rate = read_u16_from_data(&pool_data, CREMA_FEE_RATE_OFFSET)?;
+    let liquidity = read_u128_from_data(&pool_data, CREMA_LIQUIDITY_OFFSET)?;
+    let sqrt_price = read_u128_from_data(&pool_data, CREMA_SQRT_PRICE_OFFSET)?;
+    let current_tick = read_i32_from_data(&pool_data, CREMA_CURRENT_TICK_OFFSET)?;
+    require!(
+        tick_spacing > 0
+            && u32::from(fee_rate) < CREMA_FEE_DENOMINATOR
+            && liquidity > 0
+            && (CREMA_MIN_SQRT_PRICE_X64..=CREMA_MAX_SQRT_PRICE_X64).contains(&sqrt_price)
+            && (CREMA_MIN_TICK..=CREMA_MAX_TICK).contains(&current_tick)
+            && pool_data[CREMA_PAUSE_OFFSET] == 0,
+        ArbitrageError::InvalidAccount
+    );
+    let (mint0, mint1) = if token_a < token_b {
+        (token_a, token_b)
+    } else {
+        (token_b, token_a)
+    };
+    let spacing_bytes = tick_spacing.to_le_bytes();
+    let (expected_pool, pool_bump) = Pubkey::find_program_address(
+        &[
+            CREMA_POOL_SEED,
+            step_accounts[1].key().as_ref(),
+            mint0.as_ref(),
+            mint1.as_ref(),
+            &spacing_bytes,
+        ],
+        &program_id,
+    );
+    require_keys_eq!(
+        expected_pool,
+        step_accounts[2].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require!(
+        pool_data[CREMA_POOL_BUMP_OFFSET] == pool_bump,
+        ArbitrageError::InvalidAccount
+    );
+    drop(pool_data);
+
+    let (expected_map, _) = Pubkey::find_program_address(
+        &[CREMA_TICK_ARRAY_MAP_SEED, step_accounts[2].key().as_ref()],
+        &program_id,
+    );
+    require_keys_eq!(
+        expected_map,
+        step_accounts[5].key(),
+        ArbitrageError::InvalidAccount
+    );
+    let map_data = step_accounts[5].try_borrow_data()?;
+    require!(
+        map_data.len() == CREMA_TICK_ARRAY_MAP_ACCOUNT_LEN
+            && map_data.starts_with(CREMA_TICK_ARRAY_MAP_DISCRIMINATOR),
+        ArbitrageError::InvalidAccount
+    );
+
+    let current_array_index = crema_tick_array_index(
+        if direction == 0 {
+            current_tick
+        } else {
+            current_tick.saturating_add(1).min(CREMA_MAX_TICK)
+        },
+        tick_spacing,
+    )?;
+    let mut previous_index = None;
+    for tick_array in &step_accounts[7..] {
+        require_keys_eq!(
+            tick_array.owner.key(),
+            program_id,
+            ArbitrageError::InvalidAccount
+        );
+        let data = tick_array.try_borrow_data()?;
+        require!(
+            data.len() == CREMA_TICK_ARRAY_ACCOUNT_LEN
+                && data.starts_with(CREMA_TICK_ARRAY_DISCRIMINATOR),
+            ArbitrageError::InvalidAccount
+        );
+        let array_index = read_u16_from_data(&data, CREMA_TICK_ARRAY_INDEX_OFFSET)?;
+        require!(
+            read_u16_from_data(&data, CREMA_TICK_ARRAY_SPACING_OFFSET)? == tick_spacing,
+            ArbitrageError::InvalidAccount
+        );
+        require_keys_eq!(
+            read_pubkey_from_data(&data, CREMA_TICK_ARRAY_POOL_OFFSET)?,
+            step_accounts[2].key(),
+            ArbitrageError::InvalidAccount
+        );
+        let (expected_array, _) = Pubkey::find_program_address(
+            &[
+                CREMA_TICK_ARRAY_SEED,
+                step_accounts[2].key().as_ref(),
+                &array_index.to_le_bytes(),
+            ],
+            &program_id,
+        );
+        require_keys_eq!(
+            expected_array,
+            tick_array.key(),
+            ArbitrageError::InvalidAccount
+        );
+        let byte_index = 8_usize
+            .checked_add(usize::from(array_index) / 8)
+            .ok_or(ArbitrageError::MathOverflow)?;
+        let bit = 1_u8 << (usize::from(array_index) % 8);
+        require!(
+            map_data.get(byte_index).is_some_and(|byte| byte & bit != 0),
+            ArbitrageError::InvalidAccount
+        );
+        if direction == 0 {
+            require!(
+                array_index <= current_array_index,
+                ArbitrageError::InvalidAccount
+            );
+            if let Some(previous) = previous_index {
+                require!(array_index < previous, ArbitrageError::InvalidAccount);
+            }
+        } else {
+            require!(
+                array_index >= current_array_index,
+                ArbitrageError::InvalidAccount
+            );
+            if let Some(previous) = previous_index {
+                require!(array_index > previous, ArbitrageError::InvalidAccount);
+            }
+        }
+        previous_index = Some(array_index);
+    }
+    drop(map_data);
+
+    let (expected_input, expected_output) = if direction == 0 {
+        (token_a, token_b)
+    } else {
+        (token_b, token_a)
+    };
+    require_keys_eq!(
+        expected_input,
+        input_mint.key(),
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        expected_output,
+        output_mint.key(),
+        ArbitrageError::InvalidTokenMint
+    );
+    Ok(())
+}
+
+pub fn validate_sanctum_router_semantic_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    direction: u8,
+    input_mint: &AccountInfo<'info>,
+    output_mint: &AccountInfo<'info>,
+    token_program: &AccountInfo<'info>,
+) -> Result<()> {
+    require!(
+        step_accounts.len() == 15,
+        ArbitrageError::InvalidAccountCount
+    );
+    require!(direction <= 1, ArbitrageError::InvalidInstructionData);
+    require_keys_eq!(
+        step_accounts[1].key(),
+        SANCTUM_SPL_STAKE_POOL_PROGRAM_ID,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[2].owner.key(),
+        step_accounts[1].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[8].key(),
+        SANCTUM_WSOL_BRIDGE_IN,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[9].key(),
+        SANCTUM_SOL_BRIDGE_OUT,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[10].key(),
+        anchor_lang::system_program::ID,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[11].key(),
+        anchor_lang::solana_program::sysvar::clock::ID,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[12].key(),
+        anchor_lang::solana_program::sysvar::stake_history::ID,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[13].key(),
+        anchor_lang::solana_program::stake::program::ID,
+        ArbitrageError::InvalidAccount
+    );
+
+    let pool_data = step_accounts[2].try_borrow_data()?;
+    require!(
+        pool_data.len() >= SANCTUM_STAKE_POOL_MIN_ACCOUNT_LEN,
+        ArbitrageError::InvalidAccount
+    );
+    let reserve = read_pubkey_from_data(&pool_data, SANCTUM_RESERVE_OFFSET)?;
+    let pool_mint = read_pubkey_from_data(&pool_data, SANCTUM_POOL_MINT_OFFSET)?;
+    let manager_fee = read_pubkey_from_data(&pool_data, SANCTUM_MANAGER_FEE_OFFSET)?;
+    let pool_token_program = read_pubkey_from_data(&pool_data, SANCTUM_TOKEN_PROGRAM_OFFSET)?;
+    require_keys_eq!(
+        reserve,
+        step_accounts[4].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        manager_fee,
+        step_accounts[5].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        pool_token_program,
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require!(
+        read_u64_from_data(&pool_data, SANCTUM_TOTAL_LAMPORTS_OFFSET)? > 0
+            && read_u64_from_data(&pool_data, SANCTUM_POOL_TOKEN_SUPPLY_OFFSET)? > 0,
+        ArbitrageError::InsufficientLiquidity
+    );
+    drop(pool_data);
+
+    let expected_withdraw_authority = Pubkey::find_program_address(
+        &[step_accounts[2].key().as_ref(), SANCTUM_WITHDRAW_SEED],
+        &step_accounts[1].key(),
+    )
+    .0;
+    require_keys_eq!(
+        step_accounts[3].key(),
+        expected_withdraw_authority,
+        ArbitrageError::InvalidAccount
+    );
+    let expected_pool_fee = Pubkey::find_program_address(
+        &[SANCTUM_FEE_SEED, pool_mint.as_ref()],
+        &step_accounts[0].key(),
+    )
+    .0;
+    require_keys_eq!(
+        step_accounts[6].key(),
+        expected_pool_fee,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[7].key(),
+        SANCTUM_WSOL_FEE_TOKEN_ACCOUNT,
+        ArbitrageError::InvalidAccount
+    );
+
+    let (expected_input, expected_output) = if direction == 0 {
+        (SANCTUM_WSOL_MINT, pool_mint)
+    } else {
+        (pool_mint, SANCTUM_WSOL_MINT)
+    };
+    require_keys_eq!(
+        input_mint.key(),
+        expected_input,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        output_mint.key(),
+        expected_output,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        step_accounts[14].key(),
+        pool_mint,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        step_accounts[14].owner.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    let wsol_mint_ai = if direction == 0 {
+        input_mint
+    } else {
+        output_mint
+    };
+    validate_token_account_for_mint(&step_accounts[6], &step_accounts[14], token_program)?;
+    validate_token_account_for_mint(&step_accounts[7], wsol_mint_ai, token_program)?;
+    Ok(())
+}
+
+pub fn validate_moonit_semantic_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    direction: u8,
+    input_mint: &AccountInfo<'info>,
+    output_mint: &AccountInfo<'info>,
+    token_program: &AccountInfo<'info>,
+    associated_token_program: &AccountInfo<'info>,
+    system_program: &AccountInfo<'info>,
+) -> Result<()> {
+    require!(
+        step_accounts.len() == 9,
+        ArbitrageError::InvalidAccountCount
+    );
+    require!(direction <= 1, ArbitrageError::InvalidInstructionData);
+    require_keys_eq!(
+        step_accounts[6].key(),
+        associated_token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[7].key(),
+        system_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[8].key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[1].owner.key(),
+        step_accounts[0].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[5].owner.key(),
+        step_accounts[0].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[3].key(),
+        MOONIT_DEX_FEE,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[4].key(),
+        MOONIT_HELIO_FEE,
+        ArbitrageError::InvalidAccount
+    );
+
+    let curve_data = step_accounts[1].try_borrow_data()?;
+    require!(
+        curve_data.len() >= MOONIT_CURVE_MIN_LEN
+            && curve_data.starts_with(MOONIT_CURVE_DISCRIMINATOR),
+        ArbitrageError::InvalidAccount
+    );
+    let token_mint = read_pubkey_from_data(&curve_data, MOONIT_MINT_OFFSET)?;
+    let total_supply = read_u64_from_data(&curve_data, MOONIT_TOTAL_SUPPLY_OFFSET)?;
+    let curve_amount = read_u64_from_data(&curve_data, MOONIT_CURVE_AMOUNT_OFFSET)?;
+    require!(
+        total_supply > 0 && curve_amount > 0 && curve_amount <= total_supply,
+        ArbitrageError::InsufficientLiquidity
+    );
+    require!(
+        curve_data[MOONIT_COLLATERAL_CURRENCY_OFFSET] == 0,
+        ArbitrageError::InvalidAccount
+    );
+    require!(
+        matches!(curve_data[MOONIT_CURVE_TYPE_OFFSET], 1 | 2),
+        ArbitrageError::InvalidAccount
+    );
+    drop(curve_data);
+    let expected_curve =
+        Pubkey::find_program_address(&[b"token", token_mint.as_ref()], step_accounts[0].key).0;
+    require_keys_eq!(
+        step_accounts[1].key(),
+        expected_curve,
+        ArbitrageError::InvalidAccount
+    );
+    let token_mint_account = if direction == 0 {
+        output_mint
+    } else {
+        input_mint
+    };
+    validate_token_account_for_mint_and_authority(
+        &step_accounts[2],
+        token_mint_account,
+        token_program,
+        &step_accounts[1],
+    )?;
+    let expected_vault = associated_token_address_with_program_id(
+        step_accounts[1].key,
+        &token_mint,
+        token_program.key,
+        associated_token_program.key,
+    );
+    require_keys_eq!(
+        step_accounts[2].key(),
+        expected_vault,
+        ArbitrageError::InvalidAccount
+    );
+
+    let expected_config =
+        Pubkey::find_program_address(&[b"config_account"], step_accounts[0].key).0;
+    require_keys_eq!(
+        step_accounts[5].key(),
+        expected_config,
+        ArbitrageError::InvalidAccount
+    );
+    let config_data = step_accounts[5].try_borrow_data()?;
+    require!(
+        config_data.len() >= MOONIT_CONFIG_MIN_LEN
+            && config_data.starts_with(MOONIT_CONFIG_DISCRIMINATOR),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        read_pubkey_from_data(&config_data, MOONIT_CONFIG_HELIO_FEE_OFFSET)?,
+        step_accounts[4].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        read_pubkey_from_data(&config_data, MOONIT_CONFIG_DEX_FEE_OFFSET)?,
+        step_accounts[3].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require!(
+        read_u16_from_data(&config_data, MOONIT_CONFIG_FEE_BPS_OFFSET)? < 10_000,
+        ArbitrageError::InvalidAccount
+    );
+
+    let (expected_input, expected_output) = if direction == 0 {
+        (MOONIT_WSOL_MINT, token_mint)
+    } else {
+        (token_mint, MOONIT_WSOL_MINT)
+    };
+    require_keys_eq!(
+        input_mint.key(),
+        expected_input,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        output_mint.key(),
+        expected_output,
+        ArbitrageError::InvalidTokenMint
+    );
+    Ok(())
+}
+
+pub fn validate_boop_fun_semantic_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    direction: u8,
+    input_mint: &AccountInfo<'info>,
+    output_mint: &AccountInfo<'info>,
+    token_program: &AccountInfo<'info>,
+    associated_token_program: &AccountInfo<'info>,
+    system_program: &AccountInfo<'info>,
+) -> Result<()> {
+    require!(
+        step_accounts.len() == 10,
+        ArbitrageError::InvalidAccountCount
+    );
+    require!(direction <= 1, ArbitrageError::InvalidInstructionData);
+    require_keys_eq!(
+        step_accounts[7].key(),
+        system_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[8].key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[9].key(),
+        associated_token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[1].owner.key(),
+        step_accounts[0].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[5].owner.key(),
+        step_accounts[0].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[4].owner.key(),
+        system_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+
+    let curve_data = step_accounts[1].try_borrow_data()?;
+    require!(
+        curve_data.len() == BOOP_FUN_CURVE_LEN
+            && curve_data.starts_with(BOOP_FUN_CURVE_DISCRIMINATOR),
+        ArbitrageError::InvalidAccount
+    );
+    let token_mint = read_pubkey_from_data(&curve_data, BOOP_FUN_MINT_OFFSET)?;
+    let virtual_sol = read_u64_from_data(&curve_data, BOOP_FUN_VIRTUAL_SOL_OFFSET)?;
+    let virtual_token = read_u64_from_data(&curve_data, BOOP_FUN_VIRTUAL_TOKEN_OFFSET)?;
+    let sol_reserves = read_u64_from_data(&curve_data, BOOP_FUN_SOL_RESERVES_OFFSET)?;
+    let token_reserves = read_u64_from_data(&curve_data, BOOP_FUN_TOKEN_RESERVES_OFFSET)?;
+    require!(
+        virtual_sol > 0 && virtual_token > 0 && token_reserves > 0,
+        ArbitrageError::InsufficientLiquidity
+    );
+    let damping_term = curve_data[BOOP_FUN_DAMPING_OFFSET];
+    require!(
+        matches!(damping_term, 30 | 31) && curve_data[BOOP_FUN_STATUS_OFFSET] == 0,
+        ArbitrageError::InvalidAccount
+    );
+    let total_sol = u128::from(virtual_sol)
+        .checked_add(u128::from(sol_reserves))
+        .ok_or(ArbitrageError::MathOverflow)?;
+    if damping_term == 30 {
+        let invariant = u128::from(virtual_sol)
+            .checked_mul(u128::from(virtual_token))
+            .ok_or(ArbitrageError::MathOverflow)?;
+        require!(
+            invariant
+                .checked_div(total_sol)
+                .ok_or(ArbitrageError::MathOverflow)?
+                >= u128::from(token_reserves),
+            ArbitrageError::InvalidAccount
+        );
+    } else {
+        let _state_product = total_sol
+            .checked_mul(u128::from(token_reserves))
+            .ok_or(ArbitrageError::MathOverflow)?;
+    }
+    drop(curve_data);
+
+    let program_id = step_accounts[0].key();
+    let expected_curve =
+        Pubkey::find_program_address(&[b"bonding_curve", token_mint.as_ref()], &program_id).0;
+    let expected_fee_vault =
+        Pubkey::find_program_address(&[b"trading_fees_vault", token_mint.as_ref()], &program_id).0;
+    let expected_token_vault =
+        Pubkey::find_program_address(&[b"bonding_curve_vault", token_mint.as_ref()], &program_id).0;
+    let expected_sol_vault = Pubkey::find_program_address(
+        &[b"bonding_curve_sol_vault", token_mint.as_ref()],
+        &program_id,
+    )
+    .0;
+    let expected_config = Pubkey::find_program_address(&[b"config"], &program_id).0;
+    let expected_vault_authority =
+        Pubkey::find_program_address(&[b"vault_authority"], &program_id).0;
+    require_keys_eq!(
+        step_accounts[1].key(),
+        expected_curve,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[2].key(),
+        expected_fee_vault,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[3].key(),
+        expected_token_vault,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[4].key(),
+        expected_sol_vault,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[5].key(),
+        expected_config,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[6].key(),
+        expected_vault_authority,
+        ArbitrageError::InvalidAccount
+    );
+    require!(
+        step_accounts[4].lamports() >= sol_reserves,
+        ArbitrageError::InsufficientLiquidity
+    );
+
+    let token_mint_account = if direction == 0 {
+        output_mint
+    } else {
+        input_mint
+    };
+    let wsol_mint_account = if direction == 0 {
+        input_mint
+    } else {
+        output_mint
+    };
+    validate_token_account_for_mint_and_authority(
+        &step_accounts[2],
+        wsol_mint_account,
+        token_program,
+        &step_accounts[6],
+    )?;
+    validate_token_account_for_mint_and_authority(
+        &step_accounts[3],
+        token_mint_account,
+        token_program,
+        &step_accounts[6],
+    )?;
+    require!(
+        read_token_amount(&step_accounts[3])? == token_reserves,
+        ArbitrageError::InvalidAccount
+    );
+    let config_data = step_accounts[5].try_borrow_data()?;
+    require!(
+        config_data.len() >= 9
+            && config_data.starts_with(BOOP_FUN_CONFIG_DISCRIMINATOR)
+            && config_data[8] == 0,
+        ArbitrageError::InvalidAccount
+    );
+
+    let (expected_input, expected_output) = if direction == 0 {
+        (BOOP_FUN_WSOL_MINT, token_mint)
+    } else {
+        (token_mint, BOOP_FUN_WSOL_MINT)
+    };
+    require_keys_eq!(
+        input_mint.key(),
+        expected_input,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        output_mint.key(),
+        expected_output,
+        ArbitrageError::InvalidTokenMint
+    );
+    Ok(())
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn validate_heaven_semantic_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    direction: u8,
+    input_mint: &AccountInfo<'info>,
+    output_mint: &AccountInfo<'info>,
+    input_mint_program: &AccountInfo<'info>,
+    output_mint_program: &AccountInfo<'info>,
+    token_program: &AccountInfo<'info>,
+    token_2022_program: &AccountInfo<'info>,
+    associated_token_program: &AccountInfo<'info>,
+    system_program: &AccountInfo<'info>,
+) -> Result<()> {
+    require!(
+        step_accounts.len() == 14,
+        ArbitrageError::InvalidAccountCount
+    );
+    require!(direction <= 1, ArbitrageError::InvalidInstructionData);
+    require_keys_eq!(
+        step_accounts[1].key(),
+        token_2022_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[2].key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[3].key(),
+        associated_token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[4].key(),
+        system_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[11].key(),
+        HEAVEN_INSTRUCTION_SYSVAR,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[12].key(),
+        HEAVEN_CHAINLINK_PROGRAM,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[13].key(),
+        HEAVEN_SOL_USD_FEED,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[5].owner.key(),
+        step_accounts[0].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[10].owner.key(),
+        step_accounts[0].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[13].owner.key(),
+        step_accounts[12].key(),
+        ArbitrageError::InvalidAccount
+    );
+
+    let pool_data = step_accounts[5].try_borrow_data()?;
+    require!(
+        pool_data.len() == HEAVEN_POOL_LEN && pool_data.starts_with(HEAVEN_POOL_DISCRIMINATOR),
+        ArbitrageError::InvalidAccount
+    );
+    require!(
+        pool_data[HEAVEN_POOL_TYPE_OFFSET] == 2 && pool_data[HEAVEN_ALLOW_SWAP_OFFSET] != 0,
+        ArbitrageError::InvalidAccount
+    );
+    require!(
+        read_u64_from_data(&pool_data, HEAVEN_TOKEN_A_RESERVE_OFFSET)? > 0
+            && read_u64_from_data(&pool_data, HEAVEN_TOKEN_B_RESERVE_OFFSET)? > 0,
+        ArbitrageError::InsufficientLiquidity
+    );
+    let token_a_mint = read_pubkey_from_data(&pool_data, HEAVEN_TOKEN_A_MINT_OFFSET)?;
+    let token_b_mint = read_pubkey_from_data(&pool_data, HEAVEN_TOKEN_B_MINT_OFFSET)?;
+    require_keys_eq!(
+        read_pubkey_from_data(&pool_data, HEAVEN_TOKEN_A_VAULT_OFFSET)?,
+        step_accounts[8].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        read_pubkey_from_data(&pool_data, HEAVEN_TOKEN_B_VAULT_OFFSET)?,
+        step_accounts[9].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        read_pubkey_from_data(&pool_data, HEAVEN_CONFIG_OFFSET)?,
+        step_accounts[10].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        read_pubkey_from_data(&pool_data, HEAVEN_KEY_OFFSET)?,
+        step_accounts[5].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        read_pubkey_from_data(&pool_data, HEAVEN_TOKEN_A_PROGRAM_OFFSET)?,
+        step_accounts[1].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        read_pubkey_from_data(&pool_data, HEAVEN_TOKEN_B_PROGRAM_OFFSET)?,
+        step_accounts[2].key(),
+        ArbitrageError::InvalidAccount
+    );
+    drop(pool_data);
+
+    require_keys_eq!(
+        step_accounts[6].key(),
+        token_a_mint,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        step_accounts[7].key(),
+        token_b_mint,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        token_b_mint,
+        HEAVEN_WSOL_MINT,
+        ArbitrageError::InvalidTokenMint
+    );
+    let expected_pool = Pubkey::find_program_address(
+        &[
+            b"liquidity_pool_state",
+            token_a_mint.as_ref(),
+            token_b_mint.as_ref(),
+        ],
+        step_accounts[0].key,
+    )
+    .0;
+    require_keys_eq!(
+        step_accounts[5].key(),
+        expected_pool,
+        ArbitrageError::InvalidAccount
+    );
+    validate_token_account_for_mint_and_authority(
+        &step_accounts[8],
+        &step_accounts[6],
+        &step_accounts[1],
+        &step_accounts[10],
+    )?;
+    validate_token_account_for_mint_and_authority(
+        &step_accounts[9],
+        &step_accounts[7],
+        &step_accounts[2],
+        &step_accounts[10],
+    )?;
+    let expected_a_vault = associated_token_address_with_program_id(
+        step_accounts[10].key,
+        &token_a_mint,
+        step_accounts[1].key,
+        associated_token_program.key,
+    );
+    let expected_b_vault = associated_token_address_with_program_id(
+        step_accounts[10].key,
+        &token_b_mint,
+        step_accounts[2].key,
+        associated_token_program.key,
+    );
+    require_keys_eq!(
+        step_accounts[8].key(),
+        expected_a_vault,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[9].key(),
+        expected_b_vault,
+        ArbitrageError::InvalidAccount
+    );
+    let config_data = step_accounts[10].try_borrow_data()?;
+    require!(
+        config_data.starts_with(HEAVEN_CONFIG_DISCRIMINATOR),
+        ArbitrageError::InvalidAccount
+    );
+    let oracle_data = step_accounts[13].try_borrow_data()?;
+    require!(
+        oracle_data.len() >= 232 && oracle_data.starts_with(HEAVEN_CHAINLINK_FEED_DISCRIMINATOR),
+        ArbitrageError::InvalidAccount
+    );
+
+    let (expected_input, expected_output, expected_input_program, expected_output_program) =
+        if direction == 0 {
+            (
+                token_b_mint,
+                token_a_mint,
+                step_accounts[2].key(),
+                step_accounts[1].key(),
+            )
+        } else {
+            (
+                token_a_mint,
+                token_b_mint,
+                step_accounts[1].key(),
+                step_accounts[2].key(),
+            )
+        };
+    require_keys_eq!(
+        input_mint.key(),
+        expected_input,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        output_mint.key(),
+        expected_output,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        input_mint_program.key(),
+        expected_input_program,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        output_mint_program.key(),
+        expected_output_program,
+        ArbitrageError::InvalidAccount
+    );
+    Ok(())
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn validate_saros_dlmm_semantic_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    direction: u8,
+    input_mint: &AccountInfo<'info>,
+    output_mint: &AccountInfo<'info>,
+    input_mint_program: &AccountInfo<'info>,
+    output_mint_program: &AccountInfo<'info>,
+    token_program: &AccountInfo<'info>,
+    token_2022_program: &AccountInfo<'info>,
+    associated_token_program: &AccountInfo<'info>,
+) -> Result<()> {
+    require!(
+        step_accounts.len() == 14,
+        ArbitrageError::InvalidAccountCount
+    );
+    require!(direction <= 1, ArbitrageError::InvalidInstructionData);
+    require_keys_eq!(
+        step_accounts[1].owner.key(),
+        step_accounts[0].key(),
+        ArbitrageError::InvalidAccount
+    );
+    for index in [4_usize, 5] {
+        require_keys_eq!(
+            step_accounts[index].owner.key(),
+            step_accounts[0].key(),
+            ArbitrageError::InvalidAccount
+        );
+    }
+    require_keys_eq!(
+        step_accounts[10].key(),
+        SAROS_DLMM_MEMO_PROGRAM,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[11].key(),
+        step_accounts[1].key(),
+        ArbitrageError::InvalidAccount
+    );
+    let expected_hook_program = if step_accounts[0].key()
+        == crate::instructions::program_ids::SAROS_DLMM_PROGRAM_ID_DEVNET
+    {
+        SAROS_DLMM_REWARDER_HOOK_PROGRAM_DEVNET
+    } else {
+        SAROS_DLMM_REWARDER_HOOK_PROGRAM
+    };
+    require_keys_eq!(
+        step_accounts[12].key(),
+        expected_hook_program,
+        ArbitrageError::InvalidAccount
+    );
+    let expected_event =
+        Pubkey::find_program_address(&[b"__event_authority"], step_accounts[0].key).0;
+    require_keys_eq!(
+        step_accounts[13].key(),
+        expected_event,
+        ArbitrageError::InvalidAccount
+    );
+    for index in [8_usize, 9] {
+        require!(
+            step_accounts[index].key() == token_program.key()
+                || step_accounts[index].key() == token_2022_program.key(),
+            ArbitrageError::InvalidAccount
+        );
+    }
+
+    let pair_data = step_accounts[1].try_borrow_data()?;
+    require!(
+        pair_data.len() == SAROS_DLMM_PAIR_LEN
+            && pair_data.starts_with(SAROS_DLMM_PAIR_DISCRIMINATOR)
+            && pair_data[SAROS_DLMM_PAIR_HOOK_FLAG_OFFSET] == 0,
+        ArbitrageError::InvalidAccount
+    );
+    let mint_x = read_pubkey_from_data(&pair_data, SAROS_DLMM_PAIR_MINT_X_OFFSET)?;
+    let mint_y = read_pubkey_from_data(&pair_data, SAROS_DLMM_PAIR_MINT_Y_OFFSET)?;
+    let active_id = read_u32_from_data(&pair_data, SAROS_DLMM_PAIR_ACTIVE_ID_OFFSET)?;
+    drop(pair_data);
+    require_keys_eq!(
+        step_accounts[2].key(),
+        mint_x,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        step_accounts[3].key(),
+        mint_y,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        step_accounts[2].owner.key(),
+        step_accounts[8].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[3].owner.key(),
+        step_accounts[9].key(),
+        ArbitrageError::InvalidAccount
+    );
+
+    let mut lower_index = active_id / 256;
+    if active_id % 256 < 128 {
+        lower_index = lower_index
+            .checked_sub(1)
+            .ok_or(ArbitrageError::InvalidAccount)?;
+    }
+    let upper_index = lower_index
+        .checked_add(1)
+        .ok_or(ArbitrageError::MathOverflow)?;
+    for (account_index, expected_index) in [(4_usize, lower_index), (5, upper_index)] {
+        let data = step_accounts[account_index].try_borrow_data()?;
+        require!(
+            data.len() == SAROS_DLMM_BIN_ARRAY_LEN
+                && data.starts_with(SAROS_DLMM_BIN_ARRAY_DISCRIMINATOR),
+            ArbitrageError::InvalidAccount
+        );
+        require_keys_eq!(
+            read_pubkey_from_data(&data, SAROS_DLMM_BIN_ARRAY_PAIR_OFFSET)?,
+            step_accounts[1].key(),
+            ArbitrageError::InvalidAccount
+        );
+        require!(
+            read_u32_from_data(&data, SAROS_DLMM_BIN_ARRAY_INDEX_OFFSET)? == expected_index,
+            ArbitrageError::InvalidAccount
+        );
+        let expected_address = Pubkey::find_program_address(
+            &[
+                b"bin_array",
+                step_accounts[1].key.as_ref(),
+                &expected_index.to_le_bytes(),
+            ],
+            step_accounts[0].key,
+        )
+        .0;
+        require_keys_eq!(
+            step_accounts[account_index].key(),
+            expected_address,
+            ArbitrageError::InvalidAccount
+        );
+    }
+
+    validate_token_account_for_mint_and_authority(
+        &step_accounts[6],
+        &step_accounts[2],
+        &step_accounts[8],
+        &step_accounts[1],
+    )?;
+    validate_token_account_for_mint_and_authority(
+        &step_accounts[7],
+        &step_accounts[3],
+        &step_accounts[9],
+        &step_accounts[1],
+    )?;
+    let expected_x_vault = associated_token_address_with_program_id(
+        step_accounts[1].key,
+        &mint_x,
+        step_accounts[8].key,
+        associated_token_program.key,
+    );
+    let expected_y_vault = associated_token_address_with_program_id(
+        step_accounts[1].key,
+        &mint_y,
+        step_accounts[9].key,
+        associated_token_program.key,
+    );
+    require_keys_eq!(
+        step_accounts[6].key(),
+        expected_x_vault,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[7].key(),
+        expected_y_vault,
+        ArbitrageError::InvalidAccount
+    );
+
+    let (expected_input, expected_output, expected_input_program, expected_output_program) =
+        if direction == 0 {
+            (
+                mint_x,
+                mint_y,
+                step_accounts[8].key(),
+                step_accounts[9].key(),
+            )
+        } else {
+            (
+                mint_y,
+                mint_x,
+                step_accounts[9].key(),
+                step_accounts[8].key(),
+            )
+        };
+    require_keys_eq!(
+        input_mint.key(),
+        expected_input,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        output_mint.key(),
+        expected_output,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        input_mint_program.key(),
+        expected_input_program,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        output_mint_program.key(),
+        expected_output_program,
+        ArbitrageError::InvalidAccount
+    );
+    Ok(())
+}
+
+fn crema_tick_array_index(tick: i32, tick_spacing: u16) -> Result<u16> {
+    require!(tick_spacing > 0, ArbitrageError::InvalidAccount);
+    let spacing = i32::from(tick_spacing);
+    let min_tick = CREMA_MIN_TICK
+        .checked_add(CREMA_MIN_TICK.abs() % spacing)
+        .ok_or(ArbitrageError::MathOverflow)?;
+    require!(
+        tick >= min_tick && tick <= CREMA_MAX_TICK,
+        ArbitrageError::InvalidAccount
+    );
+    let array_spacing = spacing
+        .checked_mul(64)
+        .ok_or(ArbitrageError::MathOverflow)?;
+    u16::try_from((tick - min_tick) / array_spacing)
+        .map_err(|_| ArbitrageError::InvalidAccount.into())
 }
 
 pub fn validate_bonk_swap_semantic_accounts<'info>(
@@ -1739,6 +3827,108 @@ pub fn validate_aldrin_v2_semantic_accounts<'info>(
             && curve_data.starts_with(ALDRIN_V2_STABLE_CURVE_DISCRIMINATOR)
             && read_u64_from_data(&curve_data, ALDRIN_V2_STABLE_CURVE_AMP_OFFSET)? > 0,
         ArbitrageError::InvalidAccount
+    );
+    Ok(())
+}
+
+pub fn validate_aldrin_v1_semantic_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    direction: u8,
+    input_mint: &AccountInfo<'info>,
+    output_mint: &AccountInfo<'info>,
+    token_program: &AccountInfo<'info>,
+) -> Result<()> {
+    require!(
+        step_accounts.len() == 7,
+        ArbitrageError::InvalidAccountCount
+    );
+    require!(direction <= 1, ArbitrageError::InvalidInstructionData);
+    require_keys_eq!(
+        step_accounts[1].owner.key(),
+        step_accounts[0].key(),
+        ArbitrageError::InvalidAccount
+    );
+    for index in [3_usize, 4, 5, 6] {
+        require_keys_eq!(
+            step_accounts[index].owner.key(),
+            token_program.key(),
+            ArbitrageError::InvalidAccount
+        );
+    }
+
+    let pool_data = step_accounts[1].try_borrow_data()?;
+    require!(
+        pool_data.len() == ALDRIN_V1_POOL_ACCOUNT_LEN
+            && pool_data.starts_with(ALDRIN_V2_POOL_DISCRIMINATOR),
+        ArbitrageError::InvalidAccount
+    );
+    let (expected_pool_signer, bump) =
+        Pubkey::find_program_address(&[step_accounts[1].key().as_ref()], step_accounts[0].key);
+    require_keys_eq!(
+        expected_pool_signer,
+        step_accounts[2].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        read_pubkey_from_data(&pool_data, ALDRIN_V2_POOL_SIGNER_OFFSET)?,
+        step_accounts[2].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require!(
+        pool_data[ALDRIN_V2_POOL_SIGNER_NONCE_OFFSET] == bump,
+        ArbitrageError::InvalidAccount
+    );
+    for (offset, index) in [
+        (ALDRIN_V2_POOL_MINT_OFFSET, 3_usize),
+        (ALDRIN_V2_BASE_VAULT_OFFSET, 4),
+        (ALDRIN_V2_QUOTE_VAULT_OFFSET, 5),
+        (ALDRIN_V2_FEE_POOL_TOKEN_ACCOUNT_OFFSET, 6),
+    ] {
+        require_keys_eq!(
+            read_pubkey_from_data(&pool_data, offset)?,
+            step_accounts[index].key(),
+            ArbitrageError::InvalidAccount
+        );
+    }
+
+    let trade_fee_numerator = read_u64_from_data(&pool_data, ALDRIN_V2_TRADE_FEE_NUMERATOR_OFFSET)?;
+    let trade_fee_denominator =
+        read_u64_from_data(&pool_data, ALDRIN_V2_TRADE_FEE_DENOMINATOR_OFFSET)?;
+    let owner_trade_fee_numerator =
+        read_u64_from_data(&pool_data, ALDRIN_V2_OWNER_TRADE_FEE_NUMERATOR_OFFSET)?;
+    let owner_trade_fee_denominator =
+        read_u64_from_data(&pool_data, ALDRIN_V2_OWNER_TRADE_FEE_DENOMINATOR_OFFSET)?;
+    let owner_withdraw_fee_numerator =
+        read_u64_from_data(&pool_data, ALDRIN_V2_OWNER_WITHDRAW_FEE_NUMERATOR_OFFSET)?;
+    let owner_withdraw_fee_denominator =
+        read_u64_from_data(&pool_data, ALDRIN_V2_OWNER_WITHDRAW_FEE_DENOMINATOR_OFFSET)?;
+    require!(
+        trade_fee_denominator > 0
+            && trade_fee_numerator < trade_fee_denominator
+            && owner_trade_fee_denominator > 0
+            && owner_trade_fee_numerator < owner_trade_fee_denominator
+            && (owner_withdraw_fee_numerator == 0
+                || (owner_withdraw_fee_denominator > 0
+                    && owner_withdraw_fee_numerator < owner_withdraw_fee_denominator)),
+        ArbitrageError::InvalidAccount
+    );
+
+    let base_mint = read_pubkey_from_data(&pool_data, ALDRIN_V2_BASE_MINT_OFFSET)?;
+    let quote_mint = read_pubkey_from_data(&pool_data, ALDRIN_V2_QUOTE_MINT_OFFSET)?;
+    let (expected_input, expected_output) = if direction == 0 {
+        (base_mint, quote_mint)
+    } else {
+        (quote_mint, base_mint)
+    };
+    require_keys_eq!(
+        expected_input,
+        input_mint.key(),
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        expected_output,
+        output_mint.key(),
+        ArbitrageError::InvalidTokenMint
     );
     Ok(())
 }
@@ -2932,6 +5122,38 @@ struct RaydiumStableSwapSemanticKeys {
     market_program: Pubkey,
 }
 
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+struct SolfiV2SemanticKeys {
+    oracle: Pubkey,
+    global_config: Pubkey,
+    base_mint: Pubkey,
+    quote_mint: Pubkey,
+    base_vault: Pubkey,
+    quote_vault: Pubkey,
+    base_token_program: Pubkey,
+    quote_token_program: Pubkey,
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+struct SolfiV1SemanticKeys {
+    base_mint: Pubkey,
+    quote_mint: Pubkey,
+    base_vault: Pubkey,
+    quote_vault: Pubkey,
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+struct ObricV2SemanticKeys {
+    x_price_feed: Pubkey,
+    y_price_feed: Pubkey,
+    reserve_x: Pubkey,
+    reserve_y: Pubkey,
+    reference_account_x: Pubkey,
+    reference_account_y: Pubkey,
+    mint_x: Pubkey,
+    mint_y: Pubkey,
+}
+
 fn read_raydium_pool_v4_semantic_keys(data: &[u8]) -> Result<RaydiumPoolV4SemanticKeys> {
     Ok(RaydiumPoolV4SemanticKeys {
         coin_vault: read_pubkey_from_data(data, RAYDIUM_POOL_V4_COIN_VAULT_OFFSET)?,
@@ -2955,6 +5177,55 @@ fn read_raydium_stable_swap_semantic_keys(data: &[u8]) -> Result<RaydiumStableSw
         open_orders: read_pubkey_from_data(data, RAYDIUM_STABLE_SWAP_OPEN_ORDERS_OFFSET)?,
         market: read_pubkey_from_data(data, RAYDIUM_STABLE_SWAP_MARKET_OFFSET)?,
         market_program: read_pubkey_from_data(data, RAYDIUM_STABLE_SWAP_MARKET_PROGRAM_OFFSET)?,
+    })
+}
+
+fn read_solfi_v2_semantic_keys(data: &[u8]) -> Result<SolfiV2SemanticKeys> {
+    require!(
+        data.len() == SOLFI_V2_MARKET_DATA_LEN,
+        ArbitrageError::InvalidAccount
+    );
+    Ok(SolfiV2SemanticKeys {
+        oracle: read_pubkey_from_data(data, SOLFI_V2_ORACLE_OFFSET)?,
+        global_config: read_pubkey_from_data(data, SOLFI_V2_GLOBAL_CONFIG_OFFSET)?,
+        base_mint: read_pubkey_from_data(data, SOLFI_V2_BASE_MINT_OFFSET)?,
+        quote_mint: read_pubkey_from_data(data, SOLFI_V2_QUOTE_MINT_OFFSET)?,
+        base_vault: read_pubkey_from_data(data, SOLFI_V2_BASE_VAULT_OFFSET)?,
+        quote_vault: read_pubkey_from_data(data, SOLFI_V2_QUOTE_VAULT_OFFSET)?,
+        base_token_program: read_pubkey_from_data(data, SOLFI_V2_BASE_TOKEN_PROGRAM_OFFSET)?,
+        quote_token_program: read_pubkey_from_data(data, SOLFI_V2_QUOTE_TOKEN_PROGRAM_OFFSET)?,
+    })
+}
+
+fn read_solfi_v1_semantic_keys(data: &[u8]) -> Result<SolfiV1SemanticKeys> {
+    require!(
+        data.len() == SOLFI_V1_MARKET_DATA_LEN,
+        ArbitrageError::InvalidAccount
+    );
+    Ok(SolfiV1SemanticKeys {
+        base_mint: read_pubkey_from_data(data, SOLFI_V1_BASE_MINT_OFFSET)?,
+        quote_mint: read_pubkey_from_data(data, SOLFI_V1_QUOTE_MINT_OFFSET)?,
+        base_vault: read_pubkey_from_data(data, SOLFI_V1_BASE_VAULT_OFFSET)?,
+        quote_vault: read_pubkey_from_data(data, SOLFI_V1_QUOTE_VAULT_OFFSET)?,
+    })
+}
+
+fn read_obric_v2_semantic_keys(data: &[u8]) -> Result<ObricV2SemanticKeys> {
+    require!(
+        data.len() == OBRIC_V2_MARKET_DATA_LEN
+            && data.starts_with(OBRIC_V2_MARKET_DISCRIMINATOR)
+            && data[OBRIC_V2_INITIALIZED_OFFSET] != 0,
+        ArbitrageError::InvalidAccount
+    );
+    Ok(ObricV2SemanticKeys {
+        x_price_feed: read_pubkey_from_data(data, OBRIC_V2_X_PRICE_FEED_OFFSET)?,
+        y_price_feed: read_pubkey_from_data(data, OBRIC_V2_Y_PRICE_FEED_OFFSET)?,
+        reserve_x: read_pubkey_from_data(data, OBRIC_V2_RESERVE_X_OFFSET)?,
+        reserve_y: read_pubkey_from_data(data, OBRIC_V2_RESERVE_Y_OFFSET)?,
+        reference_account_x: read_pubkey_from_data(data, OBRIC_V2_REFERENCE_ACCOUNT_X_OFFSET)?,
+        reference_account_y: read_pubkey_from_data(data, OBRIC_V2_REFERENCE_ACCOUNT_Y_OFFSET)?,
+        mint_x: read_pubkey_from_data(data, OBRIC_V2_MINT_X_OFFSET)?,
+        mint_y: read_pubkey_from_data(data, OBRIC_V2_MINT_Y_OFFSET)?,
     })
 }
 
@@ -3743,7 +6014,7 @@ mod tests {
     use crate::instructions::program_ids::{
         BONK_SWAP_PROGRAM_ID, OPENBOOK_V2_PROGRAM_ID, PUMPFUN_AMM_FEE_CONFIG,
         PUMPFUN_AMM_PROGRAM_ID, PUMPFUN_SWAP_FEE_CONFIG, PUMPFUN_SWAP_FEE_CONFIG_PROGRAM_ID,
-        PUMPFUN_SWAP_PROGRAM_ID,
+        PUMPFUN_SWAP_PROGRAM_ID, SAROS_DLMM_PROGRAM_ID,
     };
 
     fn make_token_account_data(mint: Pubkey, owner: Pubkey, amount: u64) -> [u8; 72] {
@@ -3787,6 +6058,396 @@ mod tests {
 
     fn write_pubkey(data: &mut [u8], offset: usize, key: Pubkey) {
         data[offset..offset + PUBKEY_FIELD_LEN].copy_from_slice(key.as_ref());
+    }
+
+    #[test]
+    fn heaven_semantic_validation_checks_standard_pool_bindings_and_direction() {
+        let program = Pubkey::new_unique();
+        let token_a_mint = Pubkey::new_unique();
+        let token_a_program = anchor_spl::token_2022::ID;
+        let token_b_program = anchor_spl::token::ID;
+        let associated_token_program = anchor_spl::associated_token::ID;
+        let config = Pubkey::new_unique();
+        let (pool, _) = Pubkey::find_program_address(
+            &[
+                b"liquidity_pool_state",
+                token_a_mint.as_ref(),
+                HEAVEN_WSOL_MINT.as_ref(),
+            ],
+            &program,
+        );
+        let token_a_vault = associated_token_address_with_program_id(
+            &config,
+            &token_a_mint,
+            &token_a_program,
+            &associated_token_program,
+        );
+        let token_b_vault = associated_token_address_with_program_id(
+            &config,
+            &HEAVEN_WSOL_MINT,
+            &token_b_program,
+            &associated_token_program,
+        );
+        let mut pool_data = vec![0_u8; HEAVEN_POOL_LEN];
+        pool_data[..8].copy_from_slice(HEAVEN_POOL_DISCRIMINATOR);
+        pool_data[HEAVEN_POOL_TYPE_OFFSET] = 2;
+        pool_data[HEAVEN_ALLOW_SWAP_OFFSET] = 1;
+        pool_data[HEAVEN_TOKEN_A_RESERVE_OFFSET..HEAVEN_TOKEN_A_RESERVE_OFFSET + 8]
+            .copy_from_slice(&1_000_000_u64.to_le_bytes());
+        pool_data[HEAVEN_TOKEN_B_RESERVE_OFFSET..HEAVEN_TOKEN_B_RESERVE_OFFSET + 8]
+            .copy_from_slice(&2_000_000_u64.to_le_bytes());
+        write_pubkey(&mut pool_data, HEAVEN_TOKEN_A_VAULT_OFFSET, token_a_vault);
+        write_pubkey(&mut pool_data, HEAVEN_TOKEN_B_VAULT_OFFSET, token_b_vault);
+        write_pubkey(&mut pool_data, HEAVEN_CONFIG_OFFSET, config);
+        write_pubkey(&mut pool_data, HEAVEN_KEY_OFFSET, pool);
+        write_pubkey(&mut pool_data, HEAVEN_TOKEN_A_MINT_OFFSET, token_a_mint);
+        write_pubkey(
+            &mut pool_data,
+            HEAVEN_TOKEN_A_PROGRAM_OFFSET,
+            token_a_program,
+        );
+        write_pubkey(&mut pool_data, HEAVEN_TOKEN_B_MINT_OFFSET, HEAVEN_WSOL_MINT);
+        write_pubkey(
+            &mut pool_data,
+            HEAVEN_TOKEN_B_PROGRAM_OFFSET,
+            token_b_program,
+        );
+        let mut config_data = vec![0_u8; 8];
+        config_data.copy_from_slice(HEAVEN_CONFIG_DISCRIMINATOR);
+        let mut feed_data = vec![0_u8; 232];
+        feed_data[..8].copy_from_slice(HEAVEN_CHAINLINK_FEED_DISCRIMINATOR);
+
+        let accounts = vec![
+            test_account_with_data(program, Pubkey::default(), false, false, true, vec![]),
+            test_account_with_data(
+                token_a_program,
+                Pubkey::default(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(
+                token_b_program,
+                Pubkey::default(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(
+                associated_token_program,
+                Pubkey::default(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(
+                anchor_lang::system_program::ID,
+                Pubkey::default(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(pool, program, false, true, false, pool_data),
+            test_account_with_data(token_a_mint, token_a_program, false, false, false, vec![]),
+            test_account_with_data(
+                HEAVEN_WSOL_MINT,
+                token_b_program,
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                token_a_vault,
+                token_a_program,
+                false,
+                true,
+                false,
+                make_token_account_data(token_a_mint, config, 1_000_000).to_vec(),
+            ),
+            test_account_with_data(
+                token_b_vault,
+                token_b_program,
+                false,
+                true,
+                false,
+                make_token_account_data(HEAVEN_WSOL_MINT, config, 2_000_000).to_vec(),
+            ),
+            test_account_with_data(config, program, false, true, false, config_data),
+            test_account_with_data(
+                HEAVEN_INSTRUCTION_SYSVAR,
+                Pubkey::default(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                HEAVEN_CHAINLINK_PROGRAM,
+                Pubkey::default(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(
+                HEAVEN_SOL_USD_FEED,
+                HEAVEN_CHAINLINK_PROGRAM,
+                false,
+                false,
+                false,
+                feed_data,
+            ),
+        ];
+        assert!(validate_heaven_semantic_accounts(
+            &accounts,
+            0,
+            &accounts[7],
+            &accounts[6],
+            &accounts[2],
+            &accounts[1],
+            &accounts[2],
+            &accounts[1],
+            &accounts[3],
+            &accounts[4],
+        )
+        .is_ok());
+        assert!(validate_heaven_semantic_accounts(
+            &accounts,
+            1,
+            &accounts[6],
+            &accounts[7],
+            &accounts[1],
+            &accounts[2],
+            &accounts[2],
+            &accounts[1],
+            &accounts[3],
+            &accounts[4],
+        )
+        .is_ok());
+        accounts[5].try_borrow_mut_data().unwrap()[HEAVEN_ALLOW_SWAP_OFFSET] = 0;
+        assert!(validate_heaven_semantic_accounts(
+            &accounts,
+            0,
+            &accounts[7],
+            &accounts[6],
+            &accounts[2],
+            &accounts[1],
+            &accounts[2],
+            &accounts[1],
+            &accounts[3],
+            &accounts[4],
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn saros_dlmm_semantic_validation_checks_pair_bins_vaults_and_direction() {
+        let program = SAROS_DLMM_PROGRAM_ID;
+        let token_program = anchor_spl::token::ID;
+        let token_2022_program = anchor_spl::token_2022::ID;
+        let associated_token_program = anchor_spl::associated_token::ID;
+        let pair = Pubkey::new_unique();
+        let mint_x = Pubkey::new_unique();
+        let mint_y = Pubkey::new_unique();
+        let active_id = 8_388_607_u32;
+        let lower_index = 32_767_u32;
+        let upper_index = lower_index + 1;
+        let lower = Pubkey::find_program_address(
+            &[b"bin_array", pair.as_ref(), &lower_index.to_le_bytes()],
+            &program,
+        )
+        .0;
+        let upper = Pubkey::find_program_address(
+            &[b"bin_array", pair.as_ref(), &upper_index.to_le_bytes()],
+            &program,
+        )
+        .0;
+        let vault_x = associated_token_address_with_program_id(
+            &pair,
+            &mint_x,
+            &token_program,
+            &associated_token_program,
+        );
+        let vault_y = associated_token_address_with_program_id(
+            &pair,
+            &mint_y,
+            &token_program,
+            &associated_token_program,
+        );
+        let event = Pubkey::find_program_address(&[b"__event_authority"], &program).0;
+        let mut pair_data = vec![0_u8; SAROS_DLMM_PAIR_LEN];
+        pair_data[..8].copy_from_slice(SAROS_DLMM_PAIR_DISCRIMINATOR);
+        write_pubkey(&mut pair_data, SAROS_DLMM_PAIR_MINT_X_OFFSET, mint_x);
+        write_pubkey(&mut pair_data, SAROS_DLMM_PAIR_MINT_Y_OFFSET, mint_y);
+        pair_data[SAROS_DLMM_PAIR_ACTIVE_ID_OFFSET..SAROS_DLMM_PAIR_ACTIVE_ID_OFFSET + 4]
+            .copy_from_slice(&active_id.to_le_bytes());
+        let bin_data = |index: u32| {
+            let mut data = vec![0_u8; SAROS_DLMM_BIN_ARRAY_LEN];
+            data[..8].copy_from_slice(SAROS_DLMM_BIN_ARRAY_DISCRIMINATOR);
+            write_pubkey(&mut data, SAROS_DLMM_BIN_ARRAY_PAIR_OFFSET, pair);
+            data[SAROS_DLMM_BIN_ARRAY_INDEX_OFFSET..SAROS_DLMM_BIN_ARRAY_INDEX_OFFSET + 4]
+                .copy_from_slice(&index.to_le_bytes());
+            data
+        };
+        let accounts = vec![
+            test_account_with_data(program, Pubkey::default(), false, false, true, vec![]),
+            test_account_with_data(pair, program, false, true, false, pair_data),
+            test_account_with_data(mint_x, token_program, false, false, false, vec![]),
+            test_account_with_data(mint_y, token_program, false, false, false, vec![]),
+            test_account_with_data(lower, program, false, true, false, bin_data(lower_index)),
+            test_account_with_data(upper, program, false, true, false, bin_data(upper_index)),
+            test_account_with_data(
+                vault_x,
+                token_program,
+                false,
+                true,
+                false,
+                make_token_account_data(mint_x, pair, 1_000_000).to_vec(),
+            ),
+            test_account_with_data(
+                vault_y,
+                token_program,
+                false,
+                true,
+                false,
+                make_token_account_data(mint_y, pair, 1_000_000).to_vec(),
+            ),
+            test_account_with_data(token_program, Pubkey::default(), false, false, true, vec![]),
+            test_account_with_data(token_program, Pubkey::default(), false, false, true, vec![]),
+            test_account_with_data(
+                SAROS_DLMM_MEMO_PROGRAM,
+                Pubkey::default(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(pair, program, false, true, false, vec![]),
+            test_account_with_data(
+                SAROS_DLMM_REWARDER_HOOK_PROGRAM,
+                Pubkey::default(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(event, program, false, false, false, vec![]),
+        ];
+        assert!(validate_saros_dlmm_semantic_accounts(
+            &accounts,
+            0,
+            &accounts[2],
+            &accounts[3],
+            &accounts[8],
+            &accounts[9],
+            &accounts[8],
+            &test_account_with_data(
+                token_2022_program,
+                Pubkey::default(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            &test_account_with_data(
+                associated_token_program,
+                Pubkey::default(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+        )
+        .is_ok());
+        assert!(validate_saros_dlmm_semantic_accounts(
+            &accounts,
+            1,
+            &accounts[3],
+            &accounts[2],
+            &accounts[9],
+            &accounts[8],
+            &accounts[8],
+            &test_account_with_data(
+                token_2022_program,
+                Pubkey::default(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            &test_account_with_data(
+                associated_token_program,
+                Pubkey::default(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+        )
+        .is_ok());
+        accounts[1].try_borrow_mut_data().unwrap()[SAROS_DLMM_PAIR_HOOK_FLAG_OFFSET] = 1;
+        assert!(validate_saros_dlmm_semantic_accounts(
+            &accounts,
+            0,
+            &accounts[2],
+            &accounts[3],
+            &accounts[8],
+            &accounts[9],
+            &accounts[8],
+            &test_account_with_data(
+                token_2022_program,
+                Pubkey::default(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            &test_account_with_data(
+                associated_token_program,
+                Pubkey::default(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+        )
+        .is_err());
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn solfi_v2_market_data(
+        oracle: Pubkey,
+        global_config: Pubkey,
+        base_mint: Pubkey,
+        quote_mint: Pubkey,
+        base_vault: Pubkey,
+        quote_vault: Pubkey,
+        base_token_program: Pubkey,
+        quote_token_program: Pubkey,
+    ) -> Vec<u8> {
+        let mut data = vec![0_u8; SOLFI_V2_MARKET_DATA_LEN];
+        write_pubkey(&mut data, SOLFI_V2_ORACLE_OFFSET, oracle);
+        write_pubkey(&mut data, SOLFI_V2_GLOBAL_CONFIG_OFFSET, global_config);
+        write_pubkey(&mut data, SOLFI_V2_BASE_MINT_OFFSET, base_mint);
+        write_pubkey(&mut data, SOLFI_V2_QUOTE_MINT_OFFSET, quote_mint);
+        write_pubkey(&mut data, SOLFI_V2_BASE_VAULT_OFFSET, base_vault);
+        write_pubkey(&mut data, SOLFI_V2_QUOTE_VAULT_OFFSET, quote_vault);
+        write_pubkey(
+            &mut data,
+            SOLFI_V2_BASE_TOKEN_PROGRAM_OFFSET,
+            base_token_program,
+        );
+        write_pubkey(
+            &mut data,
+            SOLFI_V2_QUOTE_TOKEN_PROGRAM_OFFSET,
+            quote_token_program,
+        );
+        data
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -4286,6 +6947,42 @@ mod tests {
         data
     }
 
+    #[allow(clippy::too_many_arguments)]
+    fn aldrin_v1_pool_data(
+        pool_signer: Pubkey,
+        pool_signer_nonce: u8,
+        pool_mint: Pubkey,
+        base_vault: Pubkey,
+        base_mint: Pubkey,
+        quote_vault: Pubkey,
+        quote_mint: Pubkey,
+        fee_pool_token_account: Pubkey,
+    ) -> Vec<u8> {
+        let mut data = aldrin_v2_pool_data(
+            pool_signer,
+            pool_signer_nonce,
+            pool_mint,
+            base_vault,
+            base_mint,
+            quote_vault,
+            quote_mint,
+            fee_pool_token_account,
+            Pubkey::default(),
+        );
+        data[ALDRIN_V2_TRADE_FEE_NUMERATOR_OFFSET..ALDRIN_V2_TRADE_FEE_NUMERATOR_OFFSET + 8]
+            .copy_from_slice(&20_u64.to_le_bytes());
+        data[ALDRIN_V2_TRADE_FEE_DENOMINATOR_OFFSET..ALDRIN_V2_TRADE_FEE_DENOMINATOR_OFFSET + 8]
+            .copy_from_slice(&10_000_u64.to_le_bytes());
+        data[ALDRIN_V2_OWNER_TRADE_FEE_NUMERATOR_OFFSET
+            ..ALDRIN_V2_OWNER_TRADE_FEE_NUMERATOR_OFFSET + 8]
+            .copy_from_slice(&10_u64.to_le_bytes());
+        data[ALDRIN_V2_OWNER_TRADE_FEE_DENOMINATOR_OFFSET
+            ..ALDRIN_V2_OWNER_TRADE_FEE_DENOMINATOR_OFFSET + 8]
+            .copy_from_slice(&10_000_u64.to_le_bytes());
+        data.truncate(ALDRIN_V1_POOL_ACCOUNT_LEN);
+        data
+    }
+
     fn invariant_state_data(authority: Pubkey, bump: u8) -> Vec<u8> {
         let mut data = vec![0_u8; INVARIANT_STATE_ACCOUNT_LEN];
         data[..8].copy_from_slice(INVARIANT_STATE_DISCRIMINATOR);
@@ -4543,6 +7240,694 @@ mod tests {
         let mut data = vec![0_u8; LIFINITY_AMM_V1_CONFIG_ACCOUNT_LEN];
         data[..8].copy_from_slice(LIFINITY_AMM_V1_CONFIG_DISCRIMINATOR);
         data
+    }
+
+    fn obric_v2_market_data(
+        x_price_feed: Pubkey,
+        y_price_feed: Pubkey,
+        reserve_x: Pubkey,
+        reserve_y: Pubkey,
+        reference_account_y: Pubkey,
+        mint_x: Pubkey,
+        mint_y: Pubkey,
+    ) -> Vec<u8> {
+        let mut data = vec![0_u8; OBRIC_V2_MARKET_DATA_LEN];
+        data[..8].copy_from_slice(OBRIC_V2_MARKET_DISCRIMINATOR);
+        data[OBRIC_V2_INITIALIZED_OFFSET] = 1;
+        write_pubkey(&mut data, OBRIC_V2_X_PRICE_FEED_OFFSET, x_price_feed);
+        write_pubkey(&mut data, OBRIC_V2_Y_PRICE_FEED_OFFSET, y_price_feed);
+        write_pubkey(&mut data, OBRIC_V2_RESERVE_X_OFFSET, reserve_x);
+        write_pubkey(&mut data, OBRIC_V2_RESERVE_Y_OFFSET, reserve_y);
+        write_pubkey(&mut data, OBRIC_V2_REFERENCE_ACCOUNT_X_OFFSET, x_price_feed);
+        write_pubkey(
+            &mut data,
+            OBRIC_V2_REFERENCE_ACCOUNT_Y_OFFSET,
+            reference_account_y,
+        );
+        write_pubkey(&mut data, OBRIC_V2_MINT_X_OFFSET, mint_x);
+        write_pubkey(&mut data, OBRIC_V2_MINT_Y_OFFSET, mint_y);
+        data
+    }
+
+    #[test]
+    fn obric_v2_semantic_validation_checks_market_bindings_and_direction() {
+        let program = Pubkey::new_unique();
+        let market = Pubkey::new_unique();
+        let x_price_feed = Pubkey::new_unique();
+        let y_price_feed = Pubkey::new_unique();
+        let second_reference_oracle = Pubkey::new_unique();
+        let reserve_x = Pubkey::new_unique();
+        let reserve_y = Pubkey::new_unique();
+        let mint_x_key = Pubkey::new_unique();
+        let mint_y_key = Pubkey::new_unique();
+        let token_program = Pubkey::new_unique();
+        let accounts = vec![
+            test_account_with_data(program, Pubkey::default(), false, false, true, vec![]),
+            test_account_with_data(
+                market,
+                program,
+                false,
+                true,
+                false,
+                obric_v2_market_data(
+                    x_price_feed,
+                    y_price_feed,
+                    reserve_x,
+                    reserve_y,
+                    second_reference_oracle,
+                    mint_x_key,
+                    mint_y_key,
+                ),
+            ),
+            test_account_with_data(
+                second_reference_oracle,
+                Pubkey::new_unique(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                OBRIC_V2_THIRD_REFERENCE_ORACLE,
+                Pubkey::new_unique(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(reserve_x, token_program, false, true, false, vec![]),
+            test_account_with_data(reserve_y, token_program, false, true, false, vec![]),
+            test_account_with_data(
+                x_price_feed,
+                Pubkey::new_unique(),
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                x_price_feed,
+                Pubkey::new_unique(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                y_price_feed,
+                Pubkey::new_unique(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(token_program, Pubkey::default(), false, false, true, vec![]),
+        ];
+        let mint_x = test_account_with_data(mint_x_key, token_program, false, false, false, vec![]);
+        let mint_y = test_account_with_data(mint_y_key, token_program, false, false, false, vec![]);
+        assert!(validate_obric_v2_semantic_accounts(
+            &accounts,
+            0,
+            &mint_x,
+            &mint_y,
+            &accounts[9],
+            &accounts[9],
+        )
+        .is_ok());
+        assert!(validate_obric_v2_semantic_accounts(
+            &accounts,
+            1,
+            &mint_y,
+            &mint_x,
+            &accounts[9],
+            &accounts[9],
+        )
+        .is_ok());
+        let mut wrong = accounts.clone();
+        wrong[3] = test_account_with_data(
+            Pubkey::new_unique(),
+            Pubkey::new_unique(),
+            false,
+            false,
+            false,
+            vec![],
+        );
+        assert!(validate_obric_v2_semantic_accounts(
+            &wrong,
+            0,
+            &mint_x,
+            &mint_y,
+            &accounts[9],
+            &accounts[9],
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn tessera_semantic_validation_checks_pool_vaults_direction_and_sysvar() {
+        let program = Pubkey::new_unique();
+        let pool = Pubkey::new_unique();
+        let global = Pubkey::new_unique();
+        let base_mint_key = Pubkey::new_unique();
+        let quote_mint_key = Pubkey::new_unique();
+        let base_vault = Pubkey::new_unique();
+        let quote_vault = Pubkey::new_unique();
+        let token_program = Pubkey::new_unique();
+        let mut pool_data = vec![0_u8; TESSERA_POOL_ACCOUNT_LEN];
+        write_pubkey(&mut pool_data, TESSERA_BASE_MINT_OFFSET, base_mint_key);
+        write_pubkey(&mut pool_data, TESSERA_QUOTE_MINT_OFFSET, quote_mint_key);
+        let accounts = vec![
+            test_account_with_data(program, Pubkey::default(), false, false, true, vec![]),
+            test_account_with_data(
+                global,
+                program,
+                false,
+                false,
+                false,
+                vec![0_u8; TESSERA_GLOBAL_STATE_ACCOUNT_LEN],
+            ),
+            test_account_with_data(pool, program, false, true, false, pool_data),
+            test_account_with_data(
+                base_vault,
+                token_program,
+                false,
+                true,
+                false,
+                make_token_account_data(base_mint_key, global, 100).to_vec(),
+            ),
+            test_account_with_data(
+                quote_vault,
+                token_program,
+                false,
+                true,
+                false,
+                make_token_account_data(quote_mint_key, global, 100).to_vec(),
+            ),
+            test_account_with_data(base_mint_key, token_program, false, false, false, vec![]),
+            test_account_with_data(quote_mint_key, token_program, false, false, false, vec![]),
+            test_account_with_data(token_program, Pubkey::default(), false, false, true, vec![]),
+            test_account_with_data(token_program, Pubkey::default(), false, false, true, vec![]),
+            test_account_with_data(
+                TESSERA_INSTRUCTION_SYSVAR,
+                Pubkey::default(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+        ];
+        assert!(validate_tessera_semantic_accounts(
+            &accounts,
+            0,
+            &accounts[5],
+            &accounts[6],
+            &accounts[7],
+            &accounts[8],
+        )
+        .is_ok());
+        assert!(validate_tessera_semantic_accounts(
+            &accounts,
+            1,
+            &accounts[6],
+            &accounts[5],
+            &accounts[8],
+            &accounts[7],
+        )
+        .is_ok());
+        let mut wrong_sysvar = accounts.clone();
+        wrong_sysvar[9] = test_account_with_data(
+            Pubkey::new_unique(),
+            Pubkey::default(),
+            false,
+            false,
+            false,
+            vec![],
+        );
+        assert!(validate_tessera_semantic_accounts(
+            &wrong_sysvar,
+            0,
+            &accounts[5],
+            &accounts[6],
+            &accounts[7],
+            &accounts[8],
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn goonfi_semantic_validation_checks_market_vaults_blacklist_and_direction() {
+        let program = Pubkey::new_unique();
+        let payer_key = Pubkey::new_unique();
+        let market = Pubkey::new_unique();
+        let base_mint_key = Pubkey::new_unique();
+        let quote_mint_key = Pubkey::new_unique();
+        let base_vault = Pubkey::new_unique();
+        let quote_vault = Pubkey::new_unique();
+        let token_program = Pubkey::new_unique();
+        let (blacklist, expected_bump) =
+            Pubkey::find_program_address(&[GOONFI_BLACKLIST_SEED, payer_key.as_ref()], &program);
+        let mut market_data = vec![0_u8; GOONFI_MARKET_ACCOUNT_LEN];
+        write_pubkey(&mut market_data, GOONFI_BASE_MINT_OFFSET, base_mint_key);
+        write_pubkey(&mut market_data, GOONFI_QUOTE_MINT_OFFSET, quote_mint_key);
+        write_pubkey(&mut market_data, GOONFI_BASE_VAULT_OFFSET, base_vault);
+        write_pubkey(&mut market_data, GOONFI_QUOTE_VAULT_OFFSET, quote_vault);
+        let payer = test_account_with_data(payer_key, Pubkey::default(), true, true, false, vec![]);
+        let base_mint =
+            test_account_with_data(base_mint_key, token_program, false, false, false, vec![]);
+        let quote_mint =
+            test_account_with_data(quote_mint_key, token_program, false, false, false, vec![]);
+        let accounts = vec![
+            test_account_with_data(program, Pubkey::default(), false, false, true, vec![]),
+            test_account_with_data(market, program, false, true, false, market_data),
+            test_account_with_data(
+                base_vault,
+                token_program,
+                false,
+                true,
+                false,
+                make_token_account_data(base_mint_key, market, 100).to_vec(),
+            ),
+            test_account_with_data(
+                quote_vault,
+                token_program,
+                false,
+                true,
+                false,
+                make_token_account_data(quote_mint_key, market, 100).to_vec(),
+            ),
+            test_account_with_data(blacklist, Pubkey::default(), false, false, false, vec![]),
+            test_account_with_data(
+                GOONFI_INSTRUCTION_SYSVAR,
+                Pubkey::default(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(token_program, Pubkey::default(), false, false, true, vec![]),
+        ];
+        assert_eq!(
+            validate_goonfi_semantic_accounts(
+                &accounts,
+                &payer,
+                0,
+                &base_mint,
+                &quote_mint,
+                &accounts[6],
+                &accounts[6],
+            )
+            .unwrap(),
+            expected_bump
+        );
+        assert!(validate_goonfi_semantic_accounts(
+            &accounts,
+            &payer,
+            1,
+            &quote_mint,
+            &base_mint,
+            &accounts[6],
+            &accounts[6],
+        )
+        .is_ok());
+        let mut wrong_blacklist = accounts.clone();
+        wrong_blacklist[4] = test_account_with_data(
+            Pubkey::new_unique(),
+            Pubkey::default(),
+            false,
+            false,
+            false,
+            vec![],
+        );
+        assert!(validate_goonfi_semantic_accounts(
+            &wrong_blacklist,
+            &payer,
+            0,
+            &base_mint,
+            &quote_mint,
+            &accounts[6],
+            &accounts[6],
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn humidifi_semantic_validation_checks_direction_fixed_accounts_and_param() {
+        let program = Pubkey::new_unique();
+        let market = Pubkey::new_unique();
+        let base_mint_key = Pubkey::new_unique();
+        let quote_mint_key = Pubkey::new_unique();
+        let token_program = Pubkey::new_unique();
+        let mut param = [0_u8; 32];
+        param[..8].copy_from_slice(&1_500_u64.to_le_bytes());
+        param[8] = crate::protocal::humidifi::HUMIDIFI_SWAP_V3_SELECTOR;
+        let accounts = vec![
+            test_account_with_data(program, Pubkey::default(), false, false, true, vec![]),
+            test_account_with_data(market, program, false, true, false, vec![0; 1_728]),
+            test_account_with_data(
+                Pubkey::new_unique(),
+                token_program,
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                Pubkey::new_unique(),
+                token_program,
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(base_mint_key, token_program, false, false, false, vec![]),
+            test_account_with_data(quote_mint_key, token_program, false, false, false, vec![]),
+            test_account_with_data(token_program, Pubkey::default(), false, false, true, vec![]),
+            test_account_with_data(token_program, Pubkey::default(), false, false, true, vec![]),
+            test_account_with_data(
+                HUMIDIFI_CLOCK_SYSVAR,
+                Pubkey::default(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                HUMIDIFI_INSTRUCTION_SYSVAR,
+                Pubkey::default(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                Pubkey::new_unique(),
+                Pubkey::default(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                Pubkey::new_unique(),
+                Pubkey::default(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                Pubkey::new_from_array(param),
+                Pubkey::default(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+        ];
+        let base_mint =
+            test_account_with_data(base_mint_key, token_program, false, false, false, vec![]);
+        let quote_mint =
+            test_account_with_data(quote_mint_key, token_program, false, false, false, vec![]);
+        assert_eq!(
+            validate_humidifi_semantic_accounts(
+                &accounts,
+                0,
+                &base_mint,
+                &quote_mint,
+                &accounts[6],
+                &accounts[7]
+            )
+            .unwrap(),
+            1_500
+        );
+        assert_eq!(
+            validate_humidifi_semantic_accounts(
+                &accounts,
+                1,
+                &quote_mint,
+                &base_mint,
+                &accounts[7],
+                &accounts[6]
+            )
+            .unwrap(),
+            1_500
+        );
+        let mut wrong = accounts.clone();
+        wrong[8] = test_account_with_data(
+            Pubkey::new_unique(),
+            Pubkey::default(),
+            false,
+            false,
+            false,
+            vec![],
+        );
+        assert!(validate_humidifi_semantic_accounts(
+            &wrong,
+            0,
+            &base_mint,
+            &quote_mint,
+            &accounts[6],
+            &accounts[7]
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn solfi_v2_semantic_validation_checks_market_bindings_and_direction() {
+        let program = Pubkey::new_unique();
+        let market = Pubkey::new_unique();
+        let oracle = Pubkey::new_unique();
+        let config = Pubkey::new_unique();
+        let base_mint_key = Pubkey::new_unique();
+        let quote_mint_key = Pubkey::new_unique();
+        let base_vault = Pubkey::new_unique();
+        let quote_vault = Pubkey::new_unique();
+        let base_token_program = Pubkey::new_unique();
+        let quote_token_program = Pubkey::new_unique();
+        let accounts = vec![
+            test_account_with_data(program, Pubkey::default(), false, false, true, vec![]),
+            test_account_with_data(
+                market,
+                program,
+                false,
+                true,
+                false,
+                solfi_v2_market_data(
+                    oracle,
+                    config,
+                    base_mint_key,
+                    quote_mint_key,
+                    base_vault,
+                    quote_vault,
+                    base_token_program,
+                    quote_token_program,
+                ),
+            ),
+            test_account_with_data(oracle, Pubkey::new_unique(), false, false, false, vec![]),
+            test_account_with_data(config, program, false, false, false, vec![]),
+            test_account_with_data(base_vault, base_token_program, false, true, false, vec![]),
+            test_account_with_data(quote_vault, quote_token_program, false, true, false, vec![]),
+            test_account_with_data(
+                base_mint_key,
+                base_token_program,
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                quote_mint_key,
+                quote_token_program,
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                base_token_program,
+                Pubkey::default(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(
+                quote_token_program,
+                Pubkey::default(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(
+                SOLFI_V2_INSTRUCTION_SYSVAR,
+                Pubkey::default(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+        ];
+        let base_mint = test_account_with_data(
+            base_mint_key,
+            base_token_program,
+            false,
+            false,
+            false,
+            vec![],
+        );
+        let quote_mint = test_account_with_data(
+            quote_mint_key,
+            quote_token_program,
+            false,
+            false,
+            false,
+            vec![],
+        );
+        assert!(validate_solfi_v2_semantic_accounts(
+            &accounts,
+            0,
+            &base_mint,
+            &quote_mint,
+            &accounts[8],
+            &accounts[9],
+        )
+        .is_ok());
+        assert!(validate_solfi_v2_semantic_accounts(
+            &accounts,
+            1,
+            &quote_mint,
+            &base_mint,
+            &accounts[9],
+            &accounts[8],
+        )
+        .is_ok());
+
+        let mut wrong_oracle = accounts.clone();
+        wrong_oracle[2] = test_account_with_data(
+            Pubkey::new_unique(),
+            Pubkey::new_unique(),
+            false,
+            false,
+            false,
+            vec![],
+        );
+        assert!(validate_solfi_v2_semantic_accounts(
+            &wrong_oracle,
+            0,
+            &base_mint,
+            &quote_mint,
+            &accounts[8],
+            &accounts[9],
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn solfi_v1_semantic_validation_checks_market_bindings_and_direction() {
+        let program = Pubkey::new_unique();
+        let market = Pubkey::new_unique();
+        let base_mint_key = Pubkey::new_unique();
+        let quote_mint_key = Pubkey::new_unique();
+        let base_vault = Pubkey::new_unique();
+        let quote_vault = Pubkey::new_unique();
+        let mut market_data = vec![0_u8; SOLFI_V1_MARKET_DATA_LEN];
+        for (offset, key) in [
+            (SOLFI_V1_BASE_MINT_OFFSET, base_mint_key),
+            (SOLFI_V1_QUOTE_MINT_OFFSET, quote_mint_key),
+            (SOLFI_V1_BASE_VAULT_OFFSET, base_vault),
+            (SOLFI_V1_QUOTE_VAULT_OFFSET, quote_vault),
+        ] {
+            market_data[offset..offset + 32].copy_from_slice(key.as_ref());
+        }
+        let accounts = vec![
+            test_account_with_data(program, Pubkey::default(), false, false, true, vec![]),
+            test_account_with_data(market, program, false, true, false, market_data),
+            test_account_with_data(
+                base_vault,
+                SOLFI_V1_TOKEN_PROGRAM,
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                quote_vault,
+                SOLFI_V1_TOKEN_PROGRAM,
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                SOLFI_V1_TOKEN_PROGRAM,
+                Pubkey::default(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(
+                SOLFI_V1_INSTRUCTION_SYSVAR,
+                Pubkey::default(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+        ];
+        let base_mint = test_account_with_data(
+            base_mint_key,
+            SOLFI_V1_TOKEN_PROGRAM,
+            false,
+            false,
+            false,
+            vec![],
+        );
+        let quote_mint = test_account_with_data(
+            quote_mint_key,
+            SOLFI_V1_TOKEN_PROGRAM,
+            false,
+            false,
+            false,
+            vec![],
+        );
+        assert!(validate_solfi_v1_semantic_accounts(
+            &accounts,
+            0,
+            &base_mint,
+            &quote_mint,
+            &accounts[4],
+            &accounts[4],
+        )
+        .is_ok());
+        assert!(validate_solfi_v1_semantic_accounts(
+            &accounts,
+            1,
+            &quote_mint,
+            &base_mint,
+            &accounts[4],
+            &accounts[4],
+        )
+        .is_ok());
+        let mut wrong_vault = accounts.clone();
+        wrong_vault[2] = test_account_with_data(
+            Pubkey::new_unique(),
+            SOLFI_V1_TOKEN_PROGRAM,
+            false,
+            true,
+            false,
+            vec![],
+        );
+        assert!(validate_solfi_v1_semantic_accounts(
+            &wrong_vault,
+            0,
+            &base_mint,
+            &quote_mint,
+            &accounts[4],
+            &accounts[4],
+        )
+        .is_err());
     }
 
     #[test]
@@ -6299,6 +9684,113 @@ mod tests {
     }
 
     #[test]
+    fn aldrin_v1_semantic_validation_checks_pool_pda_fees_and_direction() {
+        let program_key = crate::instructions::program_ids::ALDRIN_V1_PROGRAM_ID;
+        let token_program_key = anchor_spl::token::ID;
+        let pool_key = Pubkey::new_unique();
+        let (pool_signer, pool_signer_nonce) =
+            Pubkey::find_program_address(&[pool_key.as_ref()], &program_key);
+        let pool_mint = Pubkey::new_unique();
+        let base_vault = Pubkey::new_unique();
+        let base_mint = Pubkey::new_unique();
+        let quote_vault = Pubkey::new_unique();
+        let quote_mint = Pubkey::new_unique();
+        let fee_pool = Pubkey::new_unique();
+        let step_accounts = vec![
+            test_account_with_data(
+                program_key,
+                Pubkey::new_unique(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(
+                pool_key,
+                program_key,
+                false,
+                false,
+                false,
+                aldrin_v1_pool_data(
+                    pool_signer,
+                    pool_signer_nonce,
+                    pool_mint,
+                    base_vault,
+                    base_mint,
+                    quote_vault,
+                    quote_mint,
+                    fee_pool,
+                ),
+            ),
+            test_account_with_data(
+                pool_signer,
+                anchor_lang::system_program::ID,
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(pool_mint, token_program_key, false, true, false, vec![]),
+            test_account_with_data(base_vault, token_program_key, false, true, false, vec![]),
+            test_account_with_data(quote_vault, token_program_key, false, true, false, vec![]),
+            test_account_with_data(fee_pool, token_program_key, false, true, false, vec![]),
+        ];
+        let base_mint_account =
+            test_account_with_data(base_mint, token_program_key, false, false, false, vec![]);
+        let quote_mint_account =
+            test_account_with_data(quote_mint, token_program_key, false, false, false, vec![]);
+        let token_program = test_account_with_data(
+            token_program_key,
+            Pubkey::new_unique(),
+            false,
+            false,
+            true,
+            vec![],
+        );
+
+        assert!(validate_aldrin_v1_semantic_accounts(
+            &step_accounts,
+            0,
+            &base_mint_account,
+            &quote_mint_account,
+            &token_program,
+        )
+        .is_ok());
+        assert!(validate_aldrin_v1_semantic_accounts(
+            &step_accounts,
+            1,
+            &quote_mint_account,
+            &base_mint_account,
+            &token_program,
+        )
+        .is_ok());
+        assert!(validate_aldrin_v1_semantic_accounts(
+            &step_accounts,
+            0,
+            &quote_mint_account,
+            &base_mint_account,
+            &token_program,
+        )
+        .is_err());
+
+        {
+            let mut pool_data = step_accounts[1].try_borrow_mut_data().unwrap();
+            pool_data[ALDRIN_V2_TRADE_FEE_DENOMINATOR_OFFSET
+                ..ALDRIN_V2_TRADE_FEE_DENOMINATOR_OFFSET + 8]
+                .copy_from_slice(&0_u64.to_le_bytes());
+        }
+        let err = validate_aldrin_v1_semantic_accounts(
+            &step_accounts,
+            0,
+            &base_mint_account,
+            &quote_mint_account,
+            &token_program,
+        )
+        .unwrap_err();
+        assert_eq!(err, ArbitrageError::InvalidAccount.into());
+    }
+
+    #[test]
     fn bonk_swap_semantic_validation_checks_fixed_accounts_pool_pda_and_fees() {
         let program_key = BONK_SWAP_PROGRAM_ID;
         let token_x = Pubkey::new_unique();
@@ -7499,6 +10991,39 @@ mod tests {
         );
 
         assert!(validate_raydium_pool_v4_authority(&program, &pool_state, &authority).is_ok());
+    }
+
+    #[test]
+    fn raydium_stable_authority_validation_uses_the_program_wide_pda() {
+        let program_id = Pubkey::new_unique();
+        let authority =
+            Pubkey::find_program_address(&[RAYDIUM_STABLE_SWAP_AUTHORITY_SEED], &program_id).0;
+        let program = test_account_with_data(
+            program_id,
+            Pubkey::new_unique(),
+            false,
+            false,
+            true,
+            Vec::new(),
+        );
+        let pool_state = test_account_with_data(
+            Pubkey::new_unique(),
+            program_id,
+            false,
+            true,
+            false,
+            Vec::new(),
+        );
+        let authority = test_account_with_data(
+            authority,
+            Pubkey::new_unique(),
+            false,
+            false,
+            false,
+            Vec::new(),
+        );
+
+        assert!(validate_raydium_stable_swap_authority(&program, &pool_state, &authority).is_ok());
     }
 
     #[test]

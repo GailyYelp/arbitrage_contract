@@ -6,12 +6,17 @@ use crate::instructions::program_ids::{
     validate_step_fixed_accounts, validate_step_program_account,
 };
 use crate::instructions::types::{
-    token_program_for_mint, validate_aldrin_v2_semantic_accounts,
-    validate_bonk_swap_semantic_accounts, validate_invariant_semantic_accounts,
+    token_program_for_mint, validate_aldrin_v1_semantic_accounts,
+    validate_aldrin_v2_semantic_accounts, validate_bonk_swap_semantic_accounts,
+    validate_boop_fun_semantic_accounts, validate_crema_clmm_semantic_accounts,
+    validate_fluxbeam_semantic_accounts, validate_goonfi_semantic_accounts,
+    validate_goonfi_v2_semantic_accounts, validate_heaven_semantic_accounts,
+    validate_humidifi_semantic_accounts, validate_invariant_semantic_accounts,
     validate_lifinity_amm_v1_semantic_accounts, validate_lifinity_amm_v2_semantic_accounts,
     validate_manifest_semantic_accounts, validate_mercurial_stable_swap_semantic_accounts,
     validate_meteora_damm_v1_semantic_accounts, validate_meteora_damm_v2_semantic_accounts,
     validate_meteora_dbc_semantic_accounts, validate_meteora_dlmm_semantic_accounts,
+    validate_moonit_semantic_accounts, validate_obric_v2_semantic_accounts,
     validate_openbook_v2_semantic_accounts, validate_orca_token_swap_semantic_accounts,
     validate_orca_whirlpool_semantic_accounts, validate_phoenix_semantic_accounts,
     validate_pumpfun_amm_semantic_accounts, validate_pumpfun_swap_semantic_accounts,
@@ -19,13 +24,27 @@ use crate::instructions::types::{
     validate_raydium_launchpad_semantic_accounts, validate_raydium_pool_v4_authority,
     validate_raydium_pool_v4_semantic_accounts, validate_raydium_stable_swap_authority,
     validate_raydium_stable_swap_semantic_accounts, validate_saber_stable_swap_semantic_accounts,
-    validate_sencha_swap_semantic_accounts, validate_token_account_for_mint,
-    validate_token_account_for_mint_and_authority, SwapResult,
+    validate_sanctum_router_semantic_accounts, validate_saros_dlmm_semantic_accounts,
+    validate_sencha_swap_semantic_accounts, validate_solfi_v1_semantic_accounts,
+    validate_solfi_v2_semantic_accounts, validate_tessera_semantic_accounts,
+    validate_token_account_for_mint, validate_token_account_for_mint_and_authority, SwapResult,
 };
 use crate::protocal::{
+    aldrin_v1::{aldrin_v1_swap, AldrinV1Accounts, ALDRIN_V1_MIN_ACCOUNTS},
     aldrin_v2::{aldrin_v2_swap, AldrinV2Accounts, ALDRIN_V2_MIN_ACCOUNTS},
     bonk_swap::{bonk_swap, BonkSwapAccounts, BONK_SWAP_MIN_ACCOUNTS},
+    boop_fun::{boop_fun_swap, BoopFunAccounts, BOOP_FUN_STEP_ACCOUNTS},
+    crema_clmm::{
+        crema_clmm_swap, CremaClmmAccounts, CREMA_CLMM_MAX_STEP_ACCOUNTS,
+        CREMA_CLMM_MIN_STEP_ACCOUNTS,
+    },
+    fluxbeam::{fluxbeam_swap, FluxBeamAccounts, FLUXBEAM_MIN_ACCOUNTS},
     gamma_swap::{gamma_swap_base_input, GammaSwapAccounts, GAMMA_SWAP_MIN_ACCOUNTS},
+    gavel::{gavel_swap, validate_gavel_semantic_accounts, GavelAccounts, GAVEL_STEP_ACCOUNTS},
+    goonfi::{goonfi_swap, GoonfiAccounts, GOONFI_MIN_ACCOUNTS},
+    goonfi_v2::{goonfi_v2_swap, GoonfiV2Accounts, GOONFI_V2_MIN_ACCOUNTS},
+    heaven::{heaven_swap, HeavenAccounts, HEAVEN_STEP_ACCOUNTS},
+    humidifi::{humidifi_swap_v3, HumidifiAccounts, HUMIDIFI_MIN_ACCOUNTS},
     invariant::{invariant_swap, InvariantAccounts, INVARIANT_MIN_ACCOUNTS},
     lifinity_amm_v1::{
         lifinity_amm_v1_swap, LifinityAmmV1SwapAccounts, LIFINITY_AMM_V1_MIN_ACCOUNTS,
@@ -37,13 +56,31 @@ use crate::protocal::{
     mercurial_stable_swap::{
         mercurial_stable_swap, MercurialStableSwapAccounts, MERCURIAL_STABLE_SWAP_MIN_ACCOUNTS,
     },
+    metadao_futarchy::{
+        metadao_futarchy_swap, validate_metadao_futarchy_semantic_accounts,
+        MetaDaoFutarchyAccounts, METADAO_FUTARCHY_STEP_ACCOUNTS,
+    },
     meteora_damm_v1::{meteora_damm_v1_swap, MeteoraDammV1Accounts, METEORA_DAMM_V1_MIN_ACCOUNTS},
     meteora_damm_v2::{meteora_damm_v2_swap, MeteoraDammV2Accounts, METEORA_DAMM_V2_MIN_ACCOUNTS},
     meteora_dbc::{meteora_dbc_swap, MeteoraDbcAccounts, METEORA_DBC_MIN_ACCOUNTS},
     meteora_dlmm::{meteora_dlmm_swap, MeteoraDlmmAccounts, METEORA_DLMM_MIN_ACCOUNTS},
+    moonit::{moonit_swap, MoonitAccounts, MOONIT_STEP_ACCOUNTS},
+    obric_v2::{obric_v2_swap, ObricV2Accounts, OBRIC_V2_MIN_ACCOUNTS},
+    omnipair::{
+        omnipair_swap, validate_omnipair_semantic_accounts, OmnipairAccounts,
+        OMNIPAIR_STEP_ACCOUNTS,
+    },
     openbook_v2::{openbook_v2_swap, OpenBookV2SwapAccounts, OPENBOOK_V2_MIN_ACCOUNTS},
     orca_token_swap::{orca_token_swap, OrcaTokenSwapAccounts, ORCA_TOKEN_SWAP_MIN_ACCOUNTS},
     orca_whirlpool::{orca_whirlpool_swap, OrcaWhirlpoolAccounts, ORCA_WHIRLPOOL_MIN_ACCOUNTS},
+    perena_numeraire::{
+        perena_numeraire_swap, validate_perena_numeraire_semantic_accounts,
+        PerenaNumeraireAccounts, PERENA_NUMERAIRE_STEP_ACCOUNTS,
+    },
+    perena_star::{
+        perena_star_swap, validate_perena_star_semantic_accounts, PerenaStarAccounts,
+        PERENA_STAR_STEP_ACCOUNTS,
+    },
     phoenix::{phoenix_swap, PhoenixSwapAccounts, PHOENIX_MIN_ACCOUNTS},
     pumpfun_amm::{pumpfun_amm_swap, PumpFunAmmAccounts, PUMPFUN_AMM_MIN_ACCOUNTS},
     pumpfun_swap::{pumpfun_swap_swap, PumpFunSwapAccounts, PUMPFUN_SWAP_MIN_ACCOUNTS},
@@ -59,8 +96,25 @@ use crate::protocal::{
     saber_stable_swap::{
         saber_stable_swap, SaberStableSwapAccounts, SABER_STABLE_SWAP_MIN_ACCOUNTS,
     },
+    sanctum_infinity::{
+        sanctum_infinity_swap, SanctumInfinityAccounts, SANCTUM_INFINITY_STEP_ACCOUNTS,
+    },
+    sanctum_router::{sanctum_router_swap, SanctumRouterAccounts, SANCTUM_ROUTER_STEP_ACCOUNTS},
+    saros_dlmm::{saros_dlmm_swap, SarosDlmmAccounts, SAROS_DLMM_STEP_ACCOUNTS},
+    scale_amm::{
+        scale_amm_swap, token_programs_for_direction, validate_scale_amm_semantic_accounts,
+        ScaleAmmAccounts,
+    },
+    scale_vmm::{scale_vmm_swap, validate_scale_vmm_semantic_accounts, ScaleVmmAccounts},
     sencha_swap::{sencha_swap, SenchaSwapAccounts, SENCHA_SWAP_MIN_ACCOUNTS},
+    serum_v3::{
+        serum_v3_swap, validate_serum_v3_semantic_accounts, SerumV3Accounts, SERUM_V3_STEP_ACCOUNTS,
+    },
+    solfi_v1::{solfi_v1_swap, SolfiV1Accounts, SOLFI_V1_MIN_ACCOUNTS},
+    solfi_v2::{solfi_v2_swap, SolfiV2Accounts, SOLFI_V2_MIN_ACCOUNTS},
     stabble_swap::{stabble_swap_v2, StabbleSwapAccounts, STABBLE_SWAP_MIN_ACCOUNTS},
+    tessera::{tessera_swap, TesseraAccounts, TESSERA_MIN_ACCOUNTS},
+    virtuals::{validate_virtuals_semantic_accounts, virtuals_swap, VirtualsAccounts},
     woofi_swap::{woofi_swap, WoofiSwapAccounts, WOOFI_SWAP_MIN_ACCOUNTS},
 };
 use crate::state::Protocol;
@@ -128,7 +182,7 @@ pub fn execute_arbitrage<'info>(
         validate_step_fixed_accounts(step.protocol, step_slice)?;
 
         let result = match step.protocol {
-            Protocol::RaydiumCPMM => {
+            Protocol::RaydiumCPMM => execute_isolated_step(|| {
                 require!(
                     step_slice.len() >= RAYDIUM_CPMM_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
@@ -170,11 +224,11 @@ pub fn execute_arbitrage<'info>(
                     observation_state: &step_slice[6],
                 };
                 raydium_cpmm_swap(account_infos, current_amount, step.min_output_amount)
-            }
+            }),
             Protocol::RaydiumCLMM
             | Protocol::ByrealCLMM
             | Protocol::PancakeSwap
-            | Protocol::StabbleCLMM => {
+            | Protocol::StabbleCLMM => execute_isolated_step(|| {
                 require!(
                     step_slice.len() >= RAYDIUM_CLMM_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
@@ -200,55 +254,69 @@ pub fn execute_arbitrage<'info>(
                     remaining_accounts: step_slice[7..].to_vec(),
                 };
                 raydium_clmm_swap(account_infos, current_amount, step.min_output_amount)
-            }
+            }),
             Protocol::StabbleStableSwap | Protocol::StabbleWeightedSwap => {
-                require!(
-                    step_slice.len() >= STABBLE_SWAP_MIN_ACCOUNTS,
-                    ArbitrageError::InvalidAccountCount
-                );
-                require_keys_eq!(
-                    step_slice[1].key(),
-                    in_mint_ai.key(),
-                    ArbitrageError::InvalidTokenMint
-                );
-                require_keys_eq!(
-                    step_slice[2].key(),
-                    out_mint_ai.key(),
-                    ArbitrageError::InvalidTokenMint
-                );
-                require_keys_eq!(
-                    step_slice[10].key(),
-                    in_mint_program_ai.key(),
-                    ArbitrageError::InvalidAccount
-                );
-                require_keys_eq!(
-                    step_slice[11].key(),
-                    out_mint_program_ai.key(),
-                    ArbitrageError::InvalidAccount
-                );
-                validate_token_account_for_mint(&step_slice[3], in_mint_ai, in_mint_program_ai)?;
-                validate_token_account_for_mint(&step_slice[4], out_mint_ai, out_mint_program_ai)?;
-                validate_token_account_for_mint(&step_slice[5], out_mint_ai, out_mint_program_ai)?;
-                let account_infos = StabbleSwapAccounts {
-                    program: &step_slice[0],
-                    payer,
-                    mint_in: in_mint_ai,
-                    mint_out: out_mint_ai,
-                    user_token_in: user_in_ai,
-                    user_token_out: user_out_ai,
-                    vault_token_in: &step_slice[3],
-                    vault_token_out: &step_slice[4],
-                    beneficiary_token_out: &step_slice[5],
-                    pool: &step_slice[6],
-                    withdraw_authority: &step_slice[7],
-                    vault: &step_slice[8],
-                    vault_authority: &step_slice[9],
-                    token_program,
-                    token_2022_program,
-                };
-                stabble_swap_v2(account_infos, current_amount, step.min_output_amount)
+                execute_isolated_step(|| {
+                    require!(
+                        step_slice.len() >= STABBLE_SWAP_MIN_ACCOUNTS,
+                        ArbitrageError::InvalidAccountCount
+                    );
+                    require_keys_eq!(
+                        step_slice[1].key(),
+                        in_mint_ai.key(),
+                        ArbitrageError::InvalidTokenMint
+                    );
+                    require_keys_eq!(
+                        step_slice[2].key(),
+                        out_mint_ai.key(),
+                        ArbitrageError::InvalidTokenMint
+                    );
+                    require_keys_eq!(
+                        step_slice[10].key(),
+                        in_mint_program_ai.key(),
+                        ArbitrageError::InvalidAccount
+                    );
+                    require_keys_eq!(
+                        step_slice[11].key(),
+                        out_mint_program_ai.key(),
+                        ArbitrageError::InvalidAccount
+                    );
+                    validate_token_account_for_mint(
+                        &step_slice[3],
+                        in_mint_ai,
+                        in_mint_program_ai,
+                    )?;
+                    validate_token_account_for_mint(
+                        &step_slice[4],
+                        out_mint_ai,
+                        out_mint_program_ai,
+                    )?;
+                    validate_token_account_for_mint(
+                        &step_slice[5],
+                        out_mint_ai,
+                        out_mint_program_ai,
+                    )?;
+                    let account_infos = StabbleSwapAccounts {
+                        program: &step_slice[0],
+                        payer,
+                        mint_in: in_mint_ai,
+                        mint_out: out_mint_ai,
+                        user_token_in: user_in_ai,
+                        user_token_out: user_out_ai,
+                        vault_token_in: &step_slice[3],
+                        vault_token_out: &step_slice[4],
+                        beneficiary_token_out: &step_slice[5],
+                        pool: &step_slice[6],
+                        withdraw_authority: &step_slice[7],
+                        vault: &step_slice[8],
+                        vault_authority: &step_slice[9],
+                        token_program,
+                        token_2022_program,
+                    };
+                    stabble_swap_v2(account_infos, current_amount, step.min_output_amount)
+                })
             }
-            Protocol::GammaSwap => {
+            Protocol::GammaSwap => execute_isolated_step(|| {
                 require!(
                     step_slice.len() >= GAMMA_SWAP_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
@@ -292,7 +360,7 @@ pub fn execute_arbitrage<'info>(
                     observation_state: &step_slice[10],
                 };
                 gamma_swap_base_input(account_infos, current_amount, step.min_output_amount)
-            }
+            }),
             Protocol::RaydiumPoolV4 => execute_raydium_pool_v4_step(
                 step_slice,
                 payer,
@@ -321,7 +389,110 @@ pub fn execute_arbitrage<'info>(
                 current_amount,
                 step.min_output_amount,
             ),
-            Protocol::RaydiumLaunchPad => {
+            Protocol::SolFiV2 => execute_solfi_v2_step(
+                step_slice,
+                payer,
+                user_in_ai,
+                user_out_ai,
+                in_mint_ai,
+                out_mint_ai,
+                in_mint_program_ai,
+                out_mint_program_ai,
+                direction,
+                current_amount,
+                step.min_output_amount,
+            ),
+            Protocol::SolFiV1 => execute_solfi_v1_step(
+                step_slice,
+                payer,
+                user_in_ai,
+                user_out_ai,
+                in_mint_ai,
+                out_mint_ai,
+                in_mint_program_ai,
+                out_mint_program_ai,
+                direction,
+                current_amount,
+                step.min_output_amount,
+            ),
+            Protocol::FluxBeam => execute_fluxbeam_step(
+                step_slice,
+                payer,
+                user_in_ai,
+                user_out_ai,
+                in_mint_ai,
+                out_mint_ai,
+                in_mint_program_ai,
+                out_mint_program_ai,
+                direction,
+                current_amount,
+                step.min_output_amount,
+            ),
+            Protocol::HumidiFi => execute_humidifi_step(
+                step_slice,
+                payer,
+                user_in_ai,
+                user_out_ai,
+                in_mint_ai,
+                out_mint_ai,
+                in_mint_program_ai,
+                out_mint_program_ai,
+                direction,
+                current_amount,
+            ),
+            Protocol::ObricV2 => execute_obric_v2_step(
+                step_slice,
+                payer,
+                user_in_ai,
+                user_out_ai,
+                in_mint_ai,
+                out_mint_ai,
+                in_mint_program_ai,
+                out_mint_program_ai,
+                direction,
+                current_amount,
+                step.min_output_amount,
+            ),
+            Protocol::Tessera => execute_tessera_step(
+                step_slice,
+                payer,
+                user_in_ai,
+                user_out_ai,
+                in_mint_ai,
+                out_mint_ai,
+                in_mint_program_ai,
+                out_mint_program_ai,
+                direction,
+                current_amount,
+                step.min_output_amount,
+            ),
+            Protocol::GoonFi => execute_goonfi_step(
+                step_slice,
+                payer,
+                user_in_ai,
+                user_out_ai,
+                in_mint_ai,
+                out_mint_ai,
+                in_mint_program_ai,
+                out_mint_program_ai,
+                direction,
+                current_amount,
+                step.min_output_amount,
+            ),
+            Protocol::GoonFiV2 => execute_goonfi_v2_step(
+                step_slice,
+                payer,
+                user_in_ai,
+                user_out_ai,
+                in_mint_ai,
+                out_mint_ai,
+                in_mint_program_ai,
+                out_mint_program_ai,
+                direction,
+                current_amount,
+                step.min_output_amount,
+            ),
+            Protocol::RaydiumLaunchPad => execute_isolated_step(|| {
                 require!(
                     step_slice.len() >= RAYDIUM_LAUNCHPAD_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
@@ -393,7 +564,7 @@ pub fn execute_arbitrage<'info>(
                     current_amount,
                     step.min_output_amount,
                 )
-            }
+            }),
             Protocol::PumpFunSwap => execute_pumpfun_swap_step(
                 step_slice,
                 payer,
@@ -424,7 +595,7 @@ pub fn execute_arbitrage<'info>(
                 current_amount,
                 step.fee_rate,
             ),
-            Protocol::OrcaWhirlpool => {
+            Protocol::OrcaWhirlpool => execute_isolated_step(|| {
                 require!(
                     step_slice.len() >= ORCA_WHIRLPOOL_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
@@ -480,13 +651,13 @@ pub fn execute_arbitrage<'info>(
                     step.min_output_amount,
                     direction == 0,
                 )
-            }
+            }),
             Protocol::OrcaTokenSwapV2
             | Protocol::OrcaTokenSwapV1
             | Protocol::SarosSwap
             | Protocol::SplTokenSwap
             | Protocol::DooarSwap
-            | Protocol::PenguinSwap => {
+            | Protocol::PenguinSwap => execute_isolated_step(|| {
                 require!(
                     step_slice.len() == ORCA_TOKEN_SWAP_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
@@ -548,8 +719,8 @@ pub fn execute_arbitrage<'info>(
                     current_amount,
                     step.min_output_amount,
                 )
-            }
-            Protocol::SenchaSwap => {
+            }),
+            Protocol::SenchaSwap => execute_isolated_step(|| {
                 require!(
                     step_slice.len() == SENCHA_SWAP_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
@@ -625,8 +796,8 @@ pub fn execute_arbitrage<'info>(
                     current_amount,
                     step.min_output_amount,
                 )
-            }
-            Protocol::SaberStableSwap => {
+            }),
+            Protocol::SaberStableSwap => execute_isolated_step(|| {
                 require!(
                     step_slice.len() == SABER_STABLE_SWAP_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
@@ -681,8 +852,8 @@ pub fn execute_arbitrage<'info>(
                     current_amount,
                     step.min_output_amount,
                 )
-            }
-            Protocol::MercurialStableSwap => {
+            }),
+            Protocol::MercurialStableSwap => execute_isolated_step(|| {
                 require!(
                     step_slice.len() == MERCURIAL_STABLE_SWAP_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
@@ -730,8 +901,8 @@ pub fn execute_arbitrage<'info>(
                     current_amount,
                     step.min_output_amount,
                 )
-            }
-            Protocol::Invariant => {
+            }),
+            Protocol::Invariant => execute_isolated_step(|| {
                 require!(
                     step_slice.len() == INVARIANT_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
@@ -786,8 +957,627 @@ pub fn execute_arbitrage<'info>(
                     current_amount,
                     direction == 0,
                 )
-            }
-            Protocol::AldrinV2 => {
+            }),
+            Protocol::CremaClmm => execute_isolated_step(|| {
+                execute_crema_clmm_step(
+                    step_slice,
+                    payer,
+                    user_in_ai,
+                    user_out_ai,
+                    in_mint_ai,
+                    out_mint_ai,
+                    in_mint_program_ai,
+                    out_mint_program_ai,
+                    token_program,
+                    direction,
+                    current_amount,
+                    step.min_output_amount,
+                )
+            }),
+            Protocol::SanctumRouter => execute_isolated_step(|| {
+                execute_sanctum_router_step(
+                    step_slice,
+                    payer,
+                    user_in_ai,
+                    user_out_ai,
+                    in_mint_ai,
+                    out_mint_ai,
+                    in_mint_program_ai,
+                    out_mint_program_ai,
+                    token_program,
+                    direction,
+                    current_amount,
+                )
+            }),
+            Protocol::Moonit => execute_isolated_step(|| {
+                execute_moonit_step(
+                    step_slice,
+                    payer,
+                    user_in_ai,
+                    user_out_ai,
+                    in_mint_ai,
+                    out_mint_ai,
+                    in_mint_program_ai,
+                    out_mint_program_ai,
+                    token_program,
+                    associated_token_program,
+                    system_program,
+                    direction,
+                    current_amount,
+                )
+            }),
+            Protocol::BoopFun => execute_isolated_step(|| {
+                execute_boop_fun_step(
+                    step_slice,
+                    payer,
+                    user_in_ai,
+                    user_out_ai,
+                    in_mint_ai,
+                    out_mint_ai,
+                    in_mint_program_ai,
+                    out_mint_program_ai,
+                    token_program,
+                    associated_token_program,
+                    system_program,
+                    direction,
+                    current_amount,
+                )
+            }),
+            Protocol::Heaven => execute_isolated_step(|| {
+                execute_heaven_step(
+                    step_slice,
+                    payer,
+                    user_in_ai,
+                    user_out_ai,
+                    in_mint_ai,
+                    out_mint_ai,
+                    in_mint_program_ai,
+                    out_mint_program_ai,
+                    token_program,
+                    token_2022_program,
+                    associated_token_program,
+                    system_program,
+                    direction,
+                    current_amount,
+                )
+            }),
+            Protocol::SarosDlmm => execute_isolated_step(|| {
+                execute_saros_dlmm_step(
+                    step_slice,
+                    payer,
+                    user_in_ai,
+                    user_out_ai,
+                    in_mint_ai,
+                    out_mint_ai,
+                    in_mint_program_ai,
+                    out_mint_program_ai,
+                    token_program,
+                    token_2022_program,
+                    associated_token_program,
+                    direction,
+                    current_amount,
+                )
+            }),
+            Protocol::PerenaNumeraire => execute_isolated_step(|| {
+                require!(
+                    step_slice.len() == PERENA_NUMERAIRE_STEP_ACCOUNTS,
+                    ArbitrageError::InvalidAccountCount
+                );
+                validate_perena_numeraire_semantic_accounts(
+                    step_slice,
+                    direction,
+                    in_mint_ai,
+                    out_mint_ai,
+                    token_program,
+                    token_2022_program,
+                )?;
+                let (in_mint, out_mint, in_vault, out_vault, in_index, out_index) =
+                    if direction == 0 {
+                        (
+                            &step_slice[2],
+                            &step_slice[3],
+                            &step_slice[4],
+                            &step_slice[5],
+                            0,
+                            1,
+                        )
+                    } else {
+                        (
+                            &step_slice[3],
+                            &step_slice[2],
+                            &step_slice[5],
+                            &step_slice[4],
+                            1,
+                            0,
+                        )
+                    };
+                perena_numeraire_swap(
+                    PerenaNumeraireAccounts {
+                        program: &step_slice[0],
+                        pool: &step_slice[1],
+                        in_mint,
+                        out_mint,
+                        in_trader: user_in_ai,
+                        out_trader: user_out_ai,
+                        in_vault,
+                        out_vault,
+                        config: &step_slice[6],
+                        payer,
+                        token_program,
+                        token_2022_program,
+                    },
+                    current_amount,
+                    step.min_output_amount,
+                    in_index,
+                    out_index,
+                )
+            }),
+            Protocol::PerenaStar => execute_isolated_step(|| {
+                require!(
+                    step_slice.len() == PERENA_STAR_STEP_ACCOUNTS,
+                    ArbitrageError::InvalidAccountCount
+                );
+                require_keys_eq!(
+                    in_mint_program_ai.key(),
+                    token_program.key(),
+                    ArbitrageError::InvalidAccount
+                );
+                require_keys_eq!(
+                    out_mint_program_ai.key(),
+                    token_program.key(),
+                    ArbitrageError::InvalidAccount
+                );
+                validate_perena_star_semantic_accounts(
+                    step_slice,
+                    direction,
+                    in_mint_ai,
+                    out_mint_ai,
+                    token_program,
+                )?;
+                let (yielding_mint, bank_mint, yielding_user_ta, bank_mint_user_ta) =
+                    if direction == 0 {
+                        (in_mint_ai, out_mint_ai, user_in_ai, user_out_ai)
+                    } else {
+                        (out_mint_ai, in_mint_ai, user_out_ai, user_in_ai)
+                    };
+                perena_star_swap(
+                    PerenaStarAccounts {
+                        program: &step_slice[0],
+                        payer,
+                        bank_state: &step_slice[1],
+                        vault_state: &step_slice[2],
+                        oracle_state: &step_slice[3],
+                        yielding_mint,
+                        bank_mint,
+                        yielding_user_ta,
+                        bank_mint_user_ta,
+                        yielding_vault_ata: &step_slice[4],
+                        team_state: &step_slice[5],
+                        fee_team_ata: &step_slice[6],
+                        system_program,
+                        token_program,
+                        associated_token_program,
+                        marginfi_program: &step_slice[7],
+                        marginfi_group: &step_slice[8],
+                        marginfi_account: &step_slice[9],
+                        marginfi_bank: &step_slice[10],
+                        marginfi_vault_authority: &step_slice[11],
+                        marginfi_liquidity_vault: &step_slice[12],
+                        marginfi_oracle: &step_slice[13],
+                    },
+                    current_amount,
+                    step.min_output_amount,
+                    direction,
+                )
+            }),
+            Protocol::MetaDaoFutarchy => execute_isolated_step(|| {
+                require!(
+                    step_slice.len() == METADAO_FUTARCHY_STEP_ACCOUNTS,
+                    ArbitrageError::InvalidAccountCount
+                );
+                require_keys_eq!(
+                    in_mint_program_ai.key(),
+                    token_program.key(),
+                    ArbitrageError::InvalidAccount
+                );
+                require_keys_eq!(
+                    out_mint_program_ai.key(),
+                    token_program.key(),
+                    ArbitrageError::InvalidAccount
+                );
+                validate_metadao_futarchy_semantic_accounts(
+                    step_slice,
+                    direction,
+                    in_mint_ai,
+                    out_mint_ai,
+                    token_program,
+                )?;
+                let (user_base, user_quote) = if direction == 0 {
+                    (user_out_ai, user_in_ai)
+                } else {
+                    (user_in_ai, user_out_ai)
+                };
+                metadao_futarchy_swap(
+                    MetaDaoFutarchyAccounts {
+                        program: &step_slice[0],
+                        dao: &step_slice[1],
+                        user_base,
+                        user_quote,
+                        base_vault: &step_slice[2],
+                        quote_vault: &step_slice[3],
+                        payer,
+                        token_program,
+                        event_authority: &step_slice[4],
+                    },
+                    current_amount,
+                    step.min_output_amount,
+                    direction,
+                )
+            }),
+            Protocol::Gavel => execute_isolated_step(|| {
+                require!(
+                    step_slice.len() == GAVEL_STEP_ACCOUNTS,
+                    ArbitrageError::InvalidAccountCount
+                );
+                require_keys_eq!(
+                    in_mint_program_ai.key(),
+                    token_program.key(),
+                    ArbitrageError::InvalidAccount
+                );
+                require_keys_eq!(
+                    out_mint_program_ai.key(),
+                    token_program.key(),
+                    ArbitrageError::InvalidAccount
+                );
+                validate_gavel_semantic_accounts(
+                    step_slice,
+                    direction,
+                    in_mint_ai,
+                    out_mint_ai,
+                    token_program,
+                )?;
+                let (user_base, user_quote) = if direction == 0 {
+                    (user_out_ai, user_in_ai)
+                } else {
+                    (user_in_ai, user_out_ai)
+                };
+                gavel_swap(
+                    GavelAccounts {
+                        program: &step_slice[0],
+                        log_authority: &step_slice[1],
+                        pool: &step_slice[2],
+                        payer,
+                        user_base,
+                        user_quote,
+                        base_vault: &step_slice[3],
+                        quote_vault: &step_slice[4],
+                        token_program,
+                    },
+                    current_amount,
+                    step.min_output_amount,
+                    direction,
+                )
+            }),
+            Protocol::Omnipair => execute_isolated_step(|| {
+                require!(
+                    step_slice.len() == OMNIPAIR_STEP_ACCOUNTS,
+                    ArbitrageError::InvalidAccountCount
+                );
+                require_keys_eq!(
+                    in_mint_program_ai.key(),
+                    token_program.key(),
+                    ArbitrageError::InvalidAccount
+                );
+                require_keys_eq!(
+                    out_mint_program_ai.key(),
+                    token_program.key(),
+                    ArbitrageError::InvalidAccount
+                );
+                validate_omnipair_semantic_accounts(
+                    step_slice,
+                    direction,
+                    in_mint_ai,
+                    out_mint_ai,
+                    token_program,
+                )?;
+                let (token_in_vault, token_out_vault) = if direction == 0 {
+                    (&step_slice[4], &step_slice[5])
+                } else {
+                    (&step_slice[5], &step_slice[4])
+                };
+                omnipair_swap(
+                    OmnipairAccounts {
+                        program: &step_slice[0],
+                        pair: &step_slice[1],
+                        rate_model: &step_slice[2],
+                        futarchy_authority: &step_slice[3],
+                        token_in_vault,
+                        token_out_vault,
+                        user_token_in_account: user_in_ai,
+                        user_token_out_account: user_out_ai,
+                        token_in_mint: in_mint_ai,
+                        token_out_mint: out_mint_ai,
+                        user: payer,
+                        token_program,
+                        token_2022_program,
+                        event_authority: &step_slice[6],
+                    },
+                    current_amount,
+                    step.min_output_amount,
+                )
+            }),
+            Protocol::ScaleAmm => execute_isolated_step(|| {
+                validate_scale_amm_semantic_accounts(
+                    step_slice,
+                    direction,
+                    step.fee_rate,
+                    in_mint_ai,
+                    out_mint_ai,
+                    token_program,
+                    token_2022_program,
+                )?;
+                let (mint_a, mint_b, user_ta_a, user_ta_b) = if direction == 0 {
+                    (in_mint_ai, out_mint_ai, user_in_ai, user_out_ai)
+                } else {
+                    (out_mint_ai, in_mint_ai, user_out_ai, user_in_ai)
+                };
+                let (token_program_a, token_program_b) = token_programs_for_direction(
+                    direction,
+                    in_mint_ai,
+                    out_mint_ai,
+                    token_program,
+                    token_2022_program,
+                )?;
+                scale_amm_swap(
+                    ScaleAmmAccounts {
+                        program: &step_slice[0],
+                        pool: &step_slice[1],
+                        owner: &step_slice[2],
+                        mint_a,
+                        mint_b,
+                        user_ta_a,
+                        user_ta_b,
+                        vault_a: &step_slice[3],
+                        vault_b: &step_slice[4],
+                        platform_fee_ta_a: &step_slice[5],
+                        token_program_a,
+                        token_program_b,
+                        system_program: &step_slice[6],
+                        config: &step_slice[7],
+                        user: payer,
+                        user_token_out: user_out_ai,
+                        beneficiaries: &step_slice[8..],
+                    },
+                    current_amount,
+                    step.min_output_amount,
+                    direction,
+                )
+            }),
+            Protocol::ScaleVmm => execute_isolated_step(|| {
+                validate_scale_vmm_semantic_accounts(
+                    step_slice,
+                    direction,
+                    step.fee_rate,
+                    in_mint_ai,
+                    out_mint_ai,
+                    token_program,
+                )?;
+                let (mint_a, mint_b, user_ta_a, user_ta_b) = if direction == 0 {
+                    (in_mint_ai, out_mint_ai, user_in_ai, user_out_ai)
+                } else {
+                    (out_mint_ai, in_mint_ai, user_out_ai, user_in_ai)
+                };
+                let (token_program_a, token_program_b) = token_programs_for_direction(
+                    direction,
+                    in_mint_ai,
+                    out_mint_ai,
+                    token_program,
+                    token_2022_program,
+                )?;
+                scale_vmm_swap(
+                    ScaleVmmAccounts {
+                        program: &step_slice[0],
+                        pair: &step_slice[1],
+                        mint_a,
+                        mint_b,
+                        user_ta_a,
+                        user_ta_b,
+                        vault_a: &step_slice[2],
+                        vault_b: &step_slice[3],
+                        platform_fee_ta_a: &step_slice[4],
+                        token_program_a,
+                        token_program_b,
+                        system_program,
+                        config: &step_slice[5],
+                        amm_program: &step_slice[6],
+                        amm_pool: &step_slice[7],
+                        amm_vault_a: &step_slice[8],
+                        amm_vault_b: &step_slice[9],
+                        amm_config: &step_slice[10],
+                        user: payer,
+                        user_token_out: user_out_ai,
+                        beneficiaries: &step_slice[11..],
+                    },
+                    current_amount,
+                    step.min_output_amount,
+                    direction,
+                )
+            }),
+            Protocol::Virtuals => execute_isolated_step(|| {
+                validate_virtuals_semantic_accounts(
+                    step_slice,
+                    direction,
+                    step.fee_rate,
+                    in_mint_ai,
+                    out_mint_ai,
+                    token_program,
+                    system_program,
+                )?;
+                let (user_virtuals_ata, user_token_ata) = if direction == 0 {
+                    (user_in_ai, user_out_ai)
+                } else {
+                    (user_out_ai, user_in_ai)
+                };
+                virtuals_swap(
+                    VirtualsAccounts {
+                        program: &step_slice[0],
+                        pool: &step_slice[1],
+                        token_mint: &step_slice[2],
+                        user_virtuals_ata,
+                        user_token_ata,
+                        pool_token_ata: &step_slice[3],
+                        platform_prototype: &step_slice[4],
+                        platform_virtuals_ata: &step_slice[5],
+                        pool_virtuals_ata: &step_slice[6],
+                        token_program,
+                        user: payer,
+                        user_token_out: user_out_ai,
+                    },
+                    current_amount,
+                    step.min_output_amount,
+                    direction,
+                )
+            }),
+            Protocol::SanctumInfinity => execute_isolated_step(|| {
+                require!(
+                    step_slice.len() == SANCTUM_INFINITY_STEP_ACCOUNTS,
+                    ArbitrageError::InvalidAccountCount
+                );
+                require_keys_eq!(
+                    in_mint_program_ai.key(),
+                    token_program.key(),
+                    ArbitrageError::InvalidAccount
+                );
+                require_keys_eq!(
+                    out_mint_program_ai.key(),
+                    token_program.key(),
+                    ArbitrageError::InvalidAccount
+                );
+                sanctum_infinity_swap(
+                    SanctumInfinityAccounts {
+                        payer,
+                        user_input: user_in_ai,
+                        user_output: user_out_ai,
+                        input_mint: in_mint_ai,
+                        output_mint: out_mint_ai,
+                        token_program,
+                        step: step_slice,
+                    },
+                    current_amount,
+                    step.min_output_amount,
+                    direction,
+                )
+            }),
+            Protocol::SerumV3 => execute_isolated_step(|| {
+                require!(
+                    step_slice.len() == SERUM_V3_STEP_ACCOUNTS,
+                    ArbitrageError::InvalidAccountCount
+                );
+                require_keys_eq!(
+                    in_mint_program_ai.key(),
+                    token_program.key(),
+                    ArbitrageError::InvalidAccount
+                );
+                require_keys_eq!(
+                    out_mint_program_ai.key(),
+                    token_program.key(),
+                    ArbitrageError::InvalidAccount
+                );
+                let (base_lot_size, quote_lot_size) = validate_serum_v3_semantic_accounts(
+                    step_slice,
+                    direction,
+                    in_mint_ai,
+                    out_mint_ai,
+                    token_program,
+                )?;
+                let (trader_base, trader_quote) = if direction == 0 {
+                    (user_in_ai, user_out_ai)
+                } else {
+                    (user_out_ai, user_in_ai)
+                };
+                serum_v3_swap(
+                    SerumV3Accounts {
+                        program: &step_slice[0],
+                        market: &step_slice[1],
+                        request_queue: &step_slice[2],
+                        event_queue: &step_slice[3],
+                        bids: &step_slice[4],
+                        asks: &step_slice[5],
+                        trader_base,
+                        trader_quote,
+                        payer,
+                        base_vault: &step_slice[6],
+                        quote_vault: &step_slice[7],
+                        vault_signer: &step_slice[8],
+                        token_program,
+                    },
+                    current_amount,
+                    step.min_output_amount,
+                    direction == 0,
+                    base_lot_size,
+                    quote_lot_size,
+                )
+            }),
+            Protocol::AldrinV1 => execute_isolated_step(|| {
+                require!(
+                    step_slice.len() == ALDRIN_V1_MIN_ACCOUNTS,
+                    ArbitrageError::InvalidAccountCount
+                );
+                require_keys_eq!(
+                    in_mint_program_ai.key(),
+                    token_program.key(),
+                    ArbitrageError::InvalidAccount
+                );
+                require_keys_eq!(
+                    out_mint_program_ai.key(),
+                    token_program.key(),
+                    ArbitrageError::InvalidAccount
+                );
+                validate_aldrin_v1_semantic_accounts(
+                    step_slice,
+                    direction,
+                    in_mint_ai,
+                    out_mint_ai,
+                    token_program,
+                )?;
+                let (base_mint, quote_mint, user_base, user_quote) = if direction == 0 {
+                    (in_mint_ai, out_mint_ai, user_in_ai, user_out_ai)
+                } else {
+                    (out_mint_ai, in_mint_ai, user_out_ai, user_in_ai)
+                };
+                validate_token_account_for_mint_and_authority(
+                    &step_slice[4],
+                    base_mint,
+                    token_program,
+                    &step_slice[2],
+                )?;
+                validate_token_account_for_mint_and_authority(
+                    &step_slice[5],
+                    quote_mint,
+                    token_program,
+                    &step_slice[2],
+                )?;
+                validate_token_account_for_mint(&step_slice[6], &step_slice[3], token_program)?;
+                aldrin_v1_swap(
+                    AldrinV1Accounts {
+                        program: &step_slice[0],
+                        pool: &step_slice[1],
+                        pool_signer: &step_slice[2],
+                        pool_mint: &step_slice[3],
+                        base_token_vault: &step_slice[4],
+                        quote_token_vault: &step_slice[5],
+                        fee_pool_token_account: &step_slice[6],
+                        payer,
+                        user_base_token_account: user_base,
+                        user_quote_token_account: user_quote,
+                        token_program,
+                    },
+                    current_amount,
+                    step.min_output_amount,
+                    direction == 0,
+                )
+            }),
+            Protocol::AldrinV2 => execute_isolated_step(|| {
                 require!(
                     step_slice.len() == ALDRIN_V2_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
@@ -846,8 +1636,8 @@ pub fn execute_arbitrage<'info>(
                     step.min_output_amount,
                     direction == 0,
                 )
-            }
-            Protocol::BonkSwap => {
+            }),
+            Protocol::BonkSwap => execute_isolated_step(|| {
                 require!(
                     step_slice.len() == BONK_SWAP_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
@@ -910,8 +1700,8 @@ pub fn execute_arbitrage<'info>(
                     direction == 0,
                     pool_price,
                 )
-            }
-            Protocol::Manifest => {
+            }),
+            Protocol::Manifest => execute_isolated_step(|| {
                 require!(
                     step_slice.len() == MANIFEST_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
@@ -982,8 +1772,8 @@ pub fn execute_arbitrage<'info>(
                     step.min_output_amount,
                     direction == 0,
                 )
-            }
-            Protocol::OpenBookV2 => {
+            }),
+            Protocol::OpenBookV2 => execute_isolated_step(|| {
                 require!(
                     step_slice.len() == OPENBOOK_V2_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
@@ -1048,8 +1838,8 @@ pub fn execute_arbitrage<'info>(
                     maker_rebate_rate,
                     taker_fee,
                 )
-            }
-            Protocol::Phoenix => {
+            }),
+            Protocol::Phoenix => execute_isolated_step(|| {
                 require!(
                     step_slice.len() == PHOENIX_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
@@ -1107,8 +1897,8 @@ pub fn execute_arbitrage<'info>(
                     base_lot_size,
                     quote_lot_size,
                 )
-            }
-            Protocol::LifinityAmmV2 => {
+            }),
+            Protocol::LifinityAmmV2 => execute_isolated_step(|| {
                 require!(
                     step_slice.len() == LIFINITY_AMM_V2_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
@@ -1168,8 +1958,8 @@ pub fn execute_arbitrage<'info>(
                         oracle_pc_account: step_slice[12].clone(),
                     },
                 )
-            }
-            Protocol::LifinityAmmV1 => {
+            }),
+            Protocol::LifinityAmmV1 => execute_isolated_step(|| {
                 require!(
                     step_slice.len() == LIFINITY_AMM_V1_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
@@ -1229,8 +2019,8 @@ pub fn execute_arbitrage<'info>(
                         config_account: step_slice[12].clone(),
                     },
                 )
-            }
-            Protocol::MeteoraDammV2 => {
+            }),
+            Protocol::MeteoraDammV2 => execute_isolated_step(|| {
                 require!(
                     step_slice.len() >= METEORA_DAMM_V2_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
@@ -1287,8 +2077,8 @@ pub fn execute_arbitrage<'info>(
                     event_authority: &step_slice[7],
                 };
                 meteora_damm_v2_swap(account_infos, current_amount, step.min_output_amount)
-            }
-            Protocol::MeteoraDbc => {
+            }),
+            Protocol::MeteoraDbc => execute_isolated_step(|| {
                 require!(
                     step_slice.len() >= METEORA_DBC_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
@@ -1346,8 +2136,8 @@ pub fn execute_arbitrage<'info>(
                     event_authority: &step_slice[6],
                 };
                 meteora_dbc_swap(account_infos, current_amount, step.min_output_amount)
-            }
-            Protocol::MeteoraDlmm => {
+            }),
+            Protocol::MeteoraDlmm => execute_isolated_step(|| {
                 require!(
                     step_slice.len() >= METEORA_DLMM_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
@@ -1384,8 +2174,8 @@ pub fn execute_arbitrage<'info>(
                     bin_arrays: step_slice[12..].to_vec(),
                 };
                 meteora_dlmm_swap(account_infos, current_amount, step.min_output_amount)
-            }
-            Protocol::MeteoraDammV1 => {
+            }),
+            Protocol::MeteoraDammV1 => execute_isolated_step(|| {
                 require!(
                     step_slice.len() >= METEORA_DAMM_V1_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
@@ -1457,8 +2247,8 @@ pub fn execute_arbitrage<'info>(
                     token_program,
                 };
                 meteora_damm_v1_swap(account_infos, current_amount, step.min_output_amount)
-            }
-            Protocol::WoofiSwap => {
+            }),
+            Protocol::WoofiSwap => execute_isolated_step(|| {
                 require!(
                     step_slice.len() >= WOOFI_SWAP_MIN_ACCOUNTS,
                     ArbitrageError::InvalidAccountCount
@@ -1497,7 +2287,7 @@ pub fn execute_arbitrage<'info>(
                     rebate_to: &step_slice[14],
                 };
                 woofi_swap(account_infos, current_amount, step.min_output_amount)
-            }
+            }),
         }?;
 
         validate_step_min_output(result.amount_out, step.min_output_amount)?;
@@ -1514,6 +2304,14 @@ pub fn execute_arbitrage<'info>(
         ArbitrageError::InsufficientProfit
     );
     Ok(())
+}
+
+#[inline(never)]
+fn execute_isolated_step<F>(execute: F) -> Result<SwapResult>
+where
+    F: FnOnce() -> Result<SwapResult>,
+{
+    execute()
 }
 
 #[inline(never)]
@@ -1864,6 +2662,802 @@ fn execute_raydium_stable_swap_step<'info>(
         payer,
     };
     raydium_stable_swap(account_infos, current_amount, min_output_amount)
+}
+
+#[inline(never)]
+fn execute_solfi_v2_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    direction: u8,
+    current_amount: u64,
+    min_output_amount: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() >= SOLFI_V2_MIN_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    validate_solfi_v2_semantic_accounts(
+        step_slice,
+        direction,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+    )?;
+    validate_token_account_for_mint(&step_slice[4], &step_slice[6], &step_slice[8])?;
+    validate_token_account_for_mint(&step_slice[5], &step_slice[7], &step_slice[9])?;
+    let (user_base, user_quote) = match direction {
+        0 => (user_in_ai, user_out_ai),
+        1 => (user_out_ai, user_in_ai),
+        _ => return Err(ArbitrageError::InvalidInstructionData.into()),
+    };
+    solfi_v2_swap(
+        SolfiV2Accounts {
+            program: &step_slice[0],
+            payer,
+            market: &step_slice[1],
+            oracle: &step_slice[2],
+            global_config: &step_slice[3],
+            base_vault: &step_slice[4],
+            quote_vault: &step_slice[5],
+            user_base,
+            user_quote,
+            base_mint: &step_slice[6],
+            quote_mint: &step_slice[7],
+            base_token_program: &step_slice[8],
+            quote_token_program: &step_slice[9],
+            instruction_sysvar: &step_slice[10],
+            output_token_account: user_out_ai,
+        },
+        current_amount,
+        min_output_amount,
+        direction,
+    )
+}
+
+#[inline(never)]
+fn execute_solfi_v1_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    direction: u8,
+    current_amount: u64,
+    min_output_amount: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() >= SOLFI_V1_MIN_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    validate_solfi_v1_semantic_accounts(
+        step_slice,
+        direction,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+    )?;
+    let (base_mint, quote_mint, user_base, user_quote) = match direction {
+        0 => (in_mint_ai, out_mint_ai, user_in_ai, user_out_ai),
+        1 => (out_mint_ai, in_mint_ai, user_out_ai, user_in_ai),
+        _ => return Err(ArbitrageError::InvalidInstructionData.into()),
+    };
+    validate_token_account_for_mint_and_authority(
+        &step_slice[2],
+        base_mint,
+        &step_slice[4],
+        &step_slice[1],
+    )?;
+    validate_token_account_for_mint_and_authority(
+        &step_slice[3],
+        quote_mint,
+        &step_slice[4],
+        &step_slice[1],
+    )?;
+    solfi_v1_swap(
+        SolfiV1Accounts {
+            program: &step_slice[0],
+            payer,
+            market: &step_slice[1],
+            base_vault: &step_slice[2],
+            quote_vault: &step_slice[3],
+            user_base,
+            user_quote,
+            token_program: &step_slice[4],
+            instruction_sysvar: &step_slice[5],
+            output_token_account: user_out_ai,
+        },
+        current_amount,
+        min_output_amount,
+        direction,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_crema_clmm_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    token_program: &'info AccountInfo<'info>,
+    direction: u8,
+    current_amount: u64,
+    min_output_amount: u64,
+) -> Result<SwapResult> {
+    require!(
+        (CREMA_CLMM_MIN_STEP_ACCOUNTS..=CREMA_CLMM_MAX_STEP_ACCOUNTS).contains(&step_slice.len()),
+        ArbitrageError::InvalidAccountCount
+    );
+    require_keys_eq!(
+        in_mint_program_ai.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        out_mint_program_ai.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    validate_crema_clmm_semantic_accounts(step_slice, direction, in_mint_ai, out_mint_ai)?;
+    let (mint_a, mint_b, account_a, account_b) = if direction == 0 {
+        (in_mint_ai, out_mint_ai, user_in_ai, user_out_ai)
+    } else {
+        (out_mint_ai, in_mint_ai, user_out_ai, user_in_ai)
+    };
+    validate_token_account_for_mint_and_authority(
+        &step_slice[3],
+        mint_a,
+        token_program,
+        &step_slice[2],
+    )?;
+    validate_token_account_for_mint_and_authority(
+        &step_slice[4],
+        mint_b,
+        token_program,
+        &step_slice[2],
+    )?;
+    crema_clmm_swap(
+        CremaClmmAccounts {
+            program: &step_slice[0],
+            clmm_config: &step_slice[1],
+            pool: &step_slice[2],
+            token_a_mint: mint_a,
+            token_b_mint: mint_b,
+            account_a,
+            account_b,
+            token_a_vault: &step_slice[3],
+            token_b_vault: &step_slice[4],
+            tick_array_map: &step_slice[5],
+            payer,
+            token_program: &step_slice[6],
+        },
+        &step_slice[7..],
+        current_amount,
+        min_output_amount,
+        direction == 0,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_sanctum_router_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    token_program: &'info AccountInfo<'info>,
+    direction: u8,
+    current_amount: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == SANCTUM_ROUTER_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    require_keys_eq!(
+        in_mint_program_ai.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        out_mint_program_ai.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    validate_sanctum_router_semantic_accounts(
+        step_slice,
+        direction,
+        in_mint_ai,
+        out_mint_ai,
+        token_program,
+    )?;
+    sanctum_router_swap(
+        SanctumRouterAccounts {
+            payer,
+            user_input: user_in_ai,
+            user_output: user_out_ai,
+            input_mint: in_mint_ai,
+            output_mint: out_mint_ai,
+            token_program,
+            step: step_slice,
+        },
+        current_amount,
+        direction == 0,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_moonit_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    token_program: &'info AccountInfo<'info>,
+    associated_token_program: &'info AccountInfo<'info>,
+    system_program: &'info AccountInfo<'info>,
+    direction: u8,
+    current_amount: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == MOONIT_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    require_keys_eq!(
+        in_mint_program_ai.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        out_mint_program_ai.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    validate_moonit_semantic_accounts(
+        step_slice,
+        direction,
+        in_mint_ai,
+        out_mint_ai,
+        token_program,
+        associated_token_program,
+        system_program,
+    )?;
+    moonit_swap(
+        MoonitAccounts {
+            payer,
+            user_input: user_in_ai,
+            user_output: user_out_ai,
+            input_mint: in_mint_ai,
+            output_mint: out_mint_ai,
+            step: step_slice,
+        },
+        current_amount,
+        direction == 0,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_boop_fun_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    token_program: &'info AccountInfo<'info>,
+    associated_token_program: &'info AccountInfo<'info>,
+    system_program: &'info AccountInfo<'info>,
+    direction: u8,
+    current_amount: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == BOOP_FUN_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    require_keys_eq!(
+        in_mint_program_ai.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        out_mint_program_ai.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    validate_boop_fun_semantic_accounts(
+        step_slice,
+        direction,
+        in_mint_ai,
+        out_mint_ai,
+        token_program,
+        associated_token_program,
+        system_program,
+    )?;
+    boop_fun_swap(
+        BoopFunAccounts {
+            payer,
+            user_input: user_in_ai,
+            user_output: user_out_ai,
+            input_mint: in_mint_ai,
+            output_mint: out_mint_ai,
+            step: step_slice,
+        },
+        current_amount,
+        direction == 0,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_heaven_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    token_program: &'info AccountInfo<'info>,
+    token_2022_program: &'info AccountInfo<'info>,
+    associated_token_program: &'info AccountInfo<'info>,
+    system_program: &'info AccountInfo<'info>,
+    direction: u8,
+    current_amount: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == HEAVEN_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    validate_heaven_semantic_accounts(
+        step_slice,
+        direction,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+        token_program,
+        token_2022_program,
+        associated_token_program,
+        system_program,
+    )?;
+    heaven_swap(
+        HeavenAccounts {
+            payer,
+            user_input: user_in_ai,
+            user_output: user_out_ai,
+            step: step_slice,
+        },
+        current_amount,
+        direction == 0,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_saros_dlmm_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    token_program: &'info AccountInfo<'info>,
+    token_2022_program: &'info AccountInfo<'info>,
+    associated_token_program: &'info AccountInfo<'info>,
+    direction: u8,
+    current_amount: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == SAROS_DLMM_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    validate_saros_dlmm_semantic_accounts(
+        step_slice,
+        direction,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+        token_program,
+        token_2022_program,
+        associated_token_program,
+    )?;
+    saros_dlmm_swap(
+        SarosDlmmAccounts {
+            payer,
+            user_input: user_in_ai,
+            user_output: user_out_ai,
+            step: step_slice,
+        },
+        current_amount,
+        direction == 0,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_fluxbeam_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    direction: u8,
+    current_amount: u64,
+    min_output_amount: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == FLUXBEAM_MIN_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    validate_fluxbeam_semantic_accounts(
+        step_slice,
+        direction,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+    )?;
+    validate_token_account_for_mint_and_authority(
+        &step_slice[3],
+        in_mint_ai,
+        &step_slice[9],
+        &step_slice[2],
+    )?;
+    validate_token_account_for_mint_and_authority(
+        &step_slice[4],
+        out_mint_ai,
+        &step_slice[10],
+        &step_slice[2],
+    )?;
+    fluxbeam_swap(
+        FluxBeamAccounts {
+            program: &step_slice[0],
+            pool: &step_slice[1],
+            authority: &step_slice[2],
+            payer,
+            input_token_account: user_in_ai,
+            input_vault: &step_slice[3],
+            output_vault: &step_slice[4],
+            output_token_account: user_out_ai,
+            pool_mint: &step_slice[5],
+            pool_fee_account: &step_slice[6],
+            input_mint: &step_slice[7],
+            output_mint: &step_slice[8],
+            input_token_program: &step_slice[9],
+            output_token_program: &step_slice[10],
+            pool_token_program: &step_slice[11],
+        },
+        current_amount,
+        min_output_amount,
+    )
+}
+
+#[inline(never)]
+fn execute_humidifi_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    direction: u8,
+    current_amount: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == HUMIDIFI_MIN_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    let swap_id = validate_humidifi_semantic_accounts(
+        step_slice,
+        direction,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+    )?;
+    validate_token_account_for_mint_and_authority(
+        &step_slice[2],
+        &step_slice[4],
+        &step_slice[6],
+        &step_slice[1],
+    )?;
+    validate_token_account_for_mint_and_authority(
+        &step_slice[3],
+        &step_slice[5],
+        &step_slice[7],
+        &step_slice[1],
+    )?;
+    let (user_base, user_quote) = match direction {
+        0 => (user_in_ai, user_out_ai),
+        1 => (user_out_ai, user_in_ai),
+        _ => return Err(ArbitrageError::InvalidInstructionData.into()),
+    };
+    humidifi_swap_v3(
+        HumidifiAccounts {
+            program: &step_slice[0],
+            payer,
+            market: &step_slice[1],
+            base_vault: &step_slice[2],
+            quote_vault: &step_slice[3],
+            user_base,
+            user_quote,
+            clock: &step_slice[8],
+            base_token_program: &step_slice[6],
+            quote_token_program: &step_slice[7],
+            instructions_sysvar: &step_slice[9],
+            base_mint: &step_slice[4],
+            quote_mint: &step_slice[5],
+            extra_account: &step_slice[10],
+            vote_account: &step_slice[11],
+            output_token_account: user_out_ai,
+        },
+        swap_id,
+        current_amount,
+        direction,
+    )
+}
+
+#[inline(never)]
+fn execute_obric_v2_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    direction: u8,
+    current_amount: u64,
+    min_output_amount: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == OBRIC_V2_MIN_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    validate_obric_v2_semantic_accounts(
+        step_slice,
+        direction,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+    )?;
+    let (mint_x, mint_y, user_x, user_y) = match direction {
+        0 => (in_mint_ai, out_mint_ai, user_in_ai, user_out_ai),
+        1 => (out_mint_ai, in_mint_ai, user_out_ai, user_in_ai),
+        _ => return Err(ArbitrageError::InvalidInstructionData.into()),
+    };
+    validate_token_account_for_mint_and_authority(
+        &step_slice[4],
+        mint_x,
+        &step_slice[9],
+        &step_slice[1],
+    )?;
+    validate_token_account_for_mint_and_authority(
+        &step_slice[5],
+        mint_y,
+        &step_slice[9],
+        &step_slice[1],
+    )?;
+    obric_v2_swap(
+        ObricV2Accounts {
+            program: &step_slice[0],
+            payer,
+            market: &step_slice[1],
+            second_reference_oracle: &step_slice[2],
+            third_reference_oracle: &step_slice[3],
+            reserve_x: &step_slice[4],
+            reserve_y: &step_slice[5],
+            user_x,
+            user_y,
+            reference_oracle: &step_slice[6],
+            x_price_feed: &step_slice[7],
+            y_price_feed: &step_slice[8],
+            token_program: &step_slice[9],
+            output_token_account: user_out_ai,
+        },
+        current_amount,
+        min_output_amount,
+        direction,
+    )
+}
+
+#[inline(never)]
+fn execute_tessera_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    direction: u8,
+    current_amount: u64,
+    min_output_amount: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == TESSERA_MIN_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    validate_tessera_semantic_accounts(
+        step_slice,
+        direction,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+    )?;
+    let (user_base, user_quote) = match direction {
+        0 => (user_in_ai, user_out_ai),
+        1 => (user_out_ai, user_in_ai),
+        _ => return Err(ArbitrageError::InvalidInstructionData.into()),
+    };
+    tessera_swap(
+        TesseraAccounts {
+            program: &step_slice[0],
+            global_state: &step_slice[1],
+            pool: &step_slice[2],
+            payer,
+            base_vault: &step_slice[3],
+            quote_vault: &step_slice[4],
+            user_base,
+            user_quote,
+            base_mint: &step_slice[5],
+            quote_mint: &step_slice[6],
+            base_token_program: &step_slice[7],
+            quote_token_program: &step_slice[8],
+            instructions_sysvar: &step_slice[9],
+            output_token_account: user_out_ai,
+        },
+        current_amount,
+        min_output_amount,
+        direction,
+    )
+}
+
+#[inline(never)]
+fn execute_goonfi_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    direction: u8,
+    current_amount: u64,
+    min_output_amount: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == GOONFI_MIN_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    let blacklist_bump = validate_goonfi_semantic_accounts(
+        step_slice,
+        payer,
+        direction,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+    )?;
+    let (user_base, user_quote) = match direction {
+        0 => (user_in_ai, user_out_ai),
+        1 => (user_out_ai, user_in_ai),
+        _ => return Err(ArbitrageError::InvalidInstructionData.into()),
+    };
+    goonfi_swap(
+        GoonfiAccounts {
+            program: &step_slice[0],
+            payer,
+            market: &step_slice[1],
+            user_base,
+            user_quote,
+            base_vault: &step_slice[2],
+            quote_vault: &step_slice[3],
+            blacklist: &step_slice[4],
+            instructions_sysvar: &step_slice[5],
+            token_program: &step_slice[6],
+            output_token_account: user_out_ai,
+        },
+        current_amount,
+        min_output_amount,
+        direction,
+        blacklist_bump,
+    )
+}
+
+#[inline(never)]
+fn execute_goonfi_v2_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    direction: u8,
+    current_amount: u64,
+    min_output_amount: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == GOONFI_V2_MIN_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    validate_goonfi_v2_semantic_accounts(
+        step_slice,
+        direction,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+    )?;
+    let (user_base, user_quote, base_mint, quote_mint) = match direction {
+        0 => (user_in_ai, user_out_ai, in_mint_ai, out_mint_ai),
+        1 => (user_out_ai, user_in_ai, out_mint_ai, in_mint_ai),
+        _ => return Err(ArbitrageError::InvalidInstructionData.into()),
+    };
+    goonfi_v2_swap(
+        GoonfiV2Accounts {
+            program: &step_slice[0],
+            payer,
+            market: &step_slice[1],
+            user_base,
+            user_quote,
+            base_vault: &step_slice[2],
+            quote_vault: &step_slice[3],
+            base_mint,
+            quote_mint,
+            price_account: &step_slice[4],
+            global_state: &step_slice[5],
+            instructions_sysvar: &step_slice[6],
+            base_token_program: &step_slice[7],
+            quote_token_program: &step_slice[8],
+            vote_account: &step_slice[9],
+            output_token_account: user_out_ai,
+        },
+        current_amount,
+        min_output_amount,
+        direction,
+    )
 }
 
 fn min_profit_threshold(input_amount: u64, min_profit_lamports: u64) -> Result<u64> {
