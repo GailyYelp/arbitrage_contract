@@ -7,15 +7,18 @@ use crate::protocal::{
     aldrin_v2::ALDRIN_V2_MIN_ACCOUNTS,
     bonk_swap::BONK_SWAP_MIN_ACCOUNTS,
     boop_fun::BOOP_FUN_STEP_ACCOUNTS,
+    carrot::CARROT_STEP_ACCOUNTS,
     crema_clmm::{
         CREMA_CLMM_FIXED_STEP_ACCOUNTS, CREMA_CLMM_MAX_STEP_ACCOUNTS, CREMA_CLMM_MIN_STEP_ACCOUNTS,
     },
+    deriverse::DERIVERSE_STEP_ACCOUNTS,
     fluxbeam::FLUXBEAM_MIN_ACCOUNTS,
     gamma_swap::GAMMA_SWAP_MIN_ACCOUNTS,
     goonfi::GOONFI_MIN_ACCOUNTS,
     goonfi_v2::GOONFI_V2_MIN_ACCOUNTS,
     heaven::HEAVEN_STEP_ACCOUNTS,
     humidifi::HUMIDIFI_MIN_ACCOUNTS,
+    hylo_exchange::HYLO_EXCHANGE_STEP_ACCOUNTS,
     invariant::INVARIANT_MIN_ACCOUNTS,
     lifinity_amm_v1::LIFINITY_AMM_V1_MIN_ACCOUNTS,
     lifinity_amm_v2::LIFINITY_AMM_V2_MIN_ACCOUNTS,
@@ -49,6 +52,7 @@ use crate::protocal::{
     solfi_v2::SOLFI_V2_MIN_ACCOUNTS,
     stabble_swap::STABBLE_SWAP_MIN_ACCOUNTS,
     tessera::TESSERA_MIN_ACCOUNTS,
+    trends::TRENDS_STEP_ACCOUNTS,
     woofi_swap::WOOFI_SWAP_MIN_ACCOUNTS,
 };
 use crate::state::{Protocol, SwapArbParams, REMAINING_ACCOUNTS_FIXED_PREFIX_LEN};
@@ -394,6 +398,31 @@ pub fn validate_step_account_flags<'info>(
             &[0, 2],
             &[1, 3, 4, 5, 6],
         ),
+        Protocol::Trends => validate_fixed_len_step_account_flags(
+            step_accounts,
+            TRENDS_STEP_ACCOUNTS,
+            &[0],
+            &[3, 4, 5],
+        ),
+        Protocol::FusionAmm => validate_fixed_len_step_account_flags(
+            step_accounts,
+            crate::protocal::fusionamm::FUSIONAMM_STEP_ACCOUNTS,
+            &[0, 1, 2, 3],
+            &[4, 5, 6, 9, 10, 11, 12, 13],
+        ),
+        Protocol::Deriverse => validate_fixed_len_step_account_flags(
+            step_accounts,
+            DERIVERSE_STEP_ACCOUNTS,
+            &[0, 11, 12],
+            &[3, 4, 5, 6, 7, 8, 9, 10],
+        ),
+        Protocol::Carrot => validate_carrot_step_account_flags(step_accounts),
+        Protocol::HyloExchange => validate_fixed_len_step_account_flags(
+            step_accounts,
+            HYLO_EXCHANGE_STEP_ACCOUNTS,
+            &[0],
+            &[1, 5, 6],
+        ),
         Protocol::SerumV3 => validate_fixed_len_step_account_flags(
             step_accounts,
             SERUM_V3_STEP_ACCOUNTS,
@@ -480,6 +509,39 @@ fn validate_fixed_len_step_account_flags<'info>(
         executable_readonly_indices,
         writable_indices,
     )
+}
+
+fn validate_carrot_step_account_flags<'info>(step_accounts: &[AccountInfo<'info>]) -> Result<()> {
+    require!(
+        step_accounts.len() == CARROT_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    for (index, account) in step_accounts.iter().enumerate() {
+        require!(!account.is_signer, ArbitrageError::InvalidAccount);
+        match index {
+            0 | 5 | 6 | 7 | 8 => {
+                require!(account.executable, ArbitrageError::InvalidAccount);
+                require!(!account.is_writable, ArbitrageError::InvalidAccount);
+            }
+            1 | 2 | 4 => {
+                require!(!account.executable, ArbitrageError::InvalidAccount);
+                require!(account.is_writable, ArbitrageError::InvalidAccount);
+            }
+            3 | 9 | 10 | 11 => {
+                require!(!account.executable, ArbitrageError::InvalidAccount);
+                require!(!account.is_writable, ArbitrageError::InvalidAccount);
+            }
+            12..=14 => {
+                require!(!account.executable, ArbitrageError::InvalidAccount);
+                require!(
+                    account.is_writable == (account.key() == step_accounts[4].key()),
+                    ArbitrageError::InvalidAccount
+                );
+            }
+            _ => return Err(ArbitrageError::InvalidAccountCount.into()),
+        }
+    }
+    Ok(())
 }
 
 fn validate_scale_amm_step_account_flags<'info>(
@@ -1241,6 +1303,80 @@ mod tests {
             writable_step_account(),
             writable_step_account(),
             writable_step_account(),
+        ]
+    }
+
+    fn fusionamm_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+        ]
+    }
+
+    fn deriverse_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+        ]
+    }
+
+    fn carrot_step_accounts() -> Vec<AccountInfo<'static>> {
+        let mut accounts = vec![
+            executable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+        ];
+        accounts[12].key = accounts[4].key;
+        accounts
+    }
+
+    fn hylo_exchange_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
         ]
     }
 
@@ -2011,6 +2147,55 @@ mod tests {
         let accounts = meteora_dbc_step_accounts();
 
         assert!(validate_step_account_flags(Protocol::MeteoraDbc, &accounts).is_ok());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_trends_accounts() {
+        let accounts = meteora_dbc_step_accounts();
+
+        assert!(validate_step_account_flags(Protocol::Trends, &accounts).is_ok());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_fusionamm_accounts() {
+        let accounts = fusionamm_step_accounts();
+        assert!(validate_step_account_flags(Protocol::FusionAmm, &accounts).is_ok());
+
+        let mut readonly_tick = fusionamm_step_accounts();
+        readonly_tick[13].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::FusionAmm, &readonly_tick).is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_deriverse_accounts() {
+        let accounts = deriverse_step_accounts();
+        assert!(validate_step_account_flags(Protocol::Deriverse, &accounts).is_ok());
+
+        let mut readonly_market = deriverse_step_accounts();
+        readonly_market[5].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::Deriverse, &readonly_market).is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_carrot_accounts() {
+        let accounts = carrot_step_accounts();
+        assert!(validate_step_account_flags(Protocol::Carrot, &accounts).is_ok());
+
+        let mut writable_nonselected_reserve = carrot_step_accounts();
+        writable_nonselected_reserve[13].is_writable = true;
+        assert!(
+            validate_step_account_flags(Protocol::Carrot, &writable_nonselected_reserve).is_err()
+        );
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_hylo_exchange_accounts() {
+        let accounts = hylo_exchange_step_accounts();
+        assert!(validate_step_account_flags(Protocol::HyloExchange, &accounts).is_ok());
+
+        let mut readonly_vault = hylo_exchange_step_accounts();
+        readonly_vault[6].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::HyloExchange, &readonly_vault).is_err());
     }
 
     #[test]

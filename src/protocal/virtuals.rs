@@ -322,6 +322,8 @@ fn read_u64(data: &[u8], offset: usize) -> Result<u64> {
 
 #[cfg(test)]
 mod tests {
+    use super::{swap_data, BUY_DISCRIMINATOR, SELL_DISCRIMINATOR};
+
     #[test]
     fn buy_exact_input_inverse_matches_confirmed_event() {
         let x = 896_632_774_576_136u128;
@@ -331,5 +333,20 @@ mod tests {
         assert_eq!(output, 15_017_548_049);
         assert_eq!(y * output / (x - output), net);
         assert_eq!(y * (output + 1) / (x - output - 1), net + 1);
+    }
+
+    #[test]
+    fn wire_data_matches_deployed_anchor_idl() {
+        let buy = swap_data(BUY_DISCRIMINATOR, 15_017_548_049, 113_212_177);
+        assert_eq!(&buy[..8], &BUY_DISCRIMINATOR);
+        let mut amount = [0u8; 8];
+        amount.copy_from_slice(&buy[8..16]);
+        assert_eq!(u64::from_le_bytes(amount), 15_017_548_049);
+        amount.copy_from_slice(&buy[16..24]);
+        assert_eq!(u64::from_le_bytes(amount), 113_212_177);
+        let sell = swap_data(SELL_DISCRIMINATOR, 2_051_832_376_587, 0);
+        assert_eq!(&sell[..8], &SELL_DISCRIMINATOR);
+        amount.copy_from_slice(&sell[8..16]);
+        assert_eq!(u64::from_le_bytes(amount), 2_051_832_376_587);
     }
 }

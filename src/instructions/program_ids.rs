@@ -28,6 +28,16 @@ pub const STABBLE_WEIGHTED_SWAP_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("swapFpHZwjELNnjvThjajtiVmkz3yPQEHjLtka2fwHW");
 pub const GAMMA_SWAP_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("GAMMA7meSFWaBXF25oSUgmGRwaW6sCMFLmBNiMSdbHVT");
+pub const FUSIONAMM_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("fUSioN9YKKSa3CUC2YUc4tPkHJ5Y6XW1yz8y6F7qWz9");
+pub const DERIVERSE_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("DRVSpZ2YUYYKgZP8XtLhAGtT1zYSCKzeHfb4DgRnrgqD");
+pub const DERIVERSE_PROGRAM_ID_DEVNET: Pubkey =
+    anchor_lang::pubkey!("hSuxfshizdWKiWCVBPhrLBq1yuwLPrGnfmii3JUn613");
+pub const CARROT_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("CarrotwivhMpDnm27EHmRLeQ683Z1PufuqEmBZvD282s");
+pub const HYLO_EXCHANGE_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn");
 pub const GAVEL_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("srAMMzfVHVAtgSJc8iH6CfKzuWuUTzLHVCE81QU1rgi");
 pub const OMNIPAIR_PROGRAM_ID: Pubkey =
@@ -38,6 +48,8 @@ pub const SCALE_VMM_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("SCALEWoRSpVZpMRqHEcDfNvBh3nUSe34jDr9r689gLa");
 pub const VIRTUALS_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("5U3EU2ubXtK84QcRjWVmYt9RaDyA8gKxdUrPFXmZyaki");
+pub const TRENDS_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("CURVEmPpijXDTNdqrA9PGP1io2rkgiVXH26xdXVGLLfz");
 pub const RAYDIUM_STABLE_SWAP_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("5quBtoiQqxF9Jv6KYKctB59NT3gtJD2Y65kdnB1Uev3h");
 pub const RAYDIUM_STABLE_SWAP_PROGRAM_ID_DEVNET: Pubkey =
@@ -263,6 +275,10 @@ pub fn expected_protocol_program_id(protocol: Protocol) -> Pubkey {
         Protocol::StabbleStableSwap => STABBLE_STABLE_SWAP_PROGRAM_ID,
         Protocol::StabbleWeightedSwap => STABBLE_WEIGHTED_SWAP_PROGRAM_ID,
         Protocol::GammaSwap => GAMMA_SWAP_PROGRAM_ID,
+        Protocol::FusionAmm => FUSIONAMM_PROGRAM_ID,
+        Protocol::Deriverse => deriverse_program_id(),
+        Protocol::Carrot => CARROT_PROGRAM_ID,
+        Protocol::HyloExchange => HYLO_EXCHANGE_PROGRAM_ID,
         Protocol::RaydiumStableSwap => raydium_stable_swap_program_id(),
         Protocol::WoofiSwap => WOOFI_SWAP_PROGRAM_ID,
         Protocol::RaydiumPoolV4 => raydium_pool_v4_program_id(),
@@ -302,6 +318,7 @@ pub fn expected_protocol_program_id(protocol: Protocol) -> Pubkey {
         Protocol::ScaleAmm => SCALE_AMM_PROGRAM_ID,
         Protocol::ScaleVmm => SCALE_VMM_PROGRAM_ID,
         Protocol::Virtuals => VIRTUALS_PROGRAM_ID,
+        Protocol::Trends => TRENDS_PROGRAM_ID,
         Protocol::SerumV3 => SERUM_V3_PROGRAM_ID,
         Protocol::SanctumInfinity => SANCTUM_INFINITY_PROGRAM_ID,
         Protocol::HumidiFi => HUMIDIFI_PROGRAM_ID,
@@ -330,6 +347,10 @@ pub fn expected_fixed_accounts(protocol: Protocol) -> &'static [FixedAccountExpe
         Protocol::StabbleStableSwap => NO_FIXED_ACCOUNTS,
         Protocol::StabbleWeightedSwap => NO_FIXED_ACCOUNTS,
         Protocol::GammaSwap => NO_FIXED_ACCOUNTS,
+        Protocol::FusionAmm => NO_FIXED_ACCOUNTS,
+        Protocol::Deriverse => NO_FIXED_ACCOUNTS,
+        Protocol::Carrot => NO_FIXED_ACCOUNTS,
+        Protocol::HyloExchange => NO_FIXED_ACCOUNTS,
         Protocol::RaydiumStableSwap => NO_FIXED_ACCOUNTS,
         Protocol::WoofiSwap => NO_FIXED_ACCOUNTS,
         Protocol::RaydiumPoolV4 => NO_FIXED_ACCOUNTS,
@@ -369,6 +390,7 @@ pub fn expected_fixed_accounts(protocol: Protocol) -> &'static [FixedAccountExpe
         Protocol::ScaleAmm => NO_FIXED_ACCOUNTS,
         Protocol::ScaleVmm => NO_FIXED_ACCOUNTS,
         Protocol::Virtuals => NO_FIXED_ACCOUNTS,
+        Protocol::Trends => NO_FIXED_ACCOUNTS,
         Protocol::SerumV3 => NO_FIXED_ACCOUNTS,
         Protocol::SanctumInfinity => SANCTUM_INFINITY_FIXED_ACCOUNTS,
         Protocol::HumidiFi => NO_FIXED_ACCOUNTS,
@@ -389,6 +411,16 @@ pub fn expected_fixed_accounts(protocol: Protocol) -> &'static [FixedAccountExpe
 #[cfg(all(feature = "devnet", not(feature = "flex")))]
 fn raydium_cpmm_program_id() -> Pubkey {
     RAYDIUM_CPMM_PROGRAM_ID_DEVNET
+}
+
+#[cfg(all(not(feature = "flex"), feature = "devnet"))]
+fn deriverse_program_id() -> Pubkey {
+    DERIVERSE_PROGRAM_ID_DEVNET
+}
+
+#[cfg(all(not(feature = "flex"), not(feature = "devnet")))]
+fn deriverse_program_id() -> Pubkey {
+    DERIVERSE_PROGRAM_ID
 }
 
 #[cfg(all(not(feature = "devnet"), not(feature = "flex")))]

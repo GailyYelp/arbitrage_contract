@@ -73,6 +73,11 @@ pub enum Protocol {
     ScaleAmm = 58,
     ScaleVmm = 59,
     Virtuals = 60,
+    Trends = 61,
+    FusionAmm = 62,
+    Deriverse = 63,
+    Carrot = 64,
+    HyloExchange = 65,
 }
 
 impl Protocol {
@@ -138,6 +143,11 @@ impl Protocol {
         Protocol::ScaleAmm,
         Protocol::ScaleVmm,
         Protocol::Virtuals,
+        Protocol::Trends,
+        Protocol::FusionAmm,
+        Protocol::Deriverse,
+        Protocol::Carrot,
+        Protocol::HyloExchange,
     ];
 
     pub const fn contract_id(self) -> u8 {
@@ -203,6 +213,11 @@ impl Protocol {
             Protocol::ScaleAmm => 58,
             Protocol::ScaleVmm => 59,
             Protocol::Virtuals => 60,
+            Protocol::Trends => 61,
+            Protocol::FusionAmm => 62,
+            Protocol::Deriverse => 63,
+            Protocol::Carrot => 64,
+            Protocol::HyloExchange => 65,
         }
     }
 
@@ -269,6 +284,11 @@ impl Protocol {
             Protocol::ScaleAmm => "ScaleAmm",
             Protocol::ScaleVmm => "ScaleVmm",
             Protocol::Virtuals => "Virtuals",
+            Protocol::Trends => "Trends",
+            Protocol::FusionAmm => "FusionAmm",
+            Protocol::Deriverse => "Deriverse",
+            Protocol::Carrot => "Carrot",
+            Protocol::HyloExchange => "HyloExchange",
         }
     }
 }
