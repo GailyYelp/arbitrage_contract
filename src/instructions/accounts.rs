@@ -5,23 +5,29 @@ use core::ops::Range;
 use crate::errors::ArbitrageError;
 use crate::protocal::{
     aldrin_v2::ALDRIN_V2_MIN_ACCOUNTS,
+    bisonfi::BISONFI_STEP_ACCOUNTS,
     bonk_swap::BONK_SWAP_MIN_ACCOUNTS,
     boop_fun::BOOP_FUN_STEP_ACCOUNTS,
     carrot::CARROT_STEP_ACCOUNTS,
     crema_clmm::{
         CREMA_CLMM_FIXED_STEP_ACCOUNTS, CREMA_CLMM_MAX_STEP_ACCOUNTS, CREMA_CLMM_MIN_STEP_ACCOUNTS,
     },
+    cropper::CROPPER_STEP_ACCOUNTS,
     deriverse::DERIVERSE_STEP_ACCOUNTS,
     fluxbeam::FLUXBEAM_MIN_ACCOUNTS,
     gamma_swap::GAMMA_SWAP_MIN_ACCOUNTS,
     goonfi::GOONFI_MIN_ACCOUNTS,
     goonfi_v2::GOONFI_V2_MIN_ACCOUNTS,
+    guacswap::GUACSWAP_MIN_ACCOUNTS,
+    hadron::{HADRON_BASE_STEP_ACCOUNTS, HADRON_SPREAD_STEP_ACCOUNTS},
     heaven::HEAVEN_STEP_ACCOUNTS,
     humidifi::HUMIDIFI_MIN_ACCOUNTS,
     hylo_exchange::HYLO_EXCHANGE_STEP_ACCOUNTS,
     invariant::INVARIANT_MIN_ACCOUNTS,
+    lemmingsfi::LEMMINGSFI_STEP_ACCOUNTS,
     lifinity_amm_v1::LIFINITY_AMM_V1_MIN_ACCOUNTS,
     lifinity_amm_v2::LIFINITY_AMM_V2_MIN_ACCOUNTS,
+    m_swap::M_SWAP_STEP_ACCOUNTS,
     manifest::MANIFEST_MIN_ACCOUNTS,
     mercurial_stable_swap::MERCURIAL_STABLE_SWAP_MIN_ACCOUNTS,
     metadao_futarchy::METADAO_FUTARCHY_STEP_ACCOUNTS,
@@ -32,6 +38,7 @@ use crate::protocal::{
     moonit::MOONIT_STEP_ACCOUNTS,
     obric_v2::OBRIC_V2_MIN_ACCOUNTS,
     omnipair::OMNIPAIR_STEP_ACCOUNTS,
+    one_dex::ONE_DEX_STEP_ACCOUNTS,
     openbook_v2::OPENBOOK_V2_MIN_ACCOUNTS,
     orca_token_swap::ORCA_TOKEN_SWAP_MIN_ACCOUNTS,
     orca_whirlpool::ORCA_WHIRLPOOL_MIN_ACCOUNTS,
@@ -53,6 +60,7 @@ use crate::protocal::{
     stabble_swap::STABBLE_SWAP_MIN_ACCOUNTS,
     tessera::TESSERA_MIN_ACCOUNTS,
     trends::TRENDS_STEP_ACCOUNTS,
+    voltr::VOLTR_STEP_ACCOUNTS,
     woofi_swap::WOOFI_SWAP_MIN_ACCOUNTS,
 };
 use crate::state::{Protocol, SwapArbParams, REMAINING_ACCOUNTS_FIXED_PREFIX_LEN};
@@ -248,7 +256,7 @@ pub fn validate_step_account_flags<'info>(
             &[0, 4],
             &[1, 2, 3],
         ),
-        Protocol::FluxBeam => validate_fixed_len_step_account_flags(
+        Protocol::FluxBeam | Protocol::Dexlab => validate_fixed_len_step_account_flags(
             step_accounts,
             FLUXBEAM_MIN_ACCOUNTS,
             &[0, 9, 10, 11],
@@ -297,6 +305,12 @@ pub fn validate_step_account_flags<'info>(
             ORCA_WHIRLPOOL_MIN_ACCOUNTS,
             &[0, 1, 2, 3],
             &[4, 5, 6, 9, 10, 11, 12],
+        ),
+        Protocol::Cropper => validate_fixed_len_step_account_flags(
+            step_accounts,
+            CROPPER_STEP_ACCOUNTS,
+            &[0],
+            &[1, 2, 3, 4, 5, 6],
         ),
         Protocol::OrcaTokenSwapV2
         | Protocol::OrcaTokenSwapV1
@@ -423,6 +437,12 @@ pub fn validate_step_account_flags<'info>(
             &[0],
             &[1, 5, 6],
         ),
+        Protocol::MSwap => validate_fixed_len_step_account_flags(
+            step_accounts,
+            M_SWAP_STEP_ACCOUNTS,
+            &[0, 12, 13],
+            &[2, 3, 5, 10, 11],
+        ),
         Protocol::SerumV3 => validate_fixed_len_step_account_flags(
             step_accounts,
             SERUM_V3_STEP_ACCOUNTS,
@@ -434,6 +454,37 @@ pub fn validate_step_account_flags<'info>(
             BONK_SWAP_MIN_ACCOUNTS,
             &[0],
             &[2, 3, 4, 5, 6, 7],
+        ),
+        Protocol::Guacswap => validate_fixed_len_step_account_flags(
+            step_accounts,
+            GUACSWAP_MIN_ACCOUNTS,
+            &[0],
+            &[2, 3, 4, 5, 6, 7],
+        ),
+        Protocol::LemmingsFi => validate_fixed_len_step_account_flags(
+            step_accounts,
+            LEMMINGSFI_STEP_ACCOUNTS,
+            &[0, 7],
+            &[2, 3, 4],
+        ),
+        Protocol::Hadron => validate_hadron_step_account_flags(step_accounts),
+        Protocol::BisonFi => validate_fixed_len_step_account_flags(
+            step_accounts,
+            BISONFI_STEP_ACCOUNTS,
+            &[0, 6, 7],
+            &[1, 2, 3],
+        ),
+        Protocol::Voltr => validate_fixed_len_step_account_flags(
+            step_accounts,
+            VOLTR_STEP_ACCOUNTS,
+            &[0, 8, 9, 10],
+            &[2, 4, 5, 6],
+        ),
+        Protocol::OneDex => validate_fixed_len_step_account_flags(
+            step_accounts,
+            ONE_DEX_STEP_ACCOUNTS,
+            &[0, 7],
+            &[2, 4, 5, 6],
         ),
         Protocol::Manifest => validate_fixed_len_step_account_flags(
             step_accounts,
@@ -508,6 +559,22 @@ fn validate_fixed_len_step_account_flags<'info>(
         expected_len,
         executable_readonly_indices,
         writable_indices,
+    )
+}
+
+fn validate_hadron_step_account_flags<'info>(step_accounts: &[AccountInfo<'info>]) -> Result<()> {
+    require!(
+        matches!(
+            step_accounts.len(),
+            HADRON_BASE_STEP_ACCOUNTS | HADRON_SPREAD_STEP_ACCOUNTS
+        ),
+        ArbitrageError::InvalidAccountCount
+    );
+    validate_step_account_flags_by_index(
+        step_accounts,
+        step_accounts.len(),
+        &[0],
+        &[1, 4, 5, 6, 8, 9, 10],
     )
 }
 
@@ -1306,6 +1373,19 @@ mod tests {
         ]
     }
 
+    fn cropper_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+        ]
+    }
+
     fn fusionamm_step_accounts() -> Vec<AccountInfo<'static>> {
         vec![
             executable_step_account(),
@@ -1377,6 +1457,81 @@ mod tests {
             readonly_step_account(),
             readonly_step_account(),
             readonly_step_account(),
+        ]
+    }
+
+    fn m_swap_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+        ]
+    }
+
+    fn lemmingsfi_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            executable_step_account(),
+        ]
+    }
+
+    fn bisonfi_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+            readonly_step_account(),
+        ]
+    }
+
+    fn voltr_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+        ]
+    }
+
+    fn one_dex_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            executable_step_account(),
         ]
     }
 
@@ -1902,6 +2057,16 @@ mod tests {
     }
 
     #[test]
+    fn validate_step_account_flags_accepts_cropper_accounts() {
+        let accounts = cropper_step_accounts();
+        assert!(validate_step_account_flags(Protocol::Cropper, &accounts).is_ok());
+
+        let mut readonly_tick = cropper_step_accounts();
+        readonly_tick[4].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::Cropper, &readonly_tick).is_err());
+    }
+
+    #[test]
     fn validate_step_account_flags_accepts_token_swap_variant_accounts() {
         let accounts = orca_token_swap_step_accounts();
 
@@ -1911,6 +2076,27 @@ mod tests {
         assert!(validate_step_account_flags(Protocol::SplTokenSwap, &accounts).is_ok());
         assert!(validate_step_account_flags(Protocol::DooarSwap, &accounts).is_ok());
         assert!(validate_step_account_flags(Protocol::PenguinSwap, &accounts).is_ok());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_extended_token_swap_accounts() {
+        let accounts = vec![
+            executable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+        ];
+
+        assert!(validate_step_account_flags(Protocol::FluxBeam, &accounts).is_ok());
+        assert!(validate_step_account_flags(Protocol::Dexlab, &accounts).is_ok());
     }
 
     #[test]
@@ -2196,6 +2382,85 @@ mod tests {
         let mut readonly_vault = hylo_exchange_step_accounts();
         readonly_vault[6].is_writable = false;
         assert!(validate_step_account_flags(Protocol::HyloExchange, &readonly_vault).is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_m_swap_accounts() {
+        let accounts = m_swap_step_accounts();
+        assert!(validate_step_account_flags(Protocol::MSwap, &accounts).is_ok());
+
+        let mut readonly_vault = m_swap_step_accounts();
+        readonly_vault[10].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::MSwap, &readonly_vault).is_err());
+
+        let mut non_executable_extension = m_swap_step_accounts();
+        non_executable_extension[12].executable = false;
+        assert!(validate_step_account_flags(Protocol::MSwap, &non_executable_extension).is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_lemmingsfi_accounts() {
+        let accounts = lemmingsfi_step_accounts();
+        assert!(validate_step_account_flags(Protocol::LemmingsFi, &accounts).is_ok());
+
+        let mut readonly_vault = lemmingsfi_step_accounts();
+        readonly_vault[3].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::LemmingsFi, &readonly_vault).is_err());
+
+        let mut non_executable_token_program = lemmingsfi_step_accounts();
+        non_executable_token_program[7].executable = false;
+        assert!(
+            validate_step_account_flags(Protocol::LemmingsFi, &non_executable_token_program)
+                .is_err()
+        );
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_bisonfi_accounts() {
+        let accounts = bisonfi_step_accounts();
+        assert!(validate_step_account_flags(Protocol::BisonFi, &accounts).is_ok());
+
+        let mut readonly_market = bisonfi_step_accounts();
+        readonly_market[1].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::BisonFi, &readonly_market).is_err());
+
+        let mut non_executable_token_program = bisonfi_step_accounts();
+        non_executable_token_program[6].executable = false;
+        assert!(
+            validate_step_account_flags(Protocol::BisonFi, &non_executable_token_program).is_err()
+        );
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_voltr_accounts() {
+        let accounts = voltr_step_accounts();
+        assert!(validate_step_account_flags(Protocol::Voltr, &accounts).is_ok());
+
+        let mut readonly_idle_vault = voltr_step_accounts();
+        readonly_idle_vault[5].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::Voltr, &readonly_idle_vault).is_err());
+
+        let mut non_executable_asset_program = voltr_step_accounts();
+        non_executable_asset_program[8].executable = false;
+        assert!(
+            validate_step_account_flags(Protocol::Voltr, &non_executable_asset_program).is_err()
+        );
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_one_dex_accounts() {
+        let accounts = one_dex_step_accounts();
+        assert!(validate_step_account_flags(Protocol::OneDex, &accounts).is_ok());
+
+        let mut readonly_fee = one_dex_step_accounts();
+        readonly_fee[6].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::OneDex, &readonly_fee).is_err());
+
+        let mut non_executable_token_program = one_dex_step_accounts();
+        non_executable_token_program[7].executable = false;
+        assert!(
+            validate_step_account_flags(Protocol::OneDex, &non_executable_token_program).is_err()
+        );
     }
 
     #[test]

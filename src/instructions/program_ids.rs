@@ -38,6 +38,8 @@ pub const CARROT_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("CarrotwivhMpDnm27EHmRLeQ683Z1PufuqEmBZvD282s");
 pub const HYLO_EXCHANGE_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn");
+pub const M_SWAP_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("MSwapi3WhNKMUGm9YrxGhypgUEt7wYQH3ZgG32XoWzH");
 pub const GAVEL_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("srAMMzfVHVAtgSJc8iH6CfKzuWuUTzLHVCE81QU1rgi");
 pub const OMNIPAIR_PROGRAM_ID: Pubkey =
@@ -62,6 +64,18 @@ pub const SOLFI_V1_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("SoLFiHG9TfgtdUXUjWAxi3LtvYuFyDLVhBWxdMZxyCe");
 pub const FLUXBEAM_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("FLUXubRmkEi2q6K3Y9kBPg9248ggaZVsoSFhtJHSrm1X");
+pub const DEXLAB_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("DSwpgjMvXhtGn6BsbqmacdBZyfLj6jSWf3HJpdJtmg6N");
+pub const LEMMINGSFI_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("BQEJZUB4CzoT6UhRffoCkqCyqQNrCPCSGHcPEmsdbEsX");
+pub const HADRON_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("HADRoNbLovyqhCsocfYQYB7QdfCAAinN9HTePvBCVDQ8");
+pub const BISONFI_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("BiSoNHVpsVZW2F7rx2eQ59yQwKxzU5NvBcmKshCSUypi");
+pub const VOLTR_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("vVoLTRjQmtFpiYoegx285Ze4gsLJ8ZxgFKVcuvmG1a8");
+pub const ONE_DEX_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("DEXYosS6oEGvk8uCDayvwEZz4qEyDJRf9nFgYCaqPMTm");
 pub const CREMA_CLMM_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("CLMM9tUoggJu2wagPkkqs9eFG4BWhVBZWkP1qv3Sp7tR");
 pub const SANCTUM_ROUTER_PROGRAM_ID: Pubkey =
@@ -142,6 +156,10 @@ pub const BONK_SWAP_PROGRAM_AUTHORITY: Pubkey =
     anchor_lang::pubkey!("8NyaPDJeC2eaBGpkRpZKnD9S448AZGgjSvumFe92DRK2");
 pub const BONK_SWAP_REFERRER: Pubkey =
     anchor_lang::pubkey!("BUX7s2ef2htTGb2KKoPHWkmzxPj4nTWMWRgs5CSbQxf9");
+pub const GUACSWAP_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("Gswppe6ERWKpUTXvRPfXdzHhiCyJvLadVvXGfdpBqcE1");
+pub const CROPPER_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("H8W3ctz92svYg6mkn1UtGfu2aQr2fnUFHM1RhScEtQDt");
 pub const MANIFEST_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("MNFSTqtC93rEfYHB6hF82sKdZpUDFWkViLByLd1k1Ms");
 pub const OPENBOOK_V2_PROGRAM_ID: Pubkey =
@@ -279,6 +297,7 @@ pub fn expected_protocol_program_id(protocol: Protocol) -> Pubkey {
         Protocol::Deriverse => deriverse_program_id(),
         Protocol::Carrot => CARROT_PROGRAM_ID,
         Protocol::HyloExchange => HYLO_EXCHANGE_PROGRAM_ID,
+        Protocol::MSwap => M_SWAP_PROGRAM_ID,
         Protocol::RaydiumStableSwap => raydium_stable_swap_program_id(),
         Protocol::WoofiSwap => WOOFI_SWAP_PROGRAM_ID,
         Protocol::RaydiumPoolV4 => raydium_pool_v4_program_id(),
@@ -297,6 +316,8 @@ pub fn expected_protocol_program_id(protocol: Protocol) -> Pubkey {
         Protocol::MercurialStableSwap => MERCURIAL_STABLE_SWAP_PROGRAM_ID,
         Protocol::Invariant => invariant_program_id(),
         Protocol::BonkSwap => BONK_SWAP_PROGRAM_ID,
+        Protocol::Guacswap => GUACSWAP_PROGRAM_ID,
+        Protocol::Cropper => CROPPER_PROGRAM_ID,
         Protocol::Manifest => MANIFEST_PROGRAM_ID,
         Protocol::OpenBookV2 => OPENBOOK_V2_PROGRAM_ID,
         Protocol::AldrinV2 => ALDRIN_V2_PROGRAM_ID,
@@ -304,6 +325,12 @@ pub fn expected_protocol_program_id(protocol: Protocol) -> Pubkey {
         Protocol::SolFiV2 => SOLFI_V2_PROGRAM_ID,
         Protocol::SolFiV1 => SOLFI_V1_PROGRAM_ID,
         Protocol::FluxBeam => FLUXBEAM_PROGRAM_ID,
+        Protocol::Dexlab => DEXLAB_PROGRAM_ID,
+        Protocol::LemmingsFi => LEMMINGSFI_PROGRAM_ID,
+        Protocol::Hadron => HADRON_PROGRAM_ID,
+        Protocol::BisonFi => BISONFI_PROGRAM_ID,
+        Protocol::Voltr => VOLTR_PROGRAM_ID,
+        Protocol::OneDex => ONE_DEX_PROGRAM_ID,
         Protocol::CremaClmm => CREMA_CLMM_PROGRAM_ID,
         Protocol::SanctumRouter => SANCTUM_ROUTER_PROGRAM_ID,
         Protocol::Moonit => MOONIT_PROGRAM_ID,
@@ -351,6 +378,7 @@ pub fn expected_fixed_accounts(protocol: Protocol) -> &'static [FixedAccountExpe
         Protocol::Deriverse => NO_FIXED_ACCOUNTS,
         Protocol::Carrot => NO_FIXED_ACCOUNTS,
         Protocol::HyloExchange => NO_FIXED_ACCOUNTS,
+        Protocol::MSwap => NO_FIXED_ACCOUNTS,
         Protocol::RaydiumStableSwap => NO_FIXED_ACCOUNTS,
         Protocol::WoofiSwap => NO_FIXED_ACCOUNTS,
         Protocol::RaydiumPoolV4 => NO_FIXED_ACCOUNTS,
@@ -369,6 +397,8 @@ pub fn expected_fixed_accounts(protocol: Protocol) -> &'static [FixedAccountExpe
         Protocol::MercurialStableSwap => NO_FIXED_ACCOUNTS,
         Protocol::Invariant => NO_FIXED_ACCOUNTS,
         Protocol::BonkSwap => NO_FIXED_ACCOUNTS,
+        Protocol::Guacswap => NO_FIXED_ACCOUNTS,
+        Protocol::Cropper => NO_FIXED_ACCOUNTS,
         Protocol::Manifest => NO_FIXED_ACCOUNTS,
         Protocol::OpenBookV2 => OPENBOOK_V2_FIXED_ACCOUNTS,
         Protocol::AldrinV2 => NO_FIXED_ACCOUNTS,
@@ -376,6 +406,12 @@ pub fn expected_fixed_accounts(protocol: Protocol) -> &'static [FixedAccountExpe
         Protocol::SolFiV2 => NO_FIXED_ACCOUNTS,
         Protocol::SolFiV1 => NO_FIXED_ACCOUNTS,
         Protocol::FluxBeam => NO_FIXED_ACCOUNTS,
+        Protocol::Dexlab => NO_FIXED_ACCOUNTS,
+        Protocol::LemmingsFi => NO_FIXED_ACCOUNTS,
+        Protocol::Hadron => NO_FIXED_ACCOUNTS,
+        Protocol::BisonFi => NO_FIXED_ACCOUNTS,
+        Protocol::Voltr => NO_FIXED_ACCOUNTS,
+        Protocol::OneDex => NO_FIXED_ACCOUNTS,
         Protocol::CremaClmm => NO_FIXED_ACCOUNTS,
         Protocol::SanctumRouter => NO_FIXED_ACCOUNTS,
         Protocol::Moonit => NO_FIXED_ACCOUNTS,
@@ -822,6 +858,26 @@ mod tests {
         assert_eq!(
             expected_protocol_program_id(Protocol::OrcaWhirlpool),
             ORCA_WHIRLPOOL_PROGRAM_ID
+        );
+        assert_eq!(
+            expected_protocol_program_id(Protocol::Cropper),
+            CROPPER_PROGRAM_ID
+        );
+        assert_eq!(
+            expected_protocol_program_id(Protocol::Dexlab),
+            DEXLAB_PROGRAM_ID
+        );
+        assert_eq!(
+            expected_protocol_program_id(Protocol::LemmingsFi),
+            LEMMINGSFI_PROGRAM_ID
+        );
+        assert_eq!(
+            expected_protocol_program_id(Protocol::Hadron),
+            HADRON_PROGRAM_ID
+        );
+        assert_eq!(
+            expected_protocol_program_id(Protocol::Voltr),
+            VOLTR_PROGRAM_ID
         );
         assert_eq!(
             expected_protocol_program_id(Protocol::MeteoraDammV2),

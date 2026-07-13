@@ -78,6 +78,15 @@ pub enum Protocol {
     Deriverse = 63,
     Carrot = 64,
     HyloExchange = 65,
+    MSwap = 66,
+    Guacswap = 67,
+    Cropper = 68,
+    Dexlab = 69,
+    LemmingsFi = 70,
+    Hadron = 71,
+    BisonFi = 72,
+    Voltr = 73,
+    OneDex = 74,
 }
 
 impl Protocol {
@@ -148,6 +157,15 @@ impl Protocol {
         Protocol::Deriverse,
         Protocol::Carrot,
         Protocol::HyloExchange,
+        Protocol::MSwap,
+        Protocol::Guacswap,
+        Protocol::Cropper,
+        Protocol::Dexlab,
+        Protocol::LemmingsFi,
+        Protocol::Hadron,
+        Protocol::BisonFi,
+        Protocol::Voltr,
+        Protocol::OneDex,
     ];
 
     pub const fn contract_id(self) -> u8 {
@@ -218,6 +236,15 @@ impl Protocol {
             Protocol::Deriverse => 63,
             Protocol::Carrot => 64,
             Protocol::HyloExchange => 65,
+            Protocol::MSwap => 66,
+            Protocol::Guacswap => 67,
+            Protocol::Cropper => 68,
+            Protocol::Dexlab => 69,
+            Protocol::LemmingsFi => 70,
+            Protocol::Hadron => 71,
+            Protocol::BisonFi => 72,
+            Protocol::Voltr => 73,
+            Protocol::OneDex => 74,
         }
     }
 
@@ -289,6 +316,15 @@ impl Protocol {
             Protocol::Deriverse => "Deriverse",
             Protocol::Carrot => "Carrot",
             Protocol::HyloExchange => "HyloExchange",
+            Protocol::MSwap => "MSwap",
+            Protocol::Guacswap => "Guacswap",
+            Protocol::Cropper => "Cropper",
+            Protocol::Dexlab => "Dexlab",
+            Protocol::LemmingsFi => "LemmingsFi",
+            Protocol::Hadron => "Hadron",
+            Protocol::BisonFi => "BisonFi",
+            Protocol::Voltr => "Voltr",
+            Protocol::OneDex => "OneDex",
         }
     }
 }

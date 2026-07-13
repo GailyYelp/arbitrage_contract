@@ -9137,6 +9137,141 @@ mod tests {
     }
 
     #[test]
+    fn extended_token_swap_semantic_validation_accepts_dexlab_layout() {
+        let program_key = crate::instructions::program_ids::DEXLAB_PROGRAM_ID;
+        let pool_key = Pubkey::new_unique();
+        let token_program_key = Pubkey::new_unique();
+        let token_a_vault_key = Pubkey::new_unique();
+        let token_b_vault_key = Pubkey::new_unique();
+        let pool_mint_key = Pubkey::new_unique();
+        let token_a_mint_key = Pubkey::new_unique();
+        let token_b_mint_key = Pubkey::new_unique();
+        let pool_fee_account_key = Pubkey::new_unique();
+        let (authority_key, nonce) =
+            Pubkey::find_program_address(&[pool_key.as_ref()], &program_key);
+
+        let input_mint = test_account_with_data(
+            token_a_mint_key,
+            token_program_key,
+            false,
+            false,
+            false,
+            vec![],
+        );
+        let output_mint = test_account_with_data(
+            token_b_mint_key,
+            token_program_key,
+            false,
+            false,
+            false,
+            vec![],
+        );
+        let input_token_program = test_account_with_data(
+            token_program_key,
+            Pubkey::new_unique(),
+            false,
+            false,
+            true,
+            vec![],
+        );
+        let output_token_program = input_token_program.clone();
+        let step_accounts = vec![
+            test_account_with_data(
+                program_key,
+                Pubkey::new_unique(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(
+                pool_key,
+                program_key,
+                false,
+                false,
+                false,
+                orca_token_swap_pool_data(
+                    nonce,
+                    token_program_key,
+                    token_a_vault_key,
+                    token_b_vault_key,
+                    pool_mint_key,
+                    token_a_mint_key,
+                    token_b_mint_key,
+                    pool_fee_account_key,
+                ),
+            ),
+            test_account_with_data(
+                authority_key,
+                Pubkey::new_unique(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                token_a_vault_key,
+                token_program_key,
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(
+                token_b_vault_key,
+                token_program_key,
+                false,
+                true,
+                false,
+                vec![],
+            ),
+            test_account_with_data(pool_mint_key, token_program_key, false, true, false, vec![]),
+            test_account_with_data(
+                pool_fee_account_key,
+                token_program_key,
+                false,
+                true,
+                false,
+                make_token_account_data(pool_mint_key, authority_key, 0).to_vec(),
+            ),
+            input_mint.clone(),
+            output_mint.clone(),
+            input_token_program.clone(),
+            output_token_program.clone(),
+            input_token_program.clone(),
+        ];
+
+        assert!(validate_fluxbeam_semantic_accounts(
+            &step_accounts,
+            0,
+            &input_mint,
+            &output_mint,
+            &input_token_program,
+            &output_token_program,
+        )
+        .is_ok());
+
+        let mut wrong_program = step_accounts.clone();
+        wrong_program[0] = test_account_with_data(
+            Pubkey::new_unique(),
+            Pubkey::new_unique(),
+            false,
+            false,
+            true,
+            vec![],
+        );
+        assert!(validate_fluxbeam_semantic_accounts(
+            &wrong_program,
+            0,
+            &input_mint,
+            &output_mint,
+            &input_token_program,
+            &output_token_program,
+        )
+        .is_err());
+    }
+
+    #[test]
     fn sencha_swap_semantic_validation_checks_pool_accounts_direction_and_pause_state() {
         let program_key = Pubkey::new_unique();
         let pool_key = Pubkey::new_unique();
