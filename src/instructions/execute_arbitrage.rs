@@ -68,12 +68,25 @@ use crate::protocal::{
         HADRON_SPREAD_STEP_ACCOUNTS,
     },
     heaven::{heaven_swap, HeavenAccounts, HEAVEN_STEP_ACCOUNTS},
+    helium_treasury_management::{
+        helium_treasury_management_swap, validate_helium_treasury_management_semantic_accounts,
+        HeliumTreasuryManagementAccounts, HELIUM_TREASURY_MANAGEMENT_STEP_ACCOUNTS,
+    },
+    huma::{huma_swap, validate_huma_semantic_accounts, HumaAccounts, HUMA_STEP_ACCOUNTS},
     humidifi::{humidifi_swap_v3, HumidifiAccounts, HUMIDIFI_MIN_ACCOUNTS},
+    hylo_earn_pool::{
+        hylo_earn_pool_swap, validate_hylo_earn_pool_semantic_accounts, HyloEarnPoolAccounts,
+        HYLO_EARN_POOL_STEP_ACCOUNTS,
+    },
     hylo_exchange::{
         hylo_exchange_swap, validate_hylo_exchange_semantic_accounts, HyloExchangeAccounts,
         HyloExchangeValidationAccounts, HYLO_EXCHANGE_STEP_ACCOUNTS,
     },
     invariant::{invariant_swap, InvariantAccounts, INVARIANT_MIN_ACCOUNTS},
+    jupiter_lend_earn::{
+        jupiter_lend_earn_swap, validate_jupiter_lend_earn_semantic_accounts,
+        JupiterLendEarnAccounts, JUPITER_LEND_EARN_STEP_ACCOUNTS,
+    },
     lemmingsfi::{
         lemmingsfi_swap, validate_lemmingsfi_semantic_accounts, LemmingsFiAccounts,
         LEMMINGSFI_STEP_ACCOUNTS,
@@ -145,6 +158,10 @@ use crate::protocal::{
     sencha_swap::{sencha_swap, SenchaSwapAccounts, SENCHA_SWAP_MIN_ACCOUNTS},
     serum_v3::{
         serum_v3_swap, validate_serum_v3_semantic_accounts, SerumV3Accounts, SERUM_V3_STEP_ACCOUNTS,
+    },
+    solayer_endoavs::{
+        solayer_endoavs_swap, validate_solayer_endoavs_semantic_accounts, SolayerEndoAvsAccounts,
+        SOLAYER_ENDOAVS_STEP_ACCOUNTS,
     },
     solfi_v1::{solfi_v1_swap, SolfiV1Accounts, SOLFI_V1_MIN_ACCOUNTS},
     solfi_v2::{solfi_v2_swap, SolfiV2Accounts, SOLFI_V2_MIN_ACCOUNTS},
@@ -2391,6 +2408,251 @@ pub fn execute_arbitrage<'info>(
                         user: payer,
                         user_input: user_in_ai,
                         user_output: user_out_ai,
+                    },
+                    direction,
+                    current_amount,
+                    step.min_output_amount,
+                )
+            }),
+            Protocol::Huma => execute_isolated_step(|| {
+                require!(
+                    step_slice.len() == HUMA_STEP_ACCOUNTS,
+                    ArbitrageError::InvalidAccountCount
+                );
+                validate_huma_semantic_accounts(
+                    step_slice,
+                    direction,
+                    step.fee_rate,
+                    in_mint_ai,
+                    out_mint_ai,
+                    payer,
+                )?;
+                let (expected_input_program, expected_output_program) = if direction == 0 {
+                    (&step_slice[13], &step_slice[14])
+                } else {
+                    (&step_slice[14], &step_slice[13])
+                };
+                require_keys_eq!(
+                    in_mint_program_ai.key(),
+                    expected_input_program.key(),
+                    ArbitrageError::InvalidProgramId
+                );
+                require_keys_eq!(
+                    out_mint_program_ai.key(),
+                    expected_output_program.key(),
+                    ArbitrageError::InvalidProgramId
+                );
+                let (user_underlying, user_mode) = if direction == 0 {
+                    (user_in_ai, user_out_ai)
+                } else {
+                    (user_out_ai, user_in_ai)
+                };
+                huma_swap(
+                    HumaAccounts {
+                        program: &step_slice[0],
+                        huma_config: &step_slice[1],
+                        pool_config: &step_slice[2],
+                        pool_state: &step_slice[3],
+                        mode_config: &step_slice[4],
+                        mode_mint: &step_slice[5],
+                        deployment_config: &step_slice[6],
+                        deployment_state: &step_slice[7],
+                        lender_state: &step_slice[8],
+                        underlying_mint: &step_slice[9],
+                        pool_authority: &step_slice[10],
+                        pool_underlying_token: &step_slice[11],
+                        treasury_underlying_token: &step_slice[12],
+                        underlying_token_program: &step_slice[13],
+                        mode_token_program: &step_slice[14],
+                        user: payer,
+                        user_underlying,
+                        user_mode,
+                    },
+                    direction,
+                    current_amount,
+                )
+            }),
+            Protocol::SolayerEndoAvs => execute_isolated_step(|| {
+                require!(
+                    step_slice.len() == SOLAYER_ENDOAVS_STEP_ACCOUNTS,
+                    ArbitrageError::InvalidAccountCount
+                );
+                validate_solayer_endoavs_semantic_accounts(
+                    step_slice,
+                    direction,
+                    step.fee_rate,
+                    in_mint_ai,
+                    out_mint_ai,
+                )?;
+                require_keys_eq!(
+                    in_mint_program_ai.key(),
+                    step_slice[5].key(),
+                    ArbitrageError::InvalidProgramId
+                );
+                require_keys_eq!(
+                    out_mint_program_ai.key(),
+                    step_slice[5].key(),
+                    ArbitrageError::InvalidProgramId
+                );
+                let (user_delegated, user_avs) = if direction == 0 {
+                    (user_in_ai, user_out_ai)
+                } else {
+                    (user_out_ai, user_in_ai)
+                };
+                solayer_endoavs_swap(
+                    SolayerEndoAvsAccounts {
+                        program: &step_slice[0],
+                        endoavs: &step_slice[1],
+                        avs_mint: &step_slice[2],
+                        delegated_vault: &step_slice[3],
+                        delegated_mint: &step_slice[4],
+                        token_program: &step_slice[5],
+                        user: payer,
+                        user_delegated,
+                        user_avs,
+                    },
+                    direction,
+                    current_amount,
+                )
+            }),
+            Protocol::HyloEarnPool => execute_isolated_step(|| {
+                require!(
+                    step_slice.len() == HYLO_EARN_POOL_STEP_ACCOUNTS,
+                    ArbitrageError::InvalidAccountCount
+                );
+                validate_hylo_earn_pool_semantic_accounts(
+                    step_slice,
+                    direction,
+                    step.fee_rate,
+                    in_mint_ai,
+                    out_mint_ai,
+                )?;
+                require_keys_eq!(
+                    in_mint_program_ai.key(),
+                    step_slice[10].key(),
+                    ArbitrageError::InvalidProgramId
+                );
+                require_keys_eq!(
+                    out_mint_program_ai.key(),
+                    step_slice[10].key(),
+                    ArbitrageError::InvalidProgramId
+                );
+                let (user_stablecoin, user_lp_token) = if direction == 0 {
+                    (user_in_ai, user_out_ai)
+                } else {
+                    (user_out_ai, user_in_ai)
+                };
+                hylo_earn_pool_swap(
+                    HyloEarnPoolAccounts {
+                        program: &step_slice[0],
+                        pool_config: &step_slice[1],
+                        hylo: &step_slice[2],
+                        stablecoin_mint: &step_slice[3],
+                        pool_auth: &step_slice[4],
+                        stablecoin_pool: &step_slice[5],
+                        lp_token_auth: &step_slice[6],
+                        lp_token_mint: &step_slice[7],
+                        fee_auth: &step_slice[8],
+                        fee_vault: &step_slice[9],
+                        token_program: &step_slice[10],
+                        event_authority: &step_slice[11],
+                        user: payer,
+                        user_stablecoin,
+                        user_lp_token,
+                    },
+                    direction,
+                    current_amount,
+                )
+            }),
+            Protocol::JupiterLendEarn => execute_isolated_step(|| {
+                require!(
+                    step_slice.len() == JUPITER_LEND_EARN_STEP_ACCOUNTS,
+                    ArbitrageError::InvalidAccountCount
+                );
+                validate_jupiter_lend_earn_semantic_accounts(
+                    step_slice,
+                    direction,
+                    step.fee_rate,
+                    in_mint_ai,
+                    out_mint_ai,
+                )?;
+                require_keys_eq!(
+                    in_mint_program_ai.key(),
+                    step_slice[13].key(),
+                    ArbitrageError::InvalidProgramId
+                );
+                require_keys_eq!(
+                    out_mint_program_ai.key(),
+                    step_slice[13].key(),
+                    ArbitrageError::InvalidProgramId
+                );
+                let (user_asset, user_f_token) = if direction == 0 {
+                    (user_in_ai, user_out_ai)
+                } else {
+                    (user_out_ai, user_in_ai)
+                };
+                jupiter_lend_earn_swap(
+                    JupiterLendEarnAccounts {
+                        program: &step_slice[0],
+                        lending_admin: &step_slice[1],
+                        lending: &step_slice[2],
+                        asset_mint: &step_slice[3],
+                        f_token_mint: &step_slice[4],
+                        reserve: &step_slice[5],
+                        supply_position: &step_slice[6],
+                        rate_model: &step_slice[7],
+                        vault: &step_slice[8],
+                        claim_account: &step_slice[9],
+                        liquidity: &step_slice[10],
+                        liquidity_program: &step_slice[11],
+                        rewards_rate_model: &step_slice[12],
+                        token_program: &step_slice[13],
+                        associated_token_program: &step_slice[14],
+                        system_program: &step_slice[15],
+                        user: payer,
+                        user_asset,
+                        user_f_token,
+                    },
+                    direction,
+                    current_amount,
+                    step.min_output_amount,
+                )
+            }),
+            Protocol::HeliumTreasuryManagement => execute_isolated_step(|| {
+                require!(
+                    step_slice.len() == HELIUM_TREASURY_MANAGEMENT_STEP_ACCOUNTS,
+                    ArbitrageError::InvalidAccountCount
+                );
+                validate_helium_treasury_management_semantic_accounts(
+                    step_slice,
+                    direction,
+                    step.fee_rate,
+                    in_mint_ai,
+                    out_mint_ai,
+                )?;
+                require_keys_eq!(
+                    in_mint_program_ai.key(),
+                    step_slice[7].key(),
+                    ArbitrageError::InvalidProgramId
+                );
+                require_keys_eq!(
+                    out_mint_program_ai.key(),
+                    step_slice[7].key(),
+                    ArbitrageError::InvalidProgramId
+                );
+                helium_treasury_management_swap(
+                    HeliumTreasuryManagementAccounts {
+                        program: &step_slice[0],
+                        treasury_management: &step_slice[1],
+                        treasury_mint: &step_slice[2],
+                        supply_mint: &step_slice[3],
+                        treasury: &step_slice[4],
+                        circuit_breaker: &step_slice[5],
+                        circuit_breaker_program: &step_slice[6],
+                        token_program: &step_slice[7],
+                        owner: payer,
+                        user_supply: user_in_ai,
+                        user_treasury: user_out_ai,
                     },
                     direction,
                     current_amount,

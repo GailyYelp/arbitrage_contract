@@ -21,9 +21,13 @@ use crate::protocal::{
     guacswap::GUACSWAP_MIN_ACCOUNTS,
     hadron::{HADRON_BASE_STEP_ACCOUNTS, HADRON_SPREAD_STEP_ACCOUNTS},
     heaven::HEAVEN_STEP_ACCOUNTS,
+    helium_treasury_management::HELIUM_TREASURY_MANAGEMENT_STEP_ACCOUNTS,
+    huma::HUMA_STEP_ACCOUNTS,
     humidifi::HUMIDIFI_MIN_ACCOUNTS,
+    hylo_earn_pool::HYLO_EARN_POOL_STEP_ACCOUNTS,
     hylo_exchange::HYLO_EXCHANGE_STEP_ACCOUNTS,
     invariant::INVARIANT_MIN_ACCOUNTS,
+    jupiter_lend_earn::JUPITER_LEND_EARN_STEP_ACCOUNTS,
     lemmingsfi::LEMMINGSFI_STEP_ACCOUNTS,
     lifinity_amm_v1::LIFINITY_AMM_V1_MIN_ACCOUNTS,
     lifinity_amm_v2::LIFINITY_AMM_V2_MIN_ACCOUNTS,
@@ -55,6 +59,7 @@ use crate::protocal::{
     scale_amm::{SCALE_AMM_BASE_STEP_ACCOUNTS, SCALE_AMM_MAX_STEP_ACCOUNTS},
     scale_vmm::{SCALE_VMM_BASE_STEP_ACCOUNTS, SCALE_VMM_MAX_STEP_ACCOUNTS},
     serum_v3::SERUM_V3_STEP_ACCOUNTS,
+    solayer_endoavs::SOLAYER_ENDOAVS_STEP_ACCOUNTS,
     solfi_v1::SOLFI_V1_MIN_ACCOUNTS,
     solfi_v2::SOLFI_V2_MIN_ACCOUNTS,
     stabble_swap::STABBLE_SWAP_MIN_ACCOUNTS,
@@ -485,6 +490,36 @@ pub fn validate_step_account_flags<'info>(
             ONE_DEX_STEP_ACCOUNTS,
             &[0, 7],
             &[2, 4, 5, 6],
+        ),
+        Protocol::Huma => validate_fixed_len_step_account_flags(
+            step_accounts,
+            HUMA_STEP_ACCOUNTS,
+            &[0, 13, 14],
+            &[3, 5, 7, 8, 10, 11, 12],
+        ),
+        Protocol::SolayerEndoAvs => validate_fixed_len_step_account_flags(
+            step_accounts,
+            SOLAYER_ENDOAVS_STEP_ACCOUNTS,
+            &[0, 5],
+            &[2, 3],
+        ),
+        Protocol::HyloEarnPool => validate_fixed_len_step_account_flags(
+            step_accounts,
+            HYLO_EARN_POOL_STEP_ACCOUNTS,
+            &[0, 10],
+            &[1, 5, 7, 9],
+        ),
+        Protocol::JupiterLendEarn => validate_fixed_len_step_account_flags(
+            step_accounts,
+            JUPITER_LEND_EARN_STEP_ACCOUNTS,
+            &[0, 11, 13, 14, 15],
+            &[2, 4, 5, 6, 8, 9, 10],
+        ),
+        Protocol::HeliumTreasuryManagement => validate_fixed_len_step_account_flags(
+            step_accounts,
+            HELIUM_TREASURY_MANAGEMENT_STEP_ACCOUNTS,
+            &[0, 6, 7],
+            &[3, 4, 5],
         ),
         Protocol::Manifest => validate_fixed_len_step_account_flags(
             step_accounts,
@@ -1535,6 +1570,71 @@ mod tests {
         ]
     }
 
+    fn huma_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+        ]
+    }
+
+    fn solayer_endoavs_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            executable_step_account(),
+        ]
+    }
+
+    fn jupiter_lend_earn_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            executable_step_account(),
+            readonly_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+        ]
+    }
+
+    fn helium_treasury_management_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+        ]
+    }
+
     fn orca_token_swap_step_accounts() -> Vec<AccountInfo<'static>> {
         vec![
             executable_step_account(),
@@ -2461,6 +2561,80 @@ mod tests {
         assert!(
             validate_step_account_flags(Protocol::OneDex, &non_executable_token_program).is_err()
         );
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_huma_accounts() {
+        let accounts = huma_step_accounts();
+        assert!(validate_step_account_flags(Protocol::Huma, &accounts).is_ok());
+
+        let mut readonly_pool_state = huma_step_accounts();
+        readonly_pool_state[3].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::Huma, &readonly_pool_state).is_err());
+
+        let mut non_executable_token_program = huma_step_accounts();
+        non_executable_token_program[13].executable = false;
+        assert!(
+            validate_step_account_flags(Protocol::Huma, &non_executable_token_program).is_err()
+        );
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_solayer_endoavs_accounts() {
+        let accounts = solayer_endoavs_step_accounts();
+        assert!(validate_step_account_flags(Protocol::SolayerEndoAvs, &accounts).is_ok());
+
+        let mut readonly_avs_mint = solayer_endoavs_step_accounts();
+        readonly_avs_mint[2].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::SolayerEndoAvs, &readonly_avs_mint).is_err());
+
+        let mut non_executable_token_program = solayer_endoavs_step_accounts();
+        non_executable_token_program[5].executable = false;
+        assert!(validate_step_account_flags(
+            Protocol::SolayerEndoAvs,
+            &non_executable_token_program
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_jupiter_lend_earn_accounts() {
+        let accounts = jupiter_lend_earn_step_accounts();
+        assert!(validate_step_account_flags(Protocol::JupiterLendEarn, &accounts).is_ok());
+
+        let mut readonly_claim = jupiter_lend_earn_step_accounts();
+        readonly_claim[9].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::JupiterLendEarn, &readonly_claim).is_err());
+
+        let mut non_executable_liquidity_program = jupiter_lend_earn_step_accounts();
+        non_executable_liquidity_program[11].executable = false;
+        assert!(validate_step_account_flags(
+            Protocol::JupiterLendEarn,
+            &non_executable_liquidity_program
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_helium_treasury_management_accounts() {
+        let accounts = helium_treasury_management_step_accounts();
+        assert!(validate_step_account_flags(Protocol::HeliumTreasuryManagement, &accounts).is_ok());
+
+        let mut readonly_treasury = helium_treasury_management_step_accounts();
+        readonly_treasury[4].is_writable = false;
+        assert!(validate_step_account_flags(
+            Protocol::HeliumTreasuryManagement,
+            &readonly_treasury
+        )
+        .is_err());
+
+        let mut non_executable_breaker_program = helium_treasury_management_step_accounts();
+        non_executable_breaker_program[6].executable = false;
+        assert!(validate_step_account_flags(
+            Protocol::HeliumTreasuryManagement,
+            &non_executable_breaker_program,
+        )
+        .is_err());
     }
 
     #[test]

@@ -38,6 +38,20 @@ pub const CARROT_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("CarrotwivhMpDnm27EHmRLeQ683Z1PufuqEmBZvD282s");
 pub const HYLO_EXCHANGE_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn");
+pub const HYLO_EARN_POOL_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("HysTabVUfmQBFcmzu1ctRd1Y1fxd66RBpboy1bmtDSQQ");
+pub const JUPITER_LEND_EARN_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("jup3YeL8QhtSx1e253b2FDvsMNC87fDrgQZivbrndc9");
+pub const JUPITER_LEND_EARN_PROGRAM_ID_DEVNET: Pubkey =
+    anchor_lang::pubkey!("7tjE28izRUjzmxC1QNXnNwcc4N82CNYCexf3k8mw67s3");
+pub const JUPITER_LEND_LIQUIDITY_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("jupeiUmn818Jg1ekPURTpr4mFo29p46vygyykFJ3wZC");
+pub const JUPITER_LEND_LIQUIDITY_PROGRAM_ID_DEVNET: Pubkey =
+    anchor_lang::pubkey!("5uDkCoM96pwGYhAUucvCzLfm5UcjVRuxz6gH81RnRBmL");
+pub const JUPITER_LEND_REWARDS_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("jup7TthsMgcR9Y3L277b8Eo9uboVSmu1utkuXHNUKar");
+pub const JUPITER_LEND_REWARDS_PROGRAM_ID_DEVNET: Pubkey =
+    anchor_lang::pubkey!("68LHLkpgjAvo6Lgd9FT6KYEX4FWn1911EohSXxHYMFjc");
 pub const M_SWAP_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("MSwapi3WhNKMUGm9YrxGhypgUEt7wYQH3ZgG32XoWzH");
 pub const GAVEL_PROGRAM_ID: Pubkey =
@@ -76,6 +90,10 @@ pub const VOLTR_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("vVoLTRjQmtFpiYoegx285Ze4gsLJ8ZxgFKVcuvmG1a8");
 pub const ONE_DEX_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("DEXYosS6oEGvk8uCDayvwEZz4qEyDJRf9nFgYCaqPMTm");
+pub const HUMA_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("8dWTgQukmAefBAp7nF8kaA1vtZrnR34Zhdmm6Fi24esy");
+pub const SOLAYER_ENDOAVS_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("endoLNCKTqDn8gSVnN2hDdpgACUPWHZTwoYnnMybpAT");
 pub const CREMA_CLMM_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("CLMM9tUoggJu2wagPkkqs9eFG4BWhVBZWkP1qv3Sp7tR");
 pub const SANCTUM_ROUTER_PROGRAM_ID: Pubkey =
@@ -124,6 +142,10 @@ pub const PUMPFUN_AMM_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA");
 pub const ORCA_WHIRLPOOL_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc");
+pub const HELIUM_TREASURY_MANAGEMENT_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("treaf4wWBBty3fHdyBpo35Mz84M8k3heKXmjmi9vFt5");
+pub const HELIUM_CIRCUIT_BREAKER_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("circAbx64bbsscPbQzZAUvuXpHqrCe6fLMzc2uKXz9g");
 pub const ORCA_TOKEN_SWAP_V2_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("9W959DqEETiGZocYWCQPaJ6sBmUzgfxXfqGeTEdp3aQP");
 pub const ORCA_TOKEN_SWAP_V2_PROGRAM_ID_DEVNET: Pubkey =
@@ -331,6 +353,11 @@ pub fn expected_protocol_program_id(protocol: Protocol) -> Pubkey {
         Protocol::BisonFi => BISONFI_PROGRAM_ID,
         Protocol::Voltr => VOLTR_PROGRAM_ID,
         Protocol::OneDex => ONE_DEX_PROGRAM_ID,
+        Protocol::Huma => HUMA_PROGRAM_ID,
+        Protocol::SolayerEndoAvs => SOLAYER_ENDOAVS_PROGRAM_ID,
+        Protocol::HyloEarnPool => HYLO_EARN_POOL_PROGRAM_ID,
+        Protocol::JupiterLendEarn => jupiter_lend_earn_program_id(),
+        Protocol::HeliumTreasuryManagement => HELIUM_TREASURY_MANAGEMENT_PROGRAM_ID,
         Protocol::CremaClmm => CREMA_CLMM_PROGRAM_ID,
         Protocol::SanctumRouter => SANCTUM_ROUTER_PROGRAM_ID,
         Protocol::Moonit => MOONIT_PROGRAM_ID,
@@ -412,6 +439,11 @@ pub fn expected_fixed_accounts(protocol: Protocol) -> &'static [FixedAccountExpe
         Protocol::BisonFi => NO_FIXED_ACCOUNTS,
         Protocol::Voltr => NO_FIXED_ACCOUNTS,
         Protocol::OneDex => NO_FIXED_ACCOUNTS,
+        Protocol::Huma => NO_FIXED_ACCOUNTS,
+        Protocol::SolayerEndoAvs => NO_FIXED_ACCOUNTS,
+        Protocol::HyloEarnPool => NO_FIXED_ACCOUNTS,
+        Protocol::JupiterLendEarn => NO_FIXED_ACCOUNTS,
+        Protocol::HeliumTreasuryManagement => NO_FIXED_ACCOUNTS,
         Protocol::CremaClmm => NO_FIXED_ACCOUNTS,
         Protocol::SanctumRouter => NO_FIXED_ACCOUNTS,
         Protocol::Moonit => NO_FIXED_ACCOUNTS,
@@ -522,6 +554,36 @@ fn saros_dlmm_program_id() -> Pubkey {
 #[cfg(all(not(feature = "devnet"), not(feature = "flex")))]
 fn saros_dlmm_program_id() -> Pubkey {
     SAROS_DLMM_PROGRAM_ID
+}
+
+#[cfg(feature = "devnet")]
+pub const fn jupiter_lend_earn_program_id() -> Pubkey {
+    JUPITER_LEND_EARN_PROGRAM_ID_DEVNET
+}
+
+#[cfg(not(feature = "devnet"))]
+pub const fn jupiter_lend_earn_program_id() -> Pubkey {
+    JUPITER_LEND_EARN_PROGRAM_ID
+}
+
+#[cfg(feature = "devnet")]
+pub const fn jupiter_lend_liquidity_program_id() -> Pubkey {
+    JUPITER_LEND_LIQUIDITY_PROGRAM_ID_DEVNET
+}
+
+#[cfg(not(feature = "devnet"))]
+pub const fn jupiter_lend_liquidity_program_id() -> Pubkey {
+    JUPITER_LEND_LIQUIDITY_PROGRAM_ID
+}
+
+#[cfg(feature = "devnet")]
+pub const fn jupiter_lend_rewards_program_id() -> Pubkey {
+    JUPITER_LEND_REWARDS_PROGRAM_ID_DEVNET
+}
+
+#[cfg(not(feature = "devnet"))]
+pub const fn jupiter_lend_rewards_program_id() -> Pubkey {
+    JUPITER_LEND_REWARDS_PROGRAM_ID
 }
 
 #[cfg(all(not(feature = "devnet"), not(feature = "flex")))]

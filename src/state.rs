@@ -87,6 +87,11 @@ pub enum Protocol {
     BisonFi = 72,
     Voltr = 73,
     OneDex = 74,
+    Huma = 75,
+    SolayerEndoAvs = 76,
+    HyloEarnPool = 77,
+    JupiterLendEarn = 78,
+    HeliumTreasuryManagement = 79,
 }
 
 impl Protocol {
@@ -166,6 +171,11 @@ impl Protocol {
         Protocol::BisonFi,
         Protocol::Voltr,
         Protocol::OneDex,
+        Protocol::Huma,
+        Protocol::SolayerEndoAvs,
+        Protocol::HyloEarnPool,
+        Protocol::JupiterLendEarn,
+        Protocol::HeliumTreasuryManagement,
     ];
 
     pub const fn contract_id(self) -> u8 {
@@ -245,6 +255,11 @@ impl Protocol {
             Protocol::BisonFi => 72,
             Protocol::Voltr => 73,
             Protocol::OneDex => 74,
+            Protocol::Huma => 75,
+            Protocol::SolayerEndoAvs => 76,
+            Protocol::HyloEarnPool => 77,
+            Protocol::JupiterLendEarn => 78,
+            Protocol::HeliumTreasuryManagement => 79,
         }
     }
 
@@ -325,6 +340,11 @@ impl Protocol {
             Protocol::BisonFi => "BisonFi",
             Protocol::Voltr => "Voltr",
             Protocol::OneDex => "OneDex",
+            Protocol::Huma => "Huma",
+            Protocol::SolayerEndoAvs => "SolayerEndoAvs",
+            Protocol::HyloEarnPool => "HyloEarnPool",
+            Protocol::JupiterLendEarn => "JupiterLendEarn",
+            Protocol::HeliumTreasuryManagement => "HeliumTreasuryManagement",
         }
     }
 }
