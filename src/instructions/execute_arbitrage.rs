@@ -7,31 +7,34 @@ use crate::instructions::program_ids::{
 };
 use crate::instructions::types::{
     token_program_for_mint, validate_aldrin_v1_semantic_accounts,
-    validate_aldrin_v2_semantic_accounts, validate_bonk_swap_semantic_accounts,
-    validate_boop_fun_semantic_accounts, validate_crema_clmm_semantic_accounts,
-    validate_fluxbeam_semantic_accounts, validate_goonfi_semantic_accounts,
-    validate_goonfi_v2_semantic_accounts, validate_heaven_semantic_accounts,
-    validate_humidifi_semantic_accounts, validate_invariant_semantic_accounts,
-    validate_lifinity_amm_v1_semantic_accounts, validate_lifinity_amm_v2_semantic_accounts,
-    validate_manifest_semantic_accounts, validate_mercurial_stable_swap_semantic_accounts,
-    validate_meteora_damm_v1_semantic_accounts, validate_meteora_damm_v2_semantic_accounts,
-    validate_meteora_dbc_semantic_accounts, validate_meteora_dlmm_semantic_accounts,
-    validate_moonit_semantic_accounts, validate_obric_v2_semantic_accounts,
-    validate_openbook_v2_semantic_accounts, validate_orca_token_swap_semantic_accounts,
-    validate_orca_whirlpool_semantic_accounts, validate_phoenix_semantic_accounts,
-    validate_pumpfun_amm_semantic_accounts, validate_pumpfun_swap_semantic_accounts,
-    validate_raydium_clmm_semantic_accounts, validate_raydium_cpmm_semantic_accounts,
-    validate_raydium_launchpad_semantic_accounts, validate_raydium_pool_v4_authority,
-    validate_raydium_pool_v4_semantic_accounts, validate_raydium_stable_swap_authority,
-    validate_raydium_stable_swap_semantic_accounts, validate_saber_stable_swap_semantic_accounts,
-    validate_sanctum_router_semantic_accounts, validate_saros_dlmm_semantic_accounts,
-    validate_sencha_swap_semantic_accounts, validate_solfi_v1_semantic_accounts,
-    validate_solfi_v2_semantic_accounts, validate_tessera_semantic_accounts,
-    validate_token_account_for_mint, validate_token_account_for_mint_and_authority, SwapResult,
+    validate_aldrin_v2_semantic_accounts, validate_binaryfi_semantic_accounts,
+    validate_bonk_swap_semantic_accounts, validate_boop_fun_semantic_accounts,
+    validate_crema_clmm_semantic_accounts, validate_fluxbeam_semantic_accounts,
+    validate_goonfi_semantic_accounts, validate_goonfi_v2_semantic_accounts,
+    validate_heaven_semantic_accounts, validate_humidifi_semantic_accounts,
+    validate_invariant_semantic_accounts, validate_lifinity_amm_v1_semantic_accounts,
+    validate_lifinity_amm_v2_semantic_accounts, validate_manifest_semantic_accounts,
+    validate_mercurial_stable_swap_semantic_accounts, validate_meteora_damm_v1_semantic_accounts,
+    validate_meteora_damm_v2_semantic_accounts, validate_meteora_dbc_semantic_accounts,
+    validate_meteora_dlmm_semantic_accounts, validate_moonit_semantic_accounts,
+    validate_obric_v2_semantic_accounts, validate_openbook_v2_semantic_accounts,
+    validate_orca_token_swap_semantic_accounts, validate_orca_whirlpool_semantic_accounts,
+    validate_phoenix_semantic_accounts, validate_pumpfun_amm_semantic_accounts,
+    validate_pumpfun_swap_semantic_accounts, validate_raydium_clmm_semantic_accounts,
+    validate_raydium_cpmm_semantic_accounts, validate_raydium_launchpad_semantic_accounts,
+    validate_raydium_pool_v4_authority, validate_raydium_pool_v4_semantic_accounts,
+    validate_raydium_stable_swap_authority, validate_raydium_stable_swap_semantic_accounts,
+    validate_saber_stable_swap_semantic_accounts, validate_sanctum_router_semantic_accounts,
+    validate_saros_dlmm_semantic_accounts, validate_sencha_swap_semantic_accounts,
+    validate_solfi_v1_semantic_accounts, validate_solfi_v2_semantic_accounts,
+    validate_tessera_semantic_accounts, validate_token_account_for_mint,
+    validate_token_account_for_mint_and_authority, validate_whalestreet_semantic_accounts,
+    SwapResult,
 };
 use crate::protocal::{
     aldrin_v1::{aldrin_v1_swap, AldrinV1Accounts, ALDRIN_V1_MIN_ACCOUNTS},
     aldrin_v2::{aldrin_v2_swap, AldrinV2Accounts, ALDRIN_V2_MIN_ACCOUNTS},
+    binaryfi::{binaryfi_swap, BinaryFiAccounts, BINARYFI_MIN_ACCOUNTS},
     bisonfi::{
         bisonfi_swap, validate_bisonfi_semantic_accounts, BisonFiAccounts, BISONFI_STEP_ACCOUNTS,
     },
@@ -87,6 +90,9 @@ use crate::protocal::{
         jupiter_lend_earn_swap, validate_jupiter_lend_earn_semantic_accounts,
         JupiterLendEarnAccounts, JUPITER_LEND_EARN_STEP_ACCOUNTS,
     },
+    kipseli::{
+        kipseli_swap, validate_kipseli_semantic_accounts, KipseliAccounts, KIPSELI_STEP_ACCOUNTS,
+    },
     lemmingsfi::{
         lemmingsfi_swap, validate_lemmingsfi_semantic_accounts, LemmingsFiAccounts,
         LEMMINGSFI_STEP_ACCOUNTS,
@@ -110,6 +116,9 @@ use crate::protocal::{
     meteora_damm_v2::{meteora_damm_v2_swap, MeteoraDammV2Accounts, METEORA_DAMM_V2_MIN_ACCOUNTS},
     meteora_dbc::{meteora_dbc_swap, MeteoraDbcAccounts, METEORA_DBC_MIN_ACCOUNTS},
     meteora_dlmm::{meteora_dlmm_swap, MeteoraDlmmAccounts, METEORA_DLMM_MIN_ACCOUNTS},
+    metric::{
+        metric_swap, validate_metric_semantic_accounts, MetricAccounts, METRIC_STEP_ACCOUNTS,
+    },
     moonit::{moonit_swap, MoonitAccounts, MOONIT_STEP_ACCOUNTS},
     obric_v2::{obric_v2_swap, ObricV2Accounts, OBRIC_V2_MIN_ACCOUNTS},
     omnipair::{
@@ -142,6 +151,13 @@ use crate::protocal::{
     raydium_stable_swap::{
         raydium_stable_swap, RaydiumStableSwapAccounts, RAYDIUM_STABLE_SWAP_MIN_ACCOUNTS,
     },
+    riptide::{
+        riptide_swap, validate_riptide_semantic_accounts, RiptideAccounts, RIPTIDE_STEP_ACCOUNTS,
+    },
+    saber_add_decimals::{
+        saber_add_decimals_swap, validate_saber_add_decimals_semantic_accounts,
+        SaberAddDecimalsAccounts, SABER_ADD_DECIMALS_STEP_ACCOUNTS,
+    },
     saber_stable_swap::{
         saber_stable_swap, SaberStableSwapAccounts, SABER_STABLE_SWAP_MIN_ACCOUNTS,
     },
@@ -155,6 +171,9 @@ use crate::protocal::{
         ScaleAmmAccounts,
     },
     scale_vmm::{scale_vmm_swap, validate_scale_vmm_semantic_accounts, ScaleVmmAccounts},
+    scorch::{
+        scorch_swap, validate_scorch_semantic_accounts, ScorchAccounts, SCORCH_STEP_ACCOUNTS,
+    },
     sencha_swap::{sencha_swap, SenchaSwapAccounts, SENCHA_SWAP_MIN_ACCOUNTS},
     serum_v3::{
         serum_v3_swap, validate_serum_v3_semantic_accounts, SerumV3Accounts, SERUM_V3_STEP_ACCOUNTS,
@@ -166,11 +185,20 @@ use crate::protocal::{
     solfi_v1::{solfi_v1_swap, SolfiV1Accounts, SOLFI_V1_MIN_ACCOUNTS},
     solfi_v2::{solfi_v2_swap, SolfiV2Accounts, SOLFI_V2_MIN_ACCOUNTS},
     stabble_swap::{stabble_swap_v2, StabbleSwapAccounts, STABBLE_SWAP_MIN_ACCOUNTS},
+    taurusfi::{
+        taurusfi_swap, validate_taurusfi_semantic_accounts, TaurusFiAccounts,
+        TAURUSFI_STEP_ACCOUNTS,
+    },
     tessera::{tessera_swap, TesseraAccounts, TESSERA_MIN_ACCOUNTS},
     trends::{trends_swap, validate_trends_semantic_accounts, TrendsAccounts},
     virtuals::{validate_virtuals_semantic_accounts, virtuals_swap, VirtualsAccounts},
     voltr::{validate_voltr_semantic_accounts, voltr_swap, VoltrAccounts, VOLTR_STEP_ACCOUNTS},
+    whalestreet::{whalestreet_swap, WhaleStreetAccounts, WHALESTREET_MIN_ACCOUNTS},
     woofi_swap::{woofi_swap, WoofiSwapAccounts, WOOFI_SWAP_MIN_ACCOUNTS},
+    xorca::{
+        validate_xorca_amount, validate_xorca_semantic_accounts, xorca_swap, XOrcaAccounts,
+        XORCA_STEP_ACCOUNTS,
+    },
 };
 use crate::state::Protocol;
 use crate::state::SwapArbParams;
@@ -559,6 +587,149 @@ pub fn execute_arbitrage<'info>(
                 in_mint_program_ai,
                 out_mint_program_ai,
                 direction,
+                current_amount,
+                step.min_output_amount,
+            ),
+            Protocol::WhaleStreet => execute_whalestreet_step(
+                step_slice,
+                payer,
+                user_in_ai,
+                user_out_ai,
+                in_mint_ai,
+                out_mint_ai,
+                in_mint_program_ai,
+                out_mint_program_ai,
+                direction,
+                current_amount,
+                step.min_output_amount,
+            ),
+            Protocol::BinaryFi => execute_binaryfi_step(
+                step_slice,
+                payer,
+                user_in_ai,
+                user_out_ai,
+                in_mint_ai,
+                out_mint_ai,
+                in_mint_program_ai,
+                out_mint_program_ai,
+                direction,
+                current_amount,
+                step.min_output_amount,
+            ),
+            Protocol::XOrca => execute_isolated_step(|| {
+                require!(
+                    step_slice.len() == XORCA_STEP_ACCOUNTS,
+                    ArbitrageError::InvalidAccountCount
+                );
+                validate_xorca_semantic_accounts(
+                    step_slice,
+                    direction,
+                    step.fee_rate,
+                    in_mint_ai,
+                    out_mint_ai,
+                )?;
+                require_keys_eq!(
+                    in_mint_program_ai.key(),
+                    step_slice[4].key(),
+                    ArbitrageError::InvalidProgramId
+                );
+                require_keys_eq!(
+                    out_mint_program_ai.key(),
+                    step_slice[4].key(),
+                    ArbitrageError::InvalidProgramId
+                );
+                validate_xorca_amount(
+                    &step_slice[1],
+                    &step_slice[2],
+                    &step_slice[3],
+                    current_amount,
+                )?;
+                xorca_swap(
+                    XOrcaAccounts {
+                        program: &step_slice[0],
+                        owner: payer,
+                        state: &step_slice[1],
+                        vault: &step_slice[2],
+                        user_orca: user_in_ai,
+                        user_xorca: user_out_ai,
+                        orca_mint: in_mint_ai,
+                        xorca_mint: &step_slice[3],
+                        token_program: &step_slice[4],
+                    },
+                    current_amount,
+                )
+            }),
+            Protocol::Kipseli => execute_kipseli_step(
+                step_slice,
+                payer,
+                system_program,
+                token_program,
+                user_in_ai,
+                user_out_ai,
+                in_mint_ai,
+                out_mint_ai,
+                in_mint_program_ai,
+                out_mint_program_ai,
+                direction,
+                step.fee_rate,
+                current_amount,
+                step.min_output_amount,
+            ),
+            Protocol::Riptide => execute_riptide_step(
+                step_slice,
+                payer,
+                token_program,
+                user_in_ai,
+                user_out_ai,
+                in_mint_ai,
+                out_mint_ai,
+                in_mint_program_ai,
+                out_mint_program_ai,
+                direction,
+                step.fee_rate,
+                current_amount,
+            ),
+            Protocol::Metric => execute_metric_step(
+                step_slice,
+                payer,
+                token_program,
+                user_in_ai,
+                user_out_ai,
+                in_mint_ai,
+                out_mint_ai,
+                in_mint_program_ai,
+                out_mint_program_ai,
+                direction,
+                step.fee_rate,
+                current_amount,
+            ),
+            Protocol::TaurusFi => execute_taurusfi_step(
+                step_slice,
+                payer,
+                token_program,
+                user_in_ai,
+                user_out_ai,
+                in_mint_ai,
+                out_mint_ai,
+                in_mint_program_ai,
+                out_mint_program_ai,
+                direction,
+                step.fee_rate,
+                current_amount,
+            ),
+            Protocol::Scorch => execute_scorch_step(
+                step_slice,
+                payer,
+                token_program,
+                user_in_ai,
+                user_out_ai,
+                in_mint_ai,
+                out_mint_ai,
+                in_mint_program_ai,
+                out_mint_program_ai,
+                direction,
+                step.fee_rate,
+                step.protocol_payload,
                 current_amount,
                 step.min_output_amount,
             ),
@@ -2659,6 +2830,49 @@ pub fn execute_arbitrage<'info>(
                     step.min_output_amount,
                 )
             }),
+            Protocol::SaberAddDecimals => execute_isolated_step(|| {
+                require!(
+                    step_slice.len() == SABER_ADD_DECIMALS_STEP_ACCOUNTS,
+                    ArbitrageError::InvalidAccountCount
+                );
+                validate_saber_add_decimals_semantic_accounts(
+                    step_slice,
+                    direction,
+                    step.fee_rate,
+                    in_mint_ai,
+                    out_mint_ai,
+                )?;
+                require_keys_eq!(
+                    in_mint_program_ai.key(),
+                    step_slice[5].key(),
+                    ArbitrageError::InvalidProgramId
+                );
+                require_keys_eq!(
+                    out_mint_program_ai.key(),
+                    step_slice[5].key(),
+                    ArbitrageError::InvalidProgramId
+                );
+                let (user_underlying, user_wrapped) = if direction == 0 {
+                    (user_in_ai, user_out_ai)
+                } else {
+                    (user_out_ai, user_in_ai)
+                };
+                saber_add_decimals_swap(
+                    SaberAddDecimalsAccounts {
+                        program: &step_slice[0],
+                        wrapper: &step_slice[1],
+                        wrapped_mint: &step_slice[2],
+                        underlying_vault: &step_slice[3],
+                        underlying_mint: &step_slice[4],
+                        token_program: &step_slice[5],
+                        owner: payer,
+                        user_underlying,
+                        user_wrapped,
+                    },
+                    direction,
+                    current_amount,
+                )
+            }),
             Protocol::Manifest => execute_isolated_step(|| {
                 require!(
                     step_slice.len() == MANIFEST_MIN_ACCOUNTS,
@@ -3273,6 +3487,7 @@ where
 }
 
 #[inline(never)]
+#[allow(clippy::too_many_arguments)]
 fn execute_pumpfun_swap_step<'info>(
     step_slice: &'info [AccountInfo<'info>],
     payer: &'info AccountInfo<'info>,
@@ -3369,6 +3584,7 @@ fn execute_pumpfun_swap_step<'info>(
 }
 
 #[inline(never)]
+#[allow(clippy::too_many_arguments)]
 fn execute_pumpfun_amm_step<'info>(
     step_slice: &'info [AccountInfo<'info>],
     payer: &'info AccountInfo<'info>,
@@ -3452,6 +3668,7 @@ fn execute_pumpfun_amm_step<'info>(
 }
 
 #[inline(never)]
+#[allow(clippy::too_many_arguments)]
 fn execute_raydium_pool_v4_step<'info>(
     step_slice: &'info [AccountInfo<'info>],
     payer: &'info AccountInfo<'info>,
@@ -3537,6 +3754,7 @@ fn execute_raydium_pool_v4_step<'info>(
 }
 
 #[inline(never)]
+#[allow(clippy::too_many_arguments)]
 fn execute_raydium_stable_swap_step<'info>(
     step_slice: &'info [AccountInfo<'info>],
     payer: &'info AccountInfo<'info>,
@@ -3623,6 +3841,7 @@ fn execute_raydium_stable_swap_step<'info>(
 }
 
 #[inline(never)]
+#[allow(clippy::too_many_arguments)]
 fn execute_solfi_v2_step<'info>(
     step_slice: &'info [AccountInfo<'info>],
     payer: &'info AccountInfo<'info>,
@@ -3680,6 +3899,7 @@ fn execute_solfi_v2_step<'info>(
 }
 
 #[inline(never)]
+#[allow(clippy::too_many_arguments)]
 fn execute_solfi_v1_step<'info>(
     step_slice: &'info [AccountInfo<'info>],
     payer: &'info AccountInfo<'info>,
@@ -4133,6 +4353,7 @@ fn execute_fluxbeam_step<'info>(
 }
 
 #[inline(never)]
+#[allow(clippy::too_many_arguments)]
 fn execute_humidifi_step<'info>(
     step_slice: &'info [AccountInfo<'info>],
     payer: &'info AccountInfo<'info>,
@@ -4200,6 +4421,7 @@ fn execute_humidifi_step<'info>(
 }
 
 #[inline(never)]
+#[allow(clippy::too_many_arguments)]
 fn execute_obric_v2_step<'info>(
     step_slice: &'info [AccountInfo<'info>],
     payer: &'info AccountInfo<'info>,
@@ -4266,6 +4488,7 @@ fn execute_obric_v2_step<'info>(
 }
 
 #[inline(never)]
+#[allow(clippy::too_many_arguments)]
 fn execute_tessera_step<'info>(
     step_slice: &'info [AccountInfo<'info>],
     payer: &'info AccountInfo<'info>,
@@ -4320,6 +4543,7 @@ fn execute_tessera_step<'info>(
 }
 
 #[inline(never)]
+#[allow(clippy::too_many_arguments)]
 fn execute_goonfi_step<'info>(
     step_slice: &'info [AccountInfo<'info>],
     payer: &'info AccountInfo<'info>,
@@ -4373,6 +4597,7 @@ fn execute_goonfi_step<'info>(
 }
 
 #[inline(never)]
+#[allow(clippy::too_many_arguments)]
 fn execute_goonfi_v2_step<'info>(
     step_slice: &'info [AccountInfo<'info>],
     payer: &'info AccountInfo<'info>,
@@ -4425,6 +4650,430 @@ fn execute_goonfi_v2_step<'info>(
         current_amount,
         min_output_amount,
         direction,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_whalestreet_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    direction: u8,
+    current_amount: u64,
+    min_output_amount: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == WHALESTREET_MIN_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    validate_whalestreet_semantic_accounts(
+        step_slice,
+        direction,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+    )?;
+    let (user_base, user_quote) = match direction {
+        0 => (user_in_ai, user_out_ai),
+        1 => (user_out_ai, user_in_ai),
+        _ => return Err(ArbitrageError::InvalidInstructionData.into()),
+    };
+    whalestreet_swap(
+        WhaleStreetAccounts {
+            program: &step_slice[0],
+            pool: &step_slice[1],
+            user_base,
+            user_quote,
+            base_vault: &step_slice[2],
+            quote_vault: &step_slice[3],
+            payer,
+            token_program: &step_slice[4],
+            instructions_sysvar: &step_slice[5],
+            output_token_account: user_out_ai,
+        },
+        current_amount,
+        min_output_amount,
+        direction,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_binaryfi_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    direction: u8,
+    current_amount: u64,
+    min_output_amount: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == BINARYFI_MIN_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    validate_binaryfi_semantic_accounts(
+        step_slice,
+        direction,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+    )?;
+    binaryfi_swap(
+        BinaryFiAccounts {
+            program: &step_slice[0],
+            payer,
+            config: &step_slice[1],
+            pool: &step_slice[2],
+            authority: &step_slice[3],
+            input_mint: in_mint_ai,
+            output_mint: out_mint_ai,
+            input_vault: &step_slice[4],
+            output_vault: &step_slice[5],
+            user_input: user_in_ai,
+            user_output: user_out_ai,
+            input_token_program: &step_slice[6],
+            output_token_program: &step_slice[7],
+            instructions_sysvar: &step_slice[8],
+        },
+        current_amount,
+        min_output_amount,
+        direction,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_kipseli_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    system_program: &'info AccountInfo<'info>,
+    token_program: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    direction: u8,
+    fee_rate: u16,
+    current_amount: u64,
+    min_output_amount: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == KIPSELI_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    validate_kipseli_semantic_accounts(
+        step_slice,
+        payer,
+        direction,
+        fee_rate,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+    )?;
+    require_keys_eq!(
+        token_program.key(),
+        anchor_spl::token::ID,
+        ArbitrageError::InvalidProgramId
+    );
+    require_keys_eq!(
+        system_program.key(),
+        anchor_lang::system_program::ID,
+        ArbitrageError::InvalidProgramId
+    );
+    let (user_base, user_quote, base_mint, quote_mint) = match direction {
+        0 => (user_in_ai, user_out_ai, in_mint_ai, out_mint_ai),
+        1 => (user_out_ai, user_in_ai, out_mint_ai, in_mint_ai),
+        _ => return Err(ArbitrageError::InvalidInstructionData.into()),
+    };
+    kipseli_swap(
+        KipseliAccounts {
+            program: &step_slice[0],
+            payer,
+            pool: &step_slice[1],
+            base_mint,
+            quote_mint,
+            user_base,
+            user_quote,
+            base_vault: &step_slice[2],
+            quote_vault: &step_slice[3],
+            token_program,
+            system_program,
+            ban_entry: &step_slice[4],
+            output_token_account: user_out_ai,
+        },
+        current_amount,
+        min_output_amount,
+        direction,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_riptide_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    token_program: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    direction: u8,
+    fee_rate: u16,
+    current_amount: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == RIPTIDE_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    validate_riptide_semantic_accounts(
+        step_slice,
+        direction,
+        fee_rate,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+    )?;
+    require_keys_eq!(
+        token_program.key(),
+        anchor_spl::token::ID,
+        ArbitrageError::InvalidProgramId
+    );
+    let (user_base, user_quote, base_mint, quote_mint) = match direction {
+        0 => (user_in_ai, user_out_ai, in_mint_ai, out_mint_ai),
+        1 => (user_out_ai, user_in_ai, out_mint_ai, in_mint_ai),
+        _ => return Err(ArbitrageError::InvalidInstructionData.into()),
+    };
+    riptide_swap(
+        RiptideAccounts {
+            program: &step_slice[0],
+            payer,
+            market: &step_slice[1],
+            base_mint,
+            quote_mint,
+            user_base,
+            user_quote,
+            base_vault: &step_slice[2],
+            quote_vault: &step_slice[3],
+            token_program,
+            memo_program: &step_slice[4],
+            instructions_sysvar: &step_slice[5],
+            output_token_account: user_out_ai,
+        },
+        current_amount,
+        direction,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_metric_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    token_program: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    direction: u8,
+    fee_rate: u16,
+    current_amount: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == METRIC_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    validate_metric_semantic_accounts(
+        step_slice,
+        direction,
+        fee_rate,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+    )?;
+    require_keys_eq!(
+        token_program.key(),
+        anchor_spl::token::ID,
+        ArbitrageError::InvalidProgramId
+    );
+    let (mint_a, mint_b) = match direction {
+        0 => (in_mint_ai, out_mint_ai),
+        1 => (out_mint_ai, in_mint_ai),
+        _ => return Err(ArbitrageError::InvalidInstructionData.into()),
+    };
+    metric_swap(
+        MetricAccounts {
+            program: &step_slice[0],
+            payer,
+            market: &step_slice[1],
+            mint_a,
+            mint_b,
+            vault_a: &step_slice[2],
+            vault_b: &step_slice[3],
+            user_source: user_in_ai,
+            user_destination: user_out_ai,
+            token_program,
+            system_program: &step_slice[4],
+            price_provider: &step_slice[5],
+            feed: &step_slice[6],
+            oracle: &step_slice[7],
+            output_token_account: user_out_ai,
+        },
+        current_amount,
+        direction,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_taurusfi_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    token_program: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    direction: u8,
+    fee_rate: u16,
+    current_amount: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == TAURUSFI_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    validate_taurusfi_semantic_accounts(
+        step_slice,
+        direction,
+        fee_rate,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+    )?;
+    require_keys_eq!(
+        token_program.key(),
+        anchor_spl::token::ID,
+        ArbitrageError::InvalidProgramId
+    );
+    let (mint_a, mint_b) = match direction {
+        0 => (in_mint_ai, out_mint_ai),
+        1 => (out_mint_ai, in_mint_ai),
+        _ => return Err(ArbitrageError::InvalidInstructionData.into()),
+    };
+    taurusfi_swap(
+        TaurusFiAccounts {
+            program: &step_slice[0],
+            payer,
+            pair: &step_slice[1],
+            mint_a,
+            mint_b,
+            vault_a: &step_slice[2],
+            vault_b: &step_slice[3],
+            user_source: user_in_ai,
+            user_destination: user_out_ai,
+            authority: &step_slice[4],
+            global: &step_slice[5],
+            prices: &step_slice[6],
+            token_program,
+            instructions_sysvar: &step_slice[7],
+            output_token_account: user_out_ai,
+        },
+        current_amount,
+        direction,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_scorch_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    token_program: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    direction: u8,
+    fee_rate: u16,
+    protocol_payload: [u8; 18],
+    current_amount: u64,
+    min_output_amount: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == SCORCH_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    validate_scorch_semantic_accounts(
+        step_slice,
+        direction,
+        fee_rate,
+        &protocol_payload,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+    )?;
+    require_keys_eq!(
+        token_program.key(),
+        anchor_spl::token::ID,
+        ArbitrageError::InvalidProgramId
+    );
+    let (mint_a, mint_b) = match direction {
+        0 => (in_mint_ai, out_mint_ai),
+        1 => (out_mint_ai, in_mint_ai),
+        _ => return Err(ArbitrageError::InvalidInstructionData.into()),
+    };
+    scorch_swap(
+        ScorchAccounts {
+            program: &step_slice[0],
+            oracle_program: &step_slice[1],
+            payer,
+            pool: &step_slice[2],
+            mint_a,
+            mint_b,
+            vault_a: &step_slice[3],
+            vault_b: &step_slice[4],
+            user_source: user_in_ai,
+            user_destination: user_out_ai,
+            authority: &step_slice[5],
+            global: &step_slice[6],
+            oracle_a: &step_slice[7],
+            oracle_b: &step_slice[8],
+            token_program,
+            memo_program: &step_slice[9],
+            instructions_sysvar: &step_slice[10],
+            output_token_account: user_out_ai,
+        },
+        current_amount,
+        min_output_amount,
+        direction,
+        protocol_payload,
     )
 }
 

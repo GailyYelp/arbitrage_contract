@@ -128,6 +128,24 @@ pub const GOONFI_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("goonERTdGsjnkZqWuVjs73BZ3Pb9qoCUdBUL17BnS5j");
 pub const GOONFI_V2_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("goonuddtQRrWqqn5nFyczVKaie28f3kDkHWkHtURSLE");
+pub const WHALESTREET_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("FW6zUqn4iKRaeopwwhwsquTY6ABWLLgjxtrC3VPnaWBf");
+pub const BINARYFI_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("B72M6nyCLFgWiJtAN4naUTminMiTmyGcEqQHXwVeRdht");
+pub const XORCA_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("StaKE6XNKVVhG8Qu9hDJBqCW3eRe7MDGLz17nJZetLT");
+pub const KIPSELI_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("3TK9D8aoBFYjYZtKCjciPrVrRStsnvo7KmpcJqDavpaU");
+pub const RIPTIDE_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("riptK81hDxhe5pW5jSzSM9iRA8azgEgLJ4dXkPtBS7j");
+pub const METRIC_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("Bvs46DPFxiFE6YHxLDLD6QAUcmy51FyRVPZJusPxLk3j");
+pub const TAURUSFI_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("9VX8EKBg6vM6tA68xaDsPkbrx26XConZjkQmhVApUptc");
+pub const SCORCH_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("SCoRcH8c2dpjvcJD6FiPbCSQyQgu3PcUAWj2Xxx3mqn");
+pub const SCORCH_ORACLE_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("ojh19ojaKduoJZuaJADhcVGp4xt1TcdAvZmpVsCorch");
 pub const RAYDIUM_POOL_V4_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8");
 pub const RAYDIUM_POOL_V4_PROGRAM_ID_DEVNET: Pubkey =
@@ -146,6 +164,8 @@ pub const HELIUM_TREASURY_MANAGEMENT_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("treaf4wWBBty3fHdyBpo35Mz84M8k3heKXmjmi9vFt5");
 pub const HELIUM_CIRCUIT_BREAKER_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("circAbx64bbsscPbQzZAUvuXpHqrCe6fLMzc2uKXz9g");
+pub const SABER_ADD_DECIMALS_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("DecZY86MU5Gj7kppfUCEmd4LbXXuyZH1yHaP2NTqdiZB");
 pub const ORCA_TOKEN_SWAP_V2_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("9W959DqEETiGZocYWCQPaJ6sBmUzgfxXfqGeTEdp3aQP");
 pub const ORCA_TOKEN_SWAP_V2_PROGRAM_ID_DEVNET: Pubkey =
@@ -358,6 +378,7 @@ pub fn expected_protocol_program_id(protocol: Protocol) -> Pubkey {
         Protocol::HyloEarnPool => HYLO_EARN_POOL_PROGRAM_ID,
         Protocol::JupiterLendEarn => jupiter_lend_earn_program_id(),
         Protocol::HeliumTreasuryManagement => HELIUM_TREASURY_MANAGEMENT_PROGRAM_ID,
+        Protocol::SaberAddDecimals => SABER_ADD_DECIMALS_PROGRAM_ID,
         Protocol::CremaClmm => CREMA_CLMM_PROGRAM_ID,
         Protocol::SanctumRouter => SANCTUM_ROUTER_PROGRAM_ID,
         Protocol::Moonit => MOONIT_PROGRAM_ID,
@@ -380,6 +401,14 @@ pub fn expected_protocol_program_id(protocol: Protocol) -> Pubkey {
         Protocol::Tessera => TESSERA_PROGRAM_ID,
         Protocol::GoonFi => GOONFI_PROGRAM_ID,
         Protocol::GoonFiV2 => GOONFI_V2_PROGRAM_ID,
+        Protocol::WhaleStreet => WHALESTREET_PROGRAM_ID,
+        Protocol::BinaryFi => BINARYFI_PROGRAM_ID,
+        Protocol::XOrca => XORCA_PROGRAM_ID,
+        Protocol::Kipseli => KIPSELI_PROGRAM_ID,
+        Protocol::Riptide => RIPTIDE_PROGRAM_ID,
+        Protocol::Metric => METRIC_PROGRAM_ID,
+        Protocol::TaurusFi => TAURUSFI_PROGRAM_ID,
+        Protocol::Scorch => SCORCH_PROGRAM_ID,
         Protocol::Phoenix => PHOENIX_PROGRAM_ID,
         Protocol::LifinityAmmV2 => LIFINITY_AMM_V2_PROGRAM_ID,
         Protocol::LifinityAmmV1 => LIFINITY_AMM_V1_PROGRAM_ID,
@@ -444,6 +473,7 @@ pub fn expected_fixed_accounts(protocol: Protocol) -> &'static [FixedAccountExpe
         Protocol::HyloEarnPool => NO_FIXED_ACCOUNTS,
         Protocol::JupiterLendEarn => NO_FIXED_ACCOUNTS,
         Protocol::HeliumTreasuryManagement => NO_FIXED_ACCOUNTS,
+        Protocol::SaberAddDecimals => NO_FIXED_ACCOUNTS,
         Protocol::CremaClmm => NO_FIXED_ACCOUNTS,
         Protocol::SanctumRouter => NO_FIXED_ACCOUNTS,
         Protocol::Moonit => NO_FIXED_ACCOUNTS,
@@ -466,6 +496,14 @@ pub fn expected_fixed_accounts(protocol: Protocol) -> &'static [FixedAccountExpe
         Protocol::Tessera => NO_FIXED_ACCOUNTS,
         Protocol::GoonFi => NO_FIXED_ACCOUNTS,
         Protocol::GoonFiV2 => NO_FIXED_ACCOUNTS,
+        Protocol::WhaleStreet => NO_FIXED_ACCOUNTS,
+        Protocol::BinaryFi => NO_FIXED_ACCOUNTS,
+        Protocol::XOrca => NO_FIXED_ACCOUNTS,
+        Protocol::Kipseli => NO_FIXED_ACCOUNTS,
+        Protocol::Riptide => NO_FIXED_ACCOUNTS,
+        Protocol::Metric => NO_FIXED_ACCOUNTS,
+        Protocol::TaurusFi => NO_FIXED_ACCOUNTS,
+        Protocol::Scorch => NO_FIXED_ACCOUNTS,
         Protocol::Phoenix => PHOENIX_FIXED_ACCOUNTS,
         Protocol::LifinityAmmV2 => LIFINITY_AMM_V2_FIXED_ACCOUNTS,
         Protocol::LifinityAmmV1 => LIFINITY_AMM_V1_FIXED_ACCOUNTS,
@@ -599,6 +637,7 @@ fn raydium_launchpad_program_id() -> Pubkey {
 #[cfg(not(feature = "flex"))]
 const NO_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[];
 
+#[cfg(not(feature = "flex"))]
 const SANCTUM_INFINITY_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[
     FixedAccountExpectation {
         index: 1,
@@ -610,6 +649,7 @@ const SANCTUM_INFINITY_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[
     },
 ];
 
+#[cfg(not(feature = "flex"))]
 const PERENA_STAR_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[
     FixedAccountExpectation {
         index: 1,
@@ -621,6 +661,7 @@ const PERENA_STAR_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[
     },
 ];
 
+#[cfg(not(feature = "flex"))]
 const PHOENIX_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[
     FixedAccountExpectation {
         index: 1,
@@ -632,6 +673,7 @@ const PHOENIX_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[
     },
 ];
 
+#[cfg(not(feature = "flex"))]
 const OPENBOOK_V2_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[
     FixedAccountExpectation {
         index: 8,
@@ -643,6 +685,7 @@ const OPENBOOK_V2_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[
     },
 ];
 
+#[cfg(not(feature = "flex"))]
 const LIFINITY_AMM_V2_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[
     FixedAccountExpectation {
         index: 0,
@@ -654,6 +697,7 @@ const LIFINITY_AMM_V2_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[
     },
 ];
 
+#[cfg(not(feature = "flex"))]
 const LIFINITY_AMM_V1_FIXED_ACCOUNTS: &[FixedAccountExpectation] = &[
     FixedAccountExpectation {
         index: 0,
@@ -825,6 +869,7 @@ mod tests {
     const CUSTOM_PROGRAM_ID: Pubkey =
         anchor_lang::pubkey!("BPFLoaderUpgradeab1e11111111111111111111111");
 
+    #[cfg(not(feature = "flex"))]
     fn expected_launchpad_fixed_keys() -> (Pubkey, Pubkey) {
         #[cfg(feature = "devnet")]
         {

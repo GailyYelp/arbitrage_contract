@@ -92,6 +92,15 @@ pub enum Protocol {
     HyloEarnPool = 77,
     JupiterLendEarn = 78,
     HeliumTreasuryManagement = 79,
+    SaberAddDecimals = 80,
+    WhaleStreet = 81,
+    BinaryFi = 82,
+    XOrca = 83,
+    Kipseli = 84,
+    Riptide = 85,
+    Metric = 86,
+    TaurusFi = 87,
+    Scorch = 88,
 }
 
 impl Protocol {
@@ -176,6 +185,15 @@ impl Protocol {
         Protocol::HyloEarnPool,
         Protocol::JupiterLendEarn,
         Protocol::HeliumTreasuryManagement,
+        Protocol::SaberAddDecimals,
+        Protocol::WhaleStreet,
+        Protocol::BinaryFi,
+        Protocol::XOrca,
+        Protocol::Kipseli,
+        Protocol::Riptide,
+        Protocol::Metric,
+        Protocol::TaurusFi,
+        Protocol::Scorch,
     ];
 
     pub const fn contract_id(self) -> u8 {
@@ -260,6 +278,15 @@ impl Protocol {
             Protocol::HyloEarnPool => 77,
             Protocol::JupiterLendEarn => 78,
             Protocol::HeliumTreasuryManagement => 79,
+            Protocol::SaberAddDecimals => 80,
+            Protocol::WhaleStreet => 81,
+            Protocol::BinaryFi => 82,
+            Protocol::XOrca => 83,
+            Protocol::Kipseli => 84,
+            Protocol::Riptide => 85,
+            Protocol::Metric => 86,
+            Protocol::TaurusFi => 87,
+            Protocol::Scorch => 88,
         }
     }
 
@@ -345,6 +372,15 @@ impl Protocol {
             Protocol::HyloEarnPool => "HyloEarnPool",
             Protocol::JupiterLendEarn => "JupiterLendEarn",
             Protocol::HeliumTreasuryManagement => "HeliumTreasuryManagement",
+            Protocol::SaberAddDecimals => "SaberAddDecimals",
+            Protocol::WhaleStreet => "WhaleStreet",
+            Protocol::BinaryFi => "BinaryFi",
+            Protocol::XOrca => "XOrca",
+            Protocol::Kipseli => "Kipseli",
+            Protocol::Riptide => "Riptide",
+            Protocol::Metric => "Metric",
+            Protocol::TaurusFi => "TaurusFi",
+            Protocol::Scorch => "Scorch",
         }
     }
 }
@@ -390,6 +426,7 @@ pub struct SwapStepMeta {
     pub accounts_len: u8, // 本步账户组长度（用于从 remaining_accounts 切片）
     pub direction: u8,    // 协议内方向标记；当前仅允许 0 或 1，具体语义由协议适配层映射
     pub fee_rate: u16,    // 手续费率
+    pub protocol_payload: [u8; 18], // 协议专用固定长度 wire 上下文；普通协议全零
     pub min_output_amount: u64, // 本步最小输出，0 表示只依赖终局利润校验
 }
 
@@ -404,6 +441,17 @@ impl SwapStepMeta {
             self.fee_rate < FEE_RATE_BPS_DENOMINATOR,
             crate::errors::ArbitrageError::FeeTooHigh
         );
+        if self.protocol == Protocol::Scorch {
+            require!(
+                self.protocol_payload[0] == 2,
+                crate::errors::ArbitrageError::InvalidInstructionData
+            );
+        } else {
+            require!(
+                self.protocol_payload == [0; 18],
+                crate::errors::ArbitrageError::InvalidInstructionData
+            );
+        }
         Ok(())
     }
 }
@@ -436,6 +484,7 @@ mod tests {
             accounts_len: 10,
             direction: 1,
             fee_rate: FEE_RATE_BPS_DENOMINATOR - 1,
+            protocol_payload: [0; 18],
             min_output_amount: 0,
         };
         assert!(valid_step.validate().is_ok());
@@ -445,10 +494,36 @@ mod tests {
             accounts_len: 10,
             direction: 1,
             fee_rate: FEE_RATE_BPS_DENOMINATOR,
+            protocol_payload: [0; 18],
             min_output_amount: 0,
         };
 
         assert!(step.validate().is_err());
+    }
+
+    #[test]
+    fn step_validation_isolates_scorch_protocol_payload() {
+        let mut scorch_payload = [0; 18];
+        scorch_payload[0] = 2;
+        let scorch = SwapStepMeta {
+            protocol: Protocol::Scorch,
+            accounts_len: 11,
+            direction: 0,
+            fee_rate: 0,
+            protocol_payload: scorch_payload,
+            min_output_amount: 1,
+        };
+        assert!(scorch.validate().is_ok());
+
+        let mut bad_scorch = scorch.clone();
+        bad_scorch.protocol_payload[0] = 0;
+        assert!(bad_scorch.validate().is_err());
+
+        let mut unrelated = scorch;
+        unrelated.protocol = Protocol::RaydiumCPMM;
+        assert!(unrelated.validate().is_err());
+        unrelated.protocol_payload = [0; 18];
+        assert!(unrelated.validate().is_ok());
     }
 
     #[test]
@@ -510,6 +585,7 @@ mod tests {
                 ("accounts_len", "u8"),
                 ("direction", "u8"),
                 ("fee_rate", "u16"),
+                ("protocol_payload", "[u8;18]"),
                 ("min_output_amount", "u64"),
             ]
         );
@@ -552,6 +628,7 @@ mod tests {
             accounts_len: 8,
             direction: 1,
             fee_rate: 42,
+            protocol_payload: [7; 18],
             min_output_amount: 123_456,
         };
 
@@ -566,6 +643,10 @@ mod tests {
         assert_eq!(
             &encoded[offsets["fee_rate"]..offsets["fee_rate"] + 2],
             &step.fee_rate.to_le_bytes()
+        );
+        assert_eq!(
+            &encoded[offsets["protocol_payload"]..offsets["protocol_payload"] + 18],
+            &step.protocol_payload
         );
         assert_eq!(
             &encoded[offsets["min_output_amount"]..offsets["min_output_amount"] + 8],
@@ -583,6 +664,7 @@ mod tests {
             accounts_len: 9,
             direction: 0,
             fee_rate: 25,
+            protocol_payload: [0; 18],
             min_output_amount: 99,
         };
         let step_encoded = serialize_to_vec(&step);
@@ -684,6 +766,7 @@ mod tests {
             "Protocol" | "u8" => 1,
             "u16" => 2,
             "u64" => 8,
+            "[u8;18]" => 18,
             other => panic!("unsupported fixed ABI field type: {other}"),
         }
     }

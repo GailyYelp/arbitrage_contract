@@ -123,6 +123,27 @@ const GOONFI_V2_PRICE_ACCOUNT_OFFSET: usize = 208;
 const GOONFI_V2_PRICE_ACCOUNT_LEN: usize = 32;
 const GOONFI_V2_PRICE_PROGRAM: Pubkey =
     anchor_lang::pubkey!("dijkbkCAKfFTCxQg3u1pg82gVU1jJGHBBRcteD11mBu");
+const WHALESTREET_POOL_ACCOUNT_LEN: usize = 605;
+const WHALESTREET_POOL_DISCRIMINATOR: &[u8; 8] = &[0x4d, 0x46, 0x07, 0xd1, 0xd9, 0x64, 0x21, 0xf2];
+const WHALESTREET_BASE_MINT_OFFSET: usize = 22;
+const WHALESTREET_BASE_VAULT_OFFSET: usize = 54;
+const WHALESTREET_QUOTE_MINT_OFFSET: usize = 137;
+const WHALESTREET_QUOTE_VAULT_OFFSET: usize = 169;
+const WHALESTREET_INSTRUCTION_SYSVAR: Pubkey =
+    anchor_lang::pubkey!("Sysvar1nstructions1111111111111111111111111");
+const BINARYFI_CONFIG: Pubkey =
+    anchor_lang::pubkey!("AR7uY4Uzn8Zhzvb1XiqfoejuVYgimFAVTwnFBqTnGznS");
+const BINARYFI_CONFIG_ACCOUNT_LEN: usize = 430;
+const BINARYFI_CONFIG_DISCRIMINATOR: &[u8; 8] = &[0xc1, 0x4d, 0xa0, 0x80, 0xd0, 0xfe, 0xb4, 0x87];
+const BINARYFI_POOL_ACCOUNT_LEN: usize = 666;
+const BINARYFI_POOL_DISCRIMINATOR: &[u8; 8] = &[0xf7, 0xed, 0xe3, 0xf5, 0xd7, 0xc3, 0xde, 0x46];
+const BINARYFI_AUTHORITY_OFFSET: usize = 10;
+const BINARYFI_INPUT_MINT_OFFSET: usize = 42;
+const BINARYFI_OUTPUT_MINT_OFFSET: usize = 74;
+const BINARYFI_INPUT_VAULT_OFFSET: usize = 106;
+const BINARYFI_OUTPUT_VAULT_OFFSET: usize = 138;
+const BINARYFI_INSTRUCTION_SYSVAR: Pubkey =
+    anchor_lang::pubkey!("Sysvar1nstructions1111111111111111111111111");
 const GOONFI_V2_GLOBAL_STATE: Pubkey =
     anchor_lang::pubkey!("BNrK9LpEn65QA4TyBLVSMdngW3XHj3xLfFPwGdCBv8wV");
 const GOONFI_V2_VOTE_ACCOUNT: Pubkey =
@@ -1472,6 +1493,208 @@ pub fn validate_goonfi_v2_semantic_accounts<'info>(
     require_keys_eq!(
         step_accounts[9].owner.key(),
         GOONFI_V2_VOTE_PROGRAM,
+        ArbitrageError::InvalidAccount
+    );
+    Ok(())
+}
+
+pub fn validate_whalestreet_semantic_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    direction: u8,
+    input_mint: &AccountInfo<'info>,
+    output_mint: &AccountInfo<'info>,
+    input_token_program: &AccountInfo<'info>,
+    output_token_program: &AccountInfo<'info>,
+) -> Result<()> {
+    require!(
+        step_accounts.len() == 6,
+        ArbitrageError::InvalidAccountCount
+    );
+    require!(direction <= 1, ArbitrageError::InvalidInstructionData);
+    require_keys_eq!(
+        step_accounts[1].owner.key(),
+        step_accounts[0].key(),
+        ArbitrageError::InvalidAccount
+    );
+    let pool_data = step_accounts[1].try_borrow_data()?;
+    require!(
+        pool_data.len() == WHALESTREET_POOL_ACCOUNT_LEN,
+        ArbitrageError::InvalidAccount
+    );
+    require!(
+        pool_data.get(..8) == Some(WHALESTREET_POOL_DISCRIMINATOR),
+        ArbitrageError::InvalidAccount
+    );
+    let base_mint = read_pubkey_from_data(&pool_data, WHALESTREET_BASE_MINT_OFFSET)?;
+    let quote_mint = read_pubkey_from_data(&pool_data, WHALESTREET_QUOTE_MINT_OFFSET)?;
+    require_keys_eq!(
+        step_accounts[2].key(),
+        read_pubkey_from_data(&pool_data, WHALESTREET_BASE_VAULT_OFFSET)?,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[3].key(),
+        read_pubkey_from_data(&pool_data, WHALESTREET_QUOTE_VAULT_OFFSET)?,
+        ArbitrageError::InvalidAccount
+    );
+    let (expected_input_mint, expected_output_mint, base_mint_ai, quote_mint_ai) = if direction == 0
+    {
+        (base_mint, quote_mint, input_mint, output_mint)
+    } else {
+        (quote_mint, base_mint, output_mint, input_mint)
+    };
+    require_keys_eq!(
+        input_mint.key(),
+        expected_input_mint,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        output_mint.key(),
+        expected_output_mint,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        input_token_program.key(),
+        step_accounts[4].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        output_token_program.key(),
+        step_accounts[4].key(),
+        ArbitrageError::InvalidAccount
+    );
+    validate_token_account_for_mint_and_authority(
+        &step_accounts[2],
+        base_mint_ai,
+        &step_accounts[4],
+        &step_accounts[1],
+    )?;
+    validate_token_account_for_mint_and_authority(
+        &step_accounts[3],
+        quote_mint_ai,
+        &step_accounts[4],
+        &step_accounts[1],
+    )?;
+    require_keys_eq!(
+        step_accounts[5].key(),
+        WHALESTREET_INSTRUCTION_SYSVAR,
+        ArbitrageError::InvalidAccount
+    );
+    Ok(())
+}
+
+pub fn validate_binaryfi_semantic_accounts<'info>(
+    step_accounts: &[AccountInfo<'info>],
+    direction: u8,
+    input_mint: &AccountInfo<'info>,
+    output_mint: &AccountInfo<'info>,
+    input_token_program: &AccountInfo<'info>,
+    output_token_program: &AccountInfo<'info>,
+) -> Result<()> {
+    require!(
+        step_accounts.len() == 9,
+        ArbitrageError::InvalidAccountCount
+    );
+    require!(direction == 0, ArbitrageError::InvalidInstructionData);
+    require_keys_eq!(
+        step_accounts[1].key(),
+        BINARYFI_CONFIG,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[1].owner.key(),
+        step_accounts[0].key(),
+        ArbitrageError::InvalidAccount
+    );
+    let config_data = step_accounts[1].try_borrow_data()?;
+    require!(
+        config_data.len() == BINARYFI_CONFIG_ACCOUNT_LEN,
+        ArbitrageError::InvalidAccount
+    );
+    require!(
+        config_data.get(..8) == Some(BINARYFI_CONFIG_DISCRIMINATOR),
+        ArbitrageError::InvalidAccount
+    );
+    drop(config_data);
+
+    require_keys_eq!(
+        step_accounts[2].owner.key(),
+        step_accounts[0].key(),
+        ArbitrageError::InvalidAccount
+    );
+    let pool_data = step_accounts[2].try_borrow_data()?;
+    require!(
+        pool_data.len() == BINARYFI_POOL_ACCOUNT_LEN,
+        ArbitrageError::InvalidAccount
+    );
+    require!(
+        pool_data.get(..8) == Some(BINARYFI_POOL_DISCRIMINATOR),
+        ArbitrageError::InvalidAccount
+    );
+    require!(pool_data.get(8) == Some(&1), ArbitrageError::InvalidAccount);
+    let authority = read_pubkey_from_data(&pool_data, BINARYFI_AUTHORITY_OFFSET)?;
+    let expected_authority = Pubkey::find_program_address(
+        &[b"authority", step_accounts[2].key().as_ref()],
+        &step_accounts[0].key(),
+    )
+    .0;
+    require_keys_eq!(
+        step_accounts[3].key(),
+        authority,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[3].key(),
+        expected_authority,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        input_mint.key(),
+        read_pubkey_from_data(&pool_data, BINARYFI_INPUT_MINT_OFFSET)?,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        output_mint.key(),
+        read_pubkey_from_data(&pool_data, BINARYFI_OUTPUT_MINT_OFFSET)?,
+        ArbitrageError::InvalidTokenMint
+    );
+    require_keys_eq!(
+        step_accounts[4].key(),
+        read_pubkey_from_data(&pool_data, BINARYFI_INPUT_VAULT_OFFSET)?,
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        step_accounts[5].key(),
+        read_pubkey_from_data(&pool_data, BINARYFI_OUTPUT_VAULT_OFFSET)?,
+        ArbitrageError::InvalidAccount
+    );
+    drop(pool_data);
+
+    require_keys_eq!(
+        input_token_program.key(),
+        step_accounts[6].key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        output_token_program.key(),
+        step_accounts[7].key(),
+        ArbitrageError::InvalidAccount
+    );
+    validate_token_account_for_mint_and_authority(
+        &step_accounts[4],
+        input_mint,
+        &step_accounts[6],
+        &step_accounts[3],
+    )?;
+    validate_token_account_for_mint_and_authority(
+        &step_accounts[5],
+        output_mint,
+        &step_accounts[7],
+        &step_accounts[3],
+    )?;
+    require_keys_eq!(
+        step_accounts[8].key(),
+        BINARYFI_INSTRUCTION_SYSVAR,
         ArbitrageError::InvalidAccount
     );
     Ok(())
@@ -4858,6 +5081,7 @@ pub fn validate_raydium_launchpad_semantic_accounts<'info>(
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn validate_pumpfun_swap_semantic_accounts<'info>(
     program: &AccountInfo<'info>,
     payer: &AccountInfo<'info>,
@@ -7566,6 +7790,221 @@ mod tests {
             &quote_mint,
             &accounts[6],
             &accounts[6],
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn whalestreet_semantic_validation_binds_pool_vaults_mints_and_direction() {
+        let program = Pubkey::new_unique();
+        let pool = Pubkey::new_unique();
+        let base_mint_key = Pubkey::new_unique();
+        let quote_mint_key = Pubkey::new_unique();
+        let base_vault = Pubkey::new_unique();
+        let quote_vault = Pubkey::new_unique();
+        let token_program = Pubkey::new_unique();
+        let mut pool_data = vec![0_u8; WHALESTREET_POOL_ACCOUNT_LEN];
+        pool_data[..8].copy_from_slice(WHALESTREET_POOL_DISCRIMINATOR);
+        write_pubkey(&mut pool_data, WHALESTREET_BASE_MINT_OFFSET, base_mint_key);
+        write_pubkey(&mut pool_data, WHALESTREET_BASE_VAULT_OFFSET, base_vault);
+        write_pubkey(
+            &mut pool_data,
+            WHALESTREET_QUOTE_MINT_OFFSET,
+            quote_mint_key,
+        );
+        write_pubkey(&mut pool_data, WHALESTREET_QUOTE_VAULT_OFFSET, quote_vault);
+        let base_mint =
+            test_account_with_data(base_mint_key, token_program, false, false, false, vec![]);
+        let quote_mint =
+            test_account_with_data(quote_mint_key, token_program, false, false, false, vec![]);
+        let accounts = vec![
+            test_account_with_data(program, Pubkey::default(), false, false, true, vec![]),
+            test_account_with_data(pool, program, false, true, false, pool_data),
+            test_account_with_data(
+                base_vault,
+                token_program,
+                false,
+                true,
+                false,
+                make_token_account_data(base_mint_key, pool, 100).to_vec(),
+            ),
+            test_account_with_data(
+                quote_vault,
+                token_program,
+                false,
+                true,
+                false,
+                make_token_account_data(quote_mint_key, pool, 100).to_vec(),
+            ),
+            test_account_with_data(token_program, Pubkey::default(), false, false, true, vec![]),
+            test_account_with_data(
+                WHALESTREET_INSTRUCTION_SYSVAR,
+                Pubkey::default(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+        ];
+
+        assert!(validate_whalestreet_semantic_accounts(
+            &accounts,
+            0,
+            &base_mint,
+            &quote_mint,
+            &accounts[4],
+            &accounts[4],
+        )
+        .is_ok());
+        assert!(validate_whalestreet_semantic_accounts(
+            &accounts,
+            1,
+            &quote_mint,
+            &base_mint,
+            &accounts[4],
+            &accounts[4],
+        )
+        .is_ok());
+
+        let mut wrong_vault = accounts.clone();
+        wrong_vault[2] = test_account_with_data(
+            Pubkey::new_unique(),
+            token_program,
+            false,
+            true,
+            false,
+            make_token_account_data(base_mint_key, pool, 100).to_vec(),
+        );
+        assert!(validate_whalestreet_semantic_accounts(
+            &wrong_vault,
+            0,
+            &base_mint,
+            &quote_mint,
+            &accounts[4],
+            &accounts[4],
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn binaryfi_semantic_validation_binds_config_pool_pda_vaults_and_direction() {
+        let program = Pubkey::new_unique();
+        let pool = Pubkey::new_unique();
+        let authority = Pubkey::find_program_address(&[b"authority", pool.as_ref()], &program).0;
+        let input_mint_key = Pubkey::new_unique();
+        let output_mint_key = Pubkey::new_unique();
+        let input_vault = Pubkey::new_unique();
+        let output_vault = Pubkey::new_unique();
+        let input_token_program = Pubkey::new_unique();
+        let output_token_program = Pubkey::new_unique();
+        let mut config_data = vec![0_u8; BINARYFI_CONFIG_ACCOUNT_LEN];
+        config_data[..8].copy_from_slice(BINARYFI_CONFIG_DISCRIMINATOR);
+        let mut pool_data = vec![0_u8; BINARYFI_POOL_ACCOUNT_LEN];
+        pool_data[..8].copy_from_slice(BINARYFI_POOL_DISCRIMINATOR);
+        pool_data[8] = 1;
+        write_pubkey(&mut pool_data, BINARYFI_AUTHORITY_OFFSET, authority);
+        write_pubkey(&mut pool_data, BINARYFI_INPUT_MINT_OFFSET, input_mint_key);
+        write_pubkey(&mut pool_data, BINARYFI_OUTPUT_MINT_OFFSET, output_mint_key);
+        write_pubkey(&mut pool_data, BINARYFI_INPUT_VAULT_OFFSET, input_vault);
+        write_pubkey(&mut pool_data, BINARYFI_OUTPUT_VAULT_OFFSET, output_vault);
+        let input_mint = test_account_with_data(
+            input_mint_key,
+            input_token_program,
+            false,
+            false,
+            false,
+            vec![],
+        );
+        let output_mint = test_account_with_data(
+            output_mint_key,
+            output_token_program,
+            false,
+            false,
+            false,
+            vec![],
+        );
+        let accounts = vec![
+            test_account_with_data(program, Pubkey::default(), false, false, true, vec![]),
+            test_account_with_data(BINARYFI_CONFIG, program, false, false, false, config_data),
+            test_account_with_data(pool, program, false, true, false, pool_data),
+            test_account_with_data(authority, Pubkey::default(), false, false, false, vec![]),
+            test_account_with_data(
+                input_vault,
+                input_token_program,
+                false,
+                true,
+                false,
+                make_token_account_data(input_mint_key, authority, 100).to_vec(),
+            ),
+            test_account_with_data(
+                output_vault,
+                output_token_program,
+                false,
+                true,
+                false,
+                make_token_account_data(output_mint_key, authority, 100).to_vec(),
+            ),
+            test_account_with_data(
+                input_token_program,
+                Pubkey::default(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(
+                output_token_program,
+                Pubkey::default(),
+                false,
+                false,
+                true,
+                vec![],
+            ),
+            test_account_with_data(
+                BINARYFI_INSTRUCTION_SYSVAR,
+                Pubkey::default(),
+                false,
+                false,
+                false,
+                vec![],
+            ),
+        ];
+
+        assert!(validate_binaryfi_semantic_accounts(
+            &accounts,
+            0,
+            &input_mint,
+            &output_mint,
+            &accounts[6],
+            &accounts[7],
+        )
+        .is_ok());
+        assert!(validate_binaryfi_semantic_accounts(
+            &accounts,
+            1,
+            &input_mint,
+            &output_mint,
+            &accounts[6],
+            &accounts[7],
+        )
+        .is_err());
+
+        let mut wrong_authority = accounts.clone();
+        wrong_authority[3] = test_account_with_data(
+            Pubkey::new_unique(),
+            Pubkey::default(),
+            false,
+            false,
+            false,
+            vec![],
+        );
+        assert!(validate_binaryfi_semantic_accounts(
+            &wrong_authority,
+            0,
+            &input_mint,
+            &output_mint,
+            &accounts[6],
+            &accounts[7],
         )
         .is_err());
     }

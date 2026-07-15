@@ -139,6 +139,7 @@ pub fn m_swap<'info>(accounts: MSwapAccounts<'info>, amount_in: u64) -> Result<S
     })
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn validate_m_swap_semantic_accounts<'info>(
     step: &[AccountInfo<'info>],
     direction: u8,

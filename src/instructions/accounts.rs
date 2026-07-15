@@ -5,6 +5,7 @@ use core::ops::Range;
 use crate::errors::ArbitrageError;
 use crate::protocal::{
     aldrin_v2::ALDRIN_V2_MIN_ACCOUNTS,
+    binaryfi::BINARYFI_MIN_ACCOUNTS,
     bisonfi::BISONFI_STEP_ACCOUNTS,
     bonk_swap::BONK_SWAP_MIN_ACCOUNTS,
     boop_fun::BOOP_FUN_STEP_ACCOUNTS,
@@ -28,6 +29,7 @@ use crate::protocal::{
     hylo_exchange::HYLO_EXCHANGE_STEP_ACCOUNTS,
     invariant::INVARIANT_MIN_ACCOUNTS,
     jupiter_lend_earn::JUPITER_LEND_EARN_STEP_ACCOUNTS,
+    kipseli::KIPSELI_STEP_ACCOUNTS,
     lemmingsfi::LEMMINGSFI_STEP_ACCOUNTS,
     lifinity_amm_v1::LIFINITY_AMM_V1_MIN_ACCOUNTS,
     lifinity_amm_v2::LIFINITY_AMM_V2_MIN_ACCOUNTS,
@@ -39,6 +41,7 @@ use crate::protocal::{
     meteora_damm_v2::METEORA_DAMM_V2_MIN_ACCOUNTS,
     meteora_dbc::METEORA_DBC_MIN_ACCOUNTS,
     meteora_dlmm::{METEORA_DLMM_FIXED_STEP_ACCOUNTS, METEORA_DLMM_MIN_ACCOUNTS},
+    metric::METRIC_STEP_ACCOUNTS,
     moonit::MOONIT_STEP_ACCOUNTS,
     obric_v2::OBRIC_V2_MIN_ACCOUNTS,
     omnipair::OMNIPAIR_STEP_ACCOUNTS,
@@ -53,20 +56,26 @@ use crate::protocal::{
     raydium_launchpad::RAYDIUM_LAUNCHPAD_MIN_ACCOUNTS,
     raydium_pool_v4::RAYDIUM_POOL_V4_MIN_ACCOUNTS,
     raydium_stable_swap::RAYDIUM_STABLE_SWAP_MIN_ACCOUNTS,
+    riptide::RIPTIDE_STEP_ACCOUNTS,
+    saber_add_decimals::SABER_ADD_DECIMALS_STEP_ACCOUNTS,
     sanctum_infinity::SANCTUM_INFINITY_STEP_ACCOUNTS,
     sanctum_router::SANCTUM_ROUTER_STEP_ACCOUNTS,
     saros_dlmm::SAROS_DLMM_STEP_ACCOUNTS,
     scale_amm::{SCALE_AMM_BASE_STEP_ACCOUNTS, SCALE_AMM_MAX_STEP_ACCOUNTS},
     scale_vmm::{SCALE_VMM_BASE_STEP_ACCOUNTS, SCALE_VMM_MAX_STEP_ACCOUNTS},
+    scorch::SCORCH_STEP_ACCOUNTS,
     serum_v3::SERUM_V3_STEP_ACCOUNTS,
     solayer_endoavs::SOLAYER_ENDOAVS_STEP_ACCOUNTS,
     solfi_v1::SOLFI_V1_MIN_ACCOUNTS,
     solfi_v2::SOLFI_V2_MIN_ACCOUNTS,
     stabble_swap::STABBLE_SWAP_MIN_ACCOUNTS,
+    taurusfi::TAURUSFI_STEP_ACCOUNTS,
     tessera::TESSERA_MIN_ACCOUNTS,
     trends::TRENDS_STEP_ACCOUNTS,
     voltr::VOLTR_STEP_ACCOUNTS,
+    whalestreet::WHALESTREET_MIN_ACCOUNTS,
     woofi_swap::WOOFI_SWAP_MIN_ACCOUNTS,
+    xorca::XORCA_STEP_ACCOUNTS,
 };
 use crate::state::{Protocol, SwapArbParams, REMAINING_ACCOUNTS_FIXED_PREFIX_LEN};
 
@@ -297,6 +306,54 @@ pub fn validate_step_account_flags<'info>(
             &[0, 7, 8],
             &[1, 2, 3],
         ),
+        Protocol::WhaleStreet => validate_fixed_len_step_account_flags(
+            step_accounts,
+            WHALESTREET_MIN_ACCOUNTS,
+            &[0, 4],
+            &[1, 2, 3],
+        ),
+        Protocol::BinaryFi => validate_fixed_len_step_account_flags(
+            step_accounts,
+            BINARYFI_MIN_ACCOUNTS,
+            &[0, 6, 7],
+            &[2, 4, 5],
+        ),
+        Protocol::XOrca => validate_fixed_len_step_account_flags(
+            step_accounts,
+            XORCA_STEP_ACCOUNTS,
+            &[0, 4],
+            &[2, 3],
+        ),
+        Protocol::Kipseli => validate_fixed_len_step_account_flags(
+            step_accounts,
+            KIPSELI_STEP_ACCOUNTS,
+            &[0],
+            &[1, 2, 3],
+        ),
+        Protocol::Riptide => validate_fixed_len_step_account_flags(
+            step_accounts,
+            RIPTIDE_STEP_ACCOUNTS,
+            &[0, 4],
+            &[1, 2, 3],
+        ),
+        Protocol::Metric => validate_fixed_len_step_account_flags(
+            step_accounts,
+            METRIC_STEP_ACCOUNTS,
+            &[0, 4, 5],
+            &[1, 2, 3],
+        ),
+        Protocol::TaurusFi => validate_fixed_len_step_account_flags(
+            step_accounts,
+            TAURUSFI_STEP_ACCOUNTS,
+            &[0],
+            &[2, 3, 4],
+        ),
+        Protocol::Scorch => validate_fixed_len_step_account_flags(
+            step_accounts,
+            SCORCH_STEP_ACCOUNTS,
+            &[0, 1, 9],
+            &[2, 3, 4, 7, 8],
+        ),
         Protocol::RaydiumLaunchPad => validate_fixed_len_step_account_flags(
             step_accounts,
             RAYDIUM_LAUNCHPAD_MIN_ACCOUNTS,
@@ -305,12 +362,7 @@ pub fn validate_step_account_flags<'info>(
         ),
         Protocol::PumpFunSwap => validate_pumpfun_swap_step_account_flags(step_accounts),
         Protocol::PumpFunAMM => validate_pumpfun_amm_step_account_flags(step_accounts),
-        Protocol::OrcaWhirlpool => validate_fixed_len_step_account_flags(
-            step_accounts,
-            ORCA_WHIRLPOOL_MIN_ACCOUNTS,
-            &[0, 1, 2, 3],
-            &[4, 5, 6, 9, 10, 11, 12],
-        ),
+        Protocol::OrcaWhirlpool => validate_orca_whirlpool_step_account_flags(step_accounts),
         Protocol::Cropper => validate_fixed_len_step_account_flags(
             step_accounts,
             CROPPER_STEP_ACCOUNTS,
@@ -521,6 +573,12 @@ pub fn validate_step_account_flags<'info>(
             &[0, 6, 7],
             &[3, 4, 5],
         ),
+        Protocol::SaberAddDecimals => validate_fixed_len_step_account_flags(
+            step_accounts,
+            SABER_ADD_DECIMALS_STEP_ACCOUNTS,
+            &[0, 5],
+            &[2, 3],
+        ),
         Protocol::Manifest => validate_fixed_len_step_account_flags(
             step_accounts,
             MANIFEST_MIN_ACCOUNTS,
@@ -595,6 +653,35 @@ fn validate_fixed_len_step_account_flags<'info>(
         executable_readonly_indices,
         writable_indices,
     )
+}
+
+fn validate_orca_whirlpool_step_account_flags<'info>(
+    step_accounts: &[AccountInfo<'info>],
+) -> Result<()> {
+    require!(
+        step_accounts.len() == ORCA_WHIRLPOOL_MIN_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    let executable_indices = [0, 1, 2, 3];
+    let writable_indices = [4, 5, 6, 9, 10, 11, 12];
+    for (index, account) in step_accounts.iter().enumerate() {
+        require!(!account.is_signer, ArbitrageError::InvalidAccount);
+        if writable_indices.contains(&index) {
+            require!(account.is_writable, ArbitrageError::InvalidAccount);
+            require!(!account.executable, ArbitrageError::InvalidAccount);
+        } else if index == 7 || index == 8 {
+            // A prior route step may require the same mint writable. Solana unions
+            // duplicate-account privileges across the whole transaction.
+            require!(!account.executable, ArbitrageError::InvalidAccount);
+        } else {
+            require!(!account.is_writable, ArbitrageError::InvalidAccount);
+            require!(
+                account.executable == executable_indices.contains(&index),
+                ArbitrageError::InvalidAccount
+            );
+        }
+    }
+    Ok(())
 }
 
 fn validate_hadron_step_account_flags<'info>(step_accounts: &[AccountInfo<'info>]) -> Result<()> {
@@ -1067,6 +1154,7 @@ mod tests {
             accounts_len,
             direction: 0,
             fee_rate: 0,
+            protocol_payload: [0; 18],
             min_output_amount: 0,
         }
     }
@@ -1635,6 +1723,89 @@ mod tests {
         ]
     }
 
+    fn saber_add_decimals_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            executable_step_account(),
+        ]
+    }
+
+    fn whalestreet_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            executable_step_account(),
+            readonly_step_account(),
+        ]
+    }
+
+    fn binaryfi_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+            readonly_step_account(),
+        ]
+    }
+
+    fn xorca_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            executable_step_account(),
+        ]
+    }
+
+    fn kipseli_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+        ]
+    }
+
+    fn riptide_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            executable_step_account(),
+            readonly_step_account(),
+        ]
+    }
+
+    fn scorch_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            executable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            executable_step_account(),
+            readonly_step_account(),
+        ]
+    }
+
     fn orca_token_swap_step_accounts() -> Vec<AccountInfo<'static>> {
         vec![
             executable_step_account(),
@@ -2157,6 +2328,18 @@ mod tests {
     }
 
     #[test]
+    fn validate_step_account_flags_accepts_writable_whirlpool_mints_from_privilege_union() {
+        let mut accounts = orca_whirlpool_step_accounts();
+        accounts[7].is_writable = true;
+        accounts[8].is_writable = true;
+
+        assert!(validate_step_account_flags(Protocol::OrcaWhirlpool, &accounts).is_ok());
+
+        accounts[3].is_writable = true;
+        assert!(validate_step_account_flags(Protocol::OrcaWhirlpool, &accounts).is_err());
+    }
+
+    #[test]
     fn validate_step_account_flags_accepts_cropper_accounts() {
         let accounts = cropper_step_accounts();
         assert!(validate_step_account_flags(Protocol::Cropper, &accounts).is_ok());
@@ -2635,6 +2818,131 @@ mod tests {
             &non_executable_breaker_program,
         )
         .is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_saber_add_decimals_accounts() {
+        let accounts = saber_add_decimals_step_accounts();
+        assert!(validate_step_account_flags(Protocol::SaberAddDecimals, &accounts).is_ok());
+
+        let mut readonly_wrapped_mint = saber_add_decimals_step_accounts();
+        readonly_wrapped_mint[2].is_writable = false;
+        assert!(
+            validate_step_account_flags(Protocol::SaberAddDecimals, &readonly_wrapped_mint)
+                .is_err()
+        );
+
+        let mut non_executable_token_program = saber_add_decimals_step_accounts();
+        non_executable_token_program[5].executable = false;
+        assert!(validate_step_account_flags(
+            Protocol::SaberAddDecimals,
+            &non_executable_token_program,
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_whalestreet_accounts() {
+        let accounts = whalestreet_step_accounts();
+        assert!(validate_step_account_flags(Protocol::WhaleStreet, &accounts).is_ok());
+
+        let mut readonly_pool = whalestreet_step_accounts();
+        readonly_pool[1].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::WhaleStreet, &readonly_pool).is_err());
+
+        let mut non_executable_token_program = whalestreet_step_accounts();
+        non_executable_token_program[4].executable = false;
+        assert!(
+            validate_step_account_flags(Protocol::WhaleStreet, &non_executable_token_program,)
+                .is_err()
+        );
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_binaryfi_accounts() {
+        let accounts = binaryfi_step_accounts();
+        assert!(validate_step_account_flags(Protocol::BinaryFi, &accounts).is_ok());
+
+        let mut readonly_pool = binaryfi_step_accounts();
+        readonly_pool[2].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::BinaryFi, &readonly_pool).is_err());
+
+        let mut non_executable_output_program = binaryfi_step_accounts();
+        non_executable_output_program[7].executable = false;
+        assert!(
+            validate_step_account_flags(Protocol::BinaryFi, &non_executable_output_program)
+                .is_err()
+        );
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_xorca_accounts() {
+        let accounts = xorca_step_accounts();
+        assert!(validate_step_account_flags(Protocol::XOrca, &accounts).is_ok());
+
+        let mut readonly_mint = xorca_step_accounts();
+        readonly_mint[3].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::XOrca, &readonly_mint).is_err());
+
+        let mut non_executable_token_program = xorca_step_accounts();
+        non_executable_token_program[4].executable = false;
+        assert!(
+            validate_step_account_flags(Protocol::XOrca, &non_executable_token_program).is_err()
+        );
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_kipseli_non_executable_ban_pda() {
+        let accounts = kipseli_step_accounts();
+        assert!(validate_step_account_flags(Protocol::Kipseli, &accounts).is_ok());
+
+        let mut readonly_pool = kipseli_step_accounts();
+        readonly_pool[1].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::Kipseli, &readonly_pool).is_err());
+
+        let mut executable_ban = kipseli_step_accounts();
+        executable_ban[4].executable = true;
+        assert!(validate_step_account_flags(Protocol::Kipseli, &executable_ban).is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_riptide_memo_and_instructions_sysvar() {
+        let accounts = riptide_step_accounts();
+        assert!(validate_step_account_flags(Protocol::Riptide, &accounts).is_ok());
+
+        let mut readonly_market = riptide_step_accounts();
+        readonly_market[1].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::Riptide, &readonly_market).is_err());
+
+        let mut non_executable_memo = riptide_step_accounts();
+        non_executable_memo[4].executable = false;
+        assert!(validate_step_account_flags(Protocol::Riptide, &non_executable_memo).is_err());
+
+        let mut executable_sysvar = riptide_step_accounts();
+        executable_sysvar[5].executable = true;
+        assert!(validate_step_account_flags(Protocol::Riptide, &executable_sysvar).is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_scorch_programs_oracles_and_sysvar() {
+        let accounts = scorch_step_accounts();
+        assert!(validate_step_account_flags(Protocol::Scorch, &accounts).is_ok());
+
+        let mut readonly_pool = scorch_step_accounts();
+        readonly_pool[2].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::Scorch, &readonly_pool).is_err());
+
+        let mut readonly_oracle = scorch_step_accounts();
+        readonly_oracle[7].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::Scorch, &readonly_oracle).is_err());
+
+        let mut non_executable_memo = scorch_step_accounts();
+        non_executable_memo[9].executable = false;
+        assert!(validate_step_account_flags(Protocol::Scorch, &non_executable_memo).is_err());
+
+        let mut executable_sysvar = scorch_step_accounts();
+        executable_sysvar[10].executable = true;
+        assert!(validate_step_account_flags(Protocol::Scorch, &executable_sysvar).is_err());
     }
 
     #[test]

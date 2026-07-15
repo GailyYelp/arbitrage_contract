@@ -30,6 +30,7 @@ pub struct OpenBookV2SwapAccounts<'info> {
     pub system_program: &'info AccountInfo<'info>,
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn openbook_v2_swap<'info>(
     accounts: OpenBookV2SwapAccounts<'info>,
     amount_in: u64,
