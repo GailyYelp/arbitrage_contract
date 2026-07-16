@@ -5,6 +5,7 @@ use core::ops::Range;
 use crate::errors::ArbitrageError;
 use crate::protocal::{
     aldrin_v2::ALDRIN_V2_MIN_ACCOUNTS,
+    aquifer::AQUIFER_STEP_ACCOUNTS,
     binaryfi::BINARYFI_MIN_ACCOUNTS,
     bisonfi::BISONFI_STEP_ACCOUNTS,
     bonk_swap::BONK_SWAP_MIN_ACCOUNTS,
@@ -35,6 +36,8 @@ use crate::protocal::{
     lifinity_amm_v2::LIFINITY_AMM_V2_MIN_ACCOUNTS,
     m_swap::M_SWAP_STEP_ACCOUNTS,
     manifest::MANIFEST_MIN_ACCOUNTS,
+    marcopolo::MARCOPOLO_STEP_ACCOUNTS,
+    marinade_finance::MARINADE_FINANCE_STEP_ACCOUNTS,
     mercurial_stable_swap::MERCURIAL_STABLE_SWAP_MIN_ACCOUNTS,
     metadao_futarchy::METADAO_FUTARCHY_STEP_ACCOUNTS,
     meteora_damm_v1::METEORA_DAMM_V1_MIN_ACCOUNTS,
@@ -72,7 +75,10 @@ use crate::protocal::{
     taurusfi::TAURUSFI_STEP_ACCOUNTS,
     tessera::TESSERA_MIN_ACCOUNTS,
     trends::TRENDS_STEP_ACCOUNTS,
+    vault_liquid_unstake::VAULT_LIQUID_UNSTAKE_STEP_ACCOUNTS,
+    vertigo::VERTIGO_STEP_ACCOUNTS,
     voltr::VOLTR_STEP_ACCOUNTS,
+    wavebreak::WAVEBREAK_STEP_ACCOUNTS,
     whalestreet::WHALESTREET_MIN_ACCOUNTS,
     woofi_swap::WOOFI_SWAP_MIN_ACCOUNTS,
     xorca::XORCA_STEP_ACCOUNTS,
@@ -353,6 +359,42 @@ pub fn validate_step_account_flags<'info>(
             SCORCH_STEP_ACCOUNTS,
             &[0, 1, 9],
             &[2, 3, 4, 7, 8],
+        ),
+        Protocol::Aquifer => validate_fixed_len_step_account_flags(
+            step_accounts,
+            AQUIFER_STEP_ACCOUNTS,
+            &[0],
+            &[1, 2, 5, 6, 7, 8],
+        ),
+        Protocol::VaultLiquidUnstake => validate_fixed_len_step_account_flags(
+            step_accounts,
+            VAULT_LIQUID_UNSTAKE_STEP_ACCOUNTS,
+            &[0, 10, 11, 12],
+            &[1, 2, 3, 4, 5, 6, 7],
+        ),
+        Protocol::Wavebreak => validate_fixed_len_step_account_flags(
+            step_accounts,
+            WAVEBREAK_STEP_ACCOUNTS,
+            &[0, 3, 4, 5, 6],
+            &[1, 2, 7],
+        ),
+        Protocol::Vertigo => validate_fixed_len_step_account_flags(
+            step_accounts,
+            VERTIGO_STEP_ACCOUNTS,
+            &[0, 5, 6],
+            &[1, 3, 4],
+        ),
+        Protocol::MarcoPolo => validate_fixed_len_step_account_flags(
+            step_accounts,
+            MARCOPOLO_STEP_ACCOUNTS,
+            &[0, 11, 12, 13],
+            &[2, 5, 6, 7, 8, 9],
+        ),
+        Protocol::MarinadeFinance => validate_fixed_len_step_account_flags(
+            step_accounts,
+            MARINADE_FINANCE_STEP_ACCOUNTS,
+            &[0, 5, 8, 9, 10],
+            &[1, 2, 3, 4, 6, 7],
         ),
         Protocol::RaydiumLaunchPad => validate_fixed_len_step_account_flags(
             step_accounts,
@@ -1806,6 +1848,46 @@ mod tests {
         ]
     }
 
+    fn aquifer_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+        ]
+    }
+
+    fn wavebreak_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+            writable_step_account(),
+        ]
+    }
+
+    fn vertigo_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+        ]
+    }
+
     fn orca_token_swap_step_accounts() -> Vec<AccountInfo<'static>> {
         vec![
             executable_step_account(),
@@ -2943,6 +3025,69 @@ mod tests {
         let mut executable_sysvar = scorch_step_accounts();
         executable_sysvar[10].executable = true;
         assert!(validate_step_account_flags(Protocol::Scorch, &executable_sysvar).is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_aquifer_accounts() {
+        let accounts = aquifer_step_accounts();
+        assert!(validate_step_account_flags(Protocol::Aquifer, &accounts).is_ok());
+
+        let mut readonly_dex = aquifer_step_accounts();
+        readonly_dex[1].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::Aquifer, &readonly_dex).is_err());
+
+        let mut writable_oracle = aquifer_step_accounts();
+        writable_oracle[3].is_writable = true;
+        assert!(validate_step_account_flags(Protocol::Aquifer, &writable_oracle).is_err());
+
+        let mut executable_sysvar = aquifer_step_accounts();
+        executable_sysvar[9].executable = true;
+        assert!(validate_step_account_flags(Protocol::Aquifer, &executable_sysvar).is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_wavebreak_accounts() {
+        let accounts = wavebreak_step_accounts();
+        assert!(validate_step_account_flags(Protocol::Wavebreak, &accounts).is_ok());
+
+        let mut readonly_curve = wavebreak_step_accounts();
+        readonly_curve[1].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::Wavebreak, &readonly_curve).is_err());
+
+        let mut readonly_vault = wavebreak_step_accounts();
+        readonly_vault[2].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::Wavebreak, &readonly_vault).is_err());
+
+        let mut non_executable_token_program = wavebreak_step_accounts();
+        non_executable_token_program[5].executable = false;
+        assert!(
+            validate_step_account_flags(Protocol::Wavebreak, &non_executable_token_program)
+                .is_err()
+        );
+
+        let mut readonly_base_mint = wavebreak_step_accounts();
+        readonly_base_mint[7].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::Wavebreak, &readonly_base_mint).is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_vertigo_accounts() {
+        let accounts = vertigo_step_accounts();
+        assert!(validate_step_account_flags(Protocol::Vertigo, &accounts).is_ok());
+
+        let mut readonly_pool = vertigo_step_accounts();
+        readonly_pool[1].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::Vertigo, &readonly_pool).is_err());
+
+        let mut writable_owner = vertigo_step_accounts();
+        writable_owner[2].is_writable = true;
+        assert!(validate_step_account_flags(Protocol::Vertigo, &writable_owner).is_err());
+
+        let mut non_executable_token_program = vertigo_step_accounts();
+        non_executable_token_program[5].executable = false;
+        assert!(
+            validate_step_account_flags(Protocol::Vertigo, &non_executable_token_program).is_err()
+        );
     }
 
     #[test]

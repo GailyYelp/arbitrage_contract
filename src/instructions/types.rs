@@ -432,6 +432,10 @@ const SANCTUM_FEE_SEED: &[u8] = b"fee";
 const SANCTUM_WITHDRAW_SEED: &[u8] = b"withdraw";
 const SANCTUM_SPL_STAKE_POOL_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy");
+const SANCTUM_SINGLE_VALIDATOR_STAKE_POOL_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("SP12tWFxD9oJsVWNavTTBZvMbA6gkAmxtVgxdqvyvhY");
+const SANCTUM_MULTI_VALIDATOR_STAKE_POOL_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("SPMBzsVUuoHA4Jm6KunbsotaahvVikZs1JyTW6iJvbn");
 const SANCTUM_WSOL_MINT: Pubkey =
     anchor_lang::pubkey!("So11111111111111111111111111111111111111112");
 const SANCTUM_WSOL_BRIDGE_IN: Pubkey =
@@ -440,6 +444,12 @@ const SANCTUM_SOL_BRIDGE_OUT: Pubkey =
     anchor_lang::pubkey!("75jTZDE78xpBJokeB2BcimRNY5BZ7U45bWhpgUrTzWZC");
 const SANCTUM_WSOL_FEE_TOKEN_ACCOUNT: Pubkey =
     anchor_lang::pubkey!("D3DxbHp7YvgdD2iH8GfsGWdFE5gp37aoYjp4jW5jNMjH");
+
+fn is_sanctum_stake_pool_program(program_id: Pubkey) -> bool {
+    program_id == SANCTUM_SPL_STAKE_POOL_PROGRAM_ID
+        || program_id == SANCTUM_SINGLE_VALIDATOR_STAKE_POOL_PROGRAM_ID
+        || program_id == SANCTUM_MULTI_VALIDATOR_STAKE_POOL_PROGRAM_ID
+}
 const BONK_SWAP_POOL_ACCOUNT_LEN: usize = 417;
 const BONK_SWAP_POOL_DISCRIMINATOR: &[u8; 8] = &[241, 154, 109, 4, 17, 177, 109, 188];
 const BONK_SWAP_STATE_ACCOUNT_LEN: usize = 74;
@@ -1112,7 +1122,6 @@ pub fn validate_humidifi_semantic_accounts<'info>(
             .try_into()
             .map_err(|_| ArbitrageError::InvalidInstructionData)?,
     );
-    require!(swap_id > 0, ArbitrageError::InvalidInstructionData);
     Ok(swap_id)
 }
 
@@ -2720,9 +2729,8 @@ pub fn validate_sanctum_router_semantic_accounts<'info>(
         ArbitrageError::InvalidAccountCount
     );
     require!(direction <= 1, ArbitrageError::InvalidInstructionData);
-    require_keys_eq!(
-        step_accounts[1].key(),
-        SANCTUM_SPL_STAKE_POOL_PROGRAM_ID,
+    require!(
+        is_sanctum_stake_pool_program(step_accounts[1].key()),
         ArbitrageError::InvalidAccount
     );
     require_keys_eq!(
@@ -8111,6 +8119,29 @@ mod tests {
             .unwrap(),
             1_500
         );
+        let mut zero_swap_id = accounts.clone();
+        let mut zero_param = param;
+        zero_param[..8].fill(0);
+        zero_swap_id[12] = test_account_with_data(
+            Pubkey::new_from_array(zero_param),
+            Pubkey::default(),
+            false,
+            false,
+            false,
+            vec![],
+        );
+        assert_eq!(
+            validate_humidifi_semantic_accounts(
+                &zero_swap_id,
+                0,
+                &base_mint,
+                &quote_mint,
+                &accounts[6],
+                &accounts[7],
+            )
+            .unwrap(),
+            0
+        );
         let mut wrong = accounts.clone();
         wrong[8] = test_account_with_data(
             Pubkey::new_unique(),
@@ -12219,5 +12250,201 @@ mod tests {
             validate_raydium_pool_v4_authority(&program, &pool_state, &authority).unwrap_err();
 
         assert_eq!(err, ArbitrageError::InvalidAccount.into());
+    }
+
+    #[test]
+    fn sanctum_stake_pool_program_allowlist_is_closed() {
+        assert!(is_sanctum_stake_pool_program(
+            SANCTUM_SPL_STAKE_POOL_PROGRAM_ID
+        ));
+        assert!(is_sanctum_stake_pool_program(
+            SANCTUM_SINGLE_VALIDATOR_STAKE_POOL_PROGRAM_ID
+        ));
+        assert!(is_sanctum_stake_pool_program(
+            SANCTUM_MULTI_VALIDATOR_STAKE_POOL_PROGRAM_ID
+        ));
+        assert!(!is_sanctum_stake_pool_program(Pubkey::new_unique()));
+    }
+
+    #[test]
+    fn sanctum_semantic_validation_accepts_every_allowlisted_pool_owner() {
+        for stake_pool_program in [
+            SANCTUM_SPL_STAKE_POOL_PROGRAM_ID,
+            SANCTUM_SINGLE_VALIDATOR_STAKE_POOL_PROGRAM_ID,
+            SANCTUM_MULTI_VALIDATOR_STAKE_POOL_PROGRAM_ID,
+        ] {
+            let router_program = Pubkey::new_unique();
+            let pool_id = Pubkey::new_unique();
+            let pool_mint = Pubkey::new_unique();
+            let reserve = Pubkey::new_unique();
+            let manager_fee = Pubkey::new_unique();
+            let token_program_id = anchor_spl::token::ID;
+            let withdraw_authority = Pubkey::find_program_address(
+                &[pool_id.as_ref(), SANCTUM_WITHDRAW_SEED],
+                &stake_pool_program,
+            )
+            .0;
+            let pool_fee = Pubkey::find_program_address(
+                &[SANCTUM_FEE_SEED, pool_mint.as_ref()],
+                &router_program,
+            )
+            .0;
+
+            let mut pool_data = vec![0_u8; SANCTUM_STAKE_POOL_MIN_ACCOUNT_LEN];
+            write_pubkey(&mut pool_data, SANCTUM_RESERVE_OFFSET, reserve);
+            write_pubkey(&mut pool_data, SANCTUM_POOL_MINT_OFFSET, pool_mint);
+            write_pubkey(&mut pool_data, SANCTUM_MANAGER_FEE_OFFSET, manager_fee);
+            write_pubkey(
+                &mut pool_data,
+                SANCTUM_TOKEN_PROGRAM_OFFSET,
+                token_program_id,
+            );
+            pool_data[SANCTUM_TOTAL_LAMPORTS_OFFSET..SANCTUM_TOTAL_LAMPORTS_OFFSET + 8]
+                .copy_from_slice(&1_u64.to_le_bytes());
+            pool_data[SANCTUM_POOL_TOKEN_SUPPLY_OFFSET..SANCTUM_POOL_TOKEN_SUPPLY_OFFSET + 8]
+                .copy_from_slice(&1_u64.to_le_bytes());
+
+            let step_accounts = vec![
+                test_account_with_data(
+                    router_program,
+                    Pubkey::new_unique(),
+                    false,
+                    false,
+                    true,
+                    Vec::new(),
+                ),
+                test_account_with_data(
+                    stake_pool_program,
+                    Pubkey::new_unique(),
+                    false,
+                    false,
+                    true,
+                    Vec::new(),
+                ),
+                test_account_with_data(pool_id, stake_pool_program, false, true, false, pool_data),
+                test_account_with_data(
+                    withdraw_authority,
+                    Pubkey::new_unique(),
+                    false,
+                    false,
+                    false,
+                    Vec::new(),
+                ),
+                test_account_with_data(
+                    reserve,
+                    Pubkey::new_unique(),
+                    false,
+                    true,
+                    false,
+                    Vec::new(),
+                ),
+                test_account_with_data(
+                    manager_fee,
+                    token_program_id,
+                    false,
+                    true,
+                    false,
+                    make_token_account_data(pool_mint, Pubkey::new_unique(), 1).to_vec(),
+                ),
+                test_account_with_data(
+                    pool_fee,
+                    token_program_id,
+                    false,
+                    true,
+                    false,
+                    make_token_account_data(pool_mint, Pubkey::new_unique(), 1).to_vec(),
+                ),
+                test_account_with_data(
+                    SANCTUM_WSOL_FEE_TOKEN_ACCOUNT,
+                    token_program_id,
+                    false,
+                    true,
+                    false,
+                    make_token_account_data(SANCTUM_WSOL_MINT, Pubkey::new_unique(), 1).to_vec(),
+                ),
+                test_account_with_data(
+                    SANCTUM_WSOL_BRIDGE_IN,
+                    anchor_lang::system_program::ID,
+                    false,
+                    true,
+                    false,
+                    Vec::new(),
+                ),
+                test_account_with_data(
+                    SANCTUM_SOL_BRIDGE_OUT,
+                    anchor_lang::system_program::ID,
+                    false,
+                    true,
+                    false,
+                    Vec::new(),
+                ),
+                test_account_with_data(
+                    anchor_lang::system_program::ID,
+                    Pubkey::new_unique(),
+                    false,
+                    false,
+                    true,
+                    Vec::new(),
+                ),
+                test_account_with_data(
+                    anchor_lang::solana_program::sysvar::clock::ID,
+                    anchor_lang::solana_program::sysvar::ID,
+                    false,
+                    false,
+                    false,
+                    Vec::new(),
+                ),
+                test_account_with_data(
+                    anchor_lang::solana_program::sysvar::stake_history::ID,
+                    anchor_lang::solana_program::sysvar::ID,
+                    false,
+                    false,
+                    false,
+                    Vec::new(),
+                ),
+                test_account_with_data(
+                    anchor_lang::solana_program::stake::program::ID,
+                    Pubkey::new_unique(),
+                    false,
+                    false,
+                    true,
+                    Vec::new(),
+                ),
+                test_account_with_data(pool_mint, token_program_id, false, true, false, Vec::new()),
+            ];
+            let input_mint = test_account_with_data(
+                SANCTUM_WSOL_MINT,
+                token_program_id,
+                false,
+                false,
+                false,
+                Vec::new(),
+            );
+            let output_mint = test_account_with_data(
+                pool_mint,
+                token_program_id,
+                false,
+                false,
+                false,
+                Vec::new(),
+            );
+            let token_program = test_account_with_data(
+                token_program_id,
+                Pubkey::new_unique(),
+                false,
+                false,
+                true,
+                Vec::new(),
+            );
+
+            validate_sanctum_router_semantic_accounts(
+                &step_accounts,
+                0,
+                &input_mint,
+                &output_mint,
+                &token_program,
+            )
+            .expect("allowlisted stake-pool owner must pass full semantic validation");
+        }
     }
 }

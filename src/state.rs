@@ -101,6 +101,12 @@ pub enum Protocol {
     Metric = 86,
     TaurusFi = 87,
     Scorch = 88,
+    Aquifer = 89,
+    VaultLiquidUnstake = 90,
+    Wavebreak = 91,
+    Vertigo = 92,
+    MarcoPolo = 93,
+    MarinadeFinance = 94,
 }
 
 impl Protocol {
@@ -194,6 +200,12 @@ impl Protocol {
         Protocol::Metric,
         Protocol::TaurusFi,
         Protocol::Scorch,
+        Protocol::Aquifer,
+        Protocol::VaultLiquidUnstake,
+        Protocol::Wavebreak,
+        Protocol::Vertigo,
+        Protocol::MarcoPolo,
+        Protocol::MarinadeFinance,
     ];
 
     pub const fn contract_id(self) -> u8 {
@@ -287,6 +299,12 @@ impl Protocol {
             Protocol::Metric => 86,
             Protocol::TaurusFi => 87,
             Protocol::Scorch => 88,
+            Protocol::Aquifer => 89,
+            Protocol::VaultLiquidUnstake => 90,
+            Protocol::Wavebreak => 91,
+            Protocol::Vertigo => 92,
+            Protocol::MarcoPolo => 93,
+            Protocol::MarinadeFinance => 94,
         }
     }
 
@@ -381,6 +399,12 @@ impl Protocol {
             Protocol::Metric => "Metric",
             Protocol::TaurusFi => "TaurusFi",
             Protocol::Scorch => "Scorch",
+            Protocol::Aquifer => "Aquifer",
+            Protocol::VaultLiquidUnstake => "VaultLiquidUnstake",
+            Protocol::Wavebreak => "Wavebreak",
+            Protocol::Vertigo => "Vertigo",
+            Protocol::MarcoPolo => "MarcoPolo",
+            Protocol::MarinadeFinance => "MarinadeFinance",
         }
     }
 }

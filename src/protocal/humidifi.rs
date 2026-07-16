@@ -36,7 +36,7 @@ pub fn humidifi_swap_v3<'info>(
     direction: u8,
 ) -> Result<SwapResult> {
     let pre_out = read_token_amount(accounts.output_token_account)?;
-    let metas = vec![
+    let mut metas = vec![
         AccountMeta::new_readonly(accounts.payer.key(), true),
         AccountMeta::new(accounts.market.key(), false),
         AccountMeta::new(accounts.base_vault.key(), false),
@@ -50,9 +50,8 @@ pub fn humidifi_swap_v3<'info>(
         AccountMeta::new_readonly(accounts.base_mint.key(), false),
         AccountMeta::new_readonly(accounts.quote_mint.key(), false),
         AccountMeta::new_readonly(accounts.extra_account.key(), false),
-        AccountMeta::new_readonly(accounts.vote_account.key(), false),
     ];
-    let infos = vec![
+    let mut infos = vec![
         accounts.payer.clone(),
         accounts.market.clone(),
         accounts.base_vault.clone(),
@@ -66,9 +65,15 @@ pub fn humidifi_swap_v3<'info>(
         accounts.base_mint.clone(),
         accounts.quote_mint.clone(),
         accounts.extra_account.clone(),
-        accounts.vote_account.clone(),
-        accounts.program.clone(),
     ];
+    if accounts.vote_account.key() != accounts.extra_account.key() {
+        metas.push(AccountMeta::new_readonly(
+            accounts.vote_account.key(),
+            false,
+        ));
+        infos.push(accounts.vote_account.clone());
+    }
+    infos.push(accounts.program.clone());
     let mut data = Vec::with_capacity(25);
     data.extend_from_slice(&swap_id.to_le_bytes());
     data.extend_from_slice(&amount_in.to_le_bytes());

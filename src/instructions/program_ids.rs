@@ -144,6 +144,20 @@ pub const TAURUSFI_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("9VX8EKBg6vM6tA68xaDsPkbrx26XConZjkQmhVApUptc");
 pub const SCORCH_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("SCoRcH8c2dpjvcJD6FiPbCSQyQgu3PcUAWj2Xxx3mqn");
+pub const AQUIFER_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("AQU1FRd7papthgdrwPTTq5JacJh8YtwEXaBfKU3bTz45");
+pub const AQUIFER_ORACLE_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("fastC7gqs2WUXgcyNna2BZAe9mte4zcTGprv3mv18N3");
+pub const WAVEBREAK_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("waveQX2yP3H1pVU8djGvEHmYg8uamQ84AuyGtpsrXTF");
+pub const VERTIGO_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("vrTGoBuy5rYSxAfV3jaRJWHH6nN9WK4NRExGxsk1bCJ");
+pub const MARCOPOLO_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("9tKE7Mbmj4mxDjWatikzGAtkoWosiiZX9y6J4Hfm2R8H");
+pub const MARINADE_FINANCE_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD");
+pub const VAULT_LIQUID_UNSTAKE_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("2rU1oCHtQ7WJUvy15tKtFvxdYNNSc3id7AzUcjeFSddo");
 pub const SCORCH_ORACLE_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("ojh19ojaKduoJZuaJADhcVGp4xt1TcdAvZmpVsCorch");
 pub const RAYDIUM_POOL_V4_PROGRAM_ID: Pubkey =
@@ -409,6 +423,12 @@ pub fn expected_protocol_program_id(protocol: Protocol) -> Pubkey {
         Protocol::Metric => METRIC_PROGRAM_ID,
         Protocol::TaurusFi => TAURUSFI_PROGRAM_ID,
         Protocol::Scorch => SCORCH_PROGRAM_ID,
+        Protocol::Aquifer => AQUIFER_PROGRAM_ID,
+        Protocol::VaultLiquidUnstake => VAULT_LIQUID_UNSTAKE_PROGRAM_ID,
+        Protocol::Wavebreak => WAVEBREAK_PROGRAM_ID,
+        Protocol::Vertigo => VERTIGO_PROGRAM_ID,
+        Protocol::MarcoPolo => MARCOPOLO_PROGRAM_ID,
+        Protocol::MarinadeFinance => MARINADE_FINANCE_PROGRAM_ID,
         Protocol::Phoenix => PHOENIX_PROGRAM_ID,
         Protocol::LifinityAmmV2 => LIFINITY_AMM_V2_PROGRAM_ID,
         Protocol::LifinityAmmV1 => LIFINITY_AMM_V1_PROGRAM_ID,
@@ -504,6 +524,12 @@ pub fn expected_fixed_accounts(protocol: Protocol) -> &'static [FixedAccountExpe
         Protocol::Metric => NO_FIXED_ACCOUNTS,
         Protocol::TaurusFi => NO_FIXED_ACCOUNTS,
         Protocol::Scorch => NO_FIXED_ACCOUNTS,
+        Protocol::Aquifer => NO_FIXED_ACCOUNTS,
+        Protocol::VaultLiquidUnstake => NO_FIXED_ACCOUNTS,
+        Protocol::Wavebreak => NO_FIXED_ACCOUNTS,
+        Protocol::Vertigo => NO_FIXED_ACCOUNTS,
+        Protocol::MarcoPolo => NO_FIXED_ACCOUNTS,
+        Protocol::MarinadeFinance => NO_FIXED_ACCOUNTS,
         Protocol::Phoenix => PHOENIX_FIXED_ACCOUNTS,
         Protocol::LifinityAmmV2 => LIFINITY_AMM_V2_FIXED_ACCOUNTS,
         Protocol::LifinityAmmV1 => LIFINITY_AMM_V1_FIXED_ACCOUNTS,
