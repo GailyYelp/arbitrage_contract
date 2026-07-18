@@ -7,7 +7,7 @@ use anchor_lang::solana_program::{
 use crate::errors::ArbitrageError;
 use crate::instructions::types::{read_token_amount, token_balance_delta, SwapResult};
 
-pub const SERUM_V3_STEP_ACCOUNTS: usize = 10;
+pub const SERUM_V3_STEP_ACCOUNTS: usize = 9;
 pub const SERUM_V3_MARKET_LEN: usize = 388;
 pub const SERUM_V3_SEND_TAKE_LEN: usize = 51;
 const SEND_TAKE_TAG: u32 = 13;
@@ -27,7 +27,6 @@ pub struct SerumV3Accounts<'info> {
     pub base_vault: &'info AccountInfo<'info>,
     pub quote_vault: &'info AccountInfo<'info>,
     pub token_program: &'info AccountInfo<'info>,
-    pub vault_signer: &'info AccountInfo<'info>,
 }
 
 pub fn serum_v3_swap<'info>(
@@ -63,7 +62,6 @@ pub fn serum_v3_swap<'info>(
         AccountMeta::new(accounts.base_vault.key(), false),
         AccountMeta::new(accounts.quote_vault.key(), false),
         AccountMeta::new_readonly(accounts.token_program.key(), false),
-        AccountMeta::new_readonly(accounts.vault_signer.key(), false),
     ];
     let infos = vec![
         accounts.market.clone(),
@@ -77,7 +75,6 @@ pub fn serum_v3_swap<'info>(
         accounts.base_vault.clone(),
         accounts.quote_vault.clone(),
         accounts.token_program.clone(),
-        accounts.vault_signer.clone(),
         accounts.program.clone(),
     ];
     invoke(
@@ -110,7 +107,7 @@ pub fn validate_serum_v3_semantic_accounts<'info>(
     let market = &step[1];
     require_keys_eq!(*market.owner, program.key(), ArbitrageError::InvalidAccount);
     require_keys_eq!(
-        step[9].key(),
+        step[8].key(),
         token_program.key(),
         ArbitrageError::InvalidAccount
     );
@@ -181,11 +178,6 @@ pub fn validate_serum_v3_semantic_accounts<'info>(
         &program.key(),
     )
     .map_err(|_| ArbitrageError::InvalidAccount)?;
-    require_keys_eq!(
-        step[8].key(),
-        expected_vault_signer,
-        ArbitrageError::InvalidAccount
-    );
     validate_vault(&step[6], base_mint, expected_vault_signer, token_program)?;
     validate_vault(&step[7], quote_mint, expected_vault_signer, token_program)?;
     let (expected_in, expected_out) = if direction == 0 {
@@ -425,7 +417,6 @@ mod tests {
             account(asks, program, true, false, padded_flags(65)),
             account(base_vault, token, true, false, token_data(base_mint)),
             account(quote_vault, token, true, false, token_data(quote_mint)),
-            account(vault_signer, program, false, false, Vec::new()),
             account(token, Pubkey::default(), false, true, Vec::new()),
         ];
         let in_mint = account(base_mint, token, false, false, Vec::new());

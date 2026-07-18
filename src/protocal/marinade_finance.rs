@@ -16,13 +16,12 @@ use crate::{
             validate_token_account_for_mint_and_authority, SwapResult,
         },
     },
+    protocal::wsol::{close_wsol_for_native, restore_wsol_after_native, WsolBridgeAccounts},
 };
 
 pub const MARINADE_FINANCE_STEP_ACCOUNTS: usize = 11;
 pub const MARINADE_DEPOSIT_DISCRIMINATOR: [u8; 8] = [242, 35, 198, 137, 82, 225, 242, 182];
 pub const MARINADE_LIQUID_UNSTAKE_DISCRIMINATOR: [u8; 8] = [30, 30, 119, 240, 191, 227, 12, 16];
-const TOKEN_UNWRAP_LAMPORTS_TAG: u8 = 45;
-const TOKEN_UNWRAP_LAMPORTS_EXACT: u8 = 1;
 const MARINADE_STATE: Pubkey = anchor_lang::pubkey!("8szGkuLTAux9XMgZ2vtY39jVSowEcpBfFfD8hXSEqdGC");
 const MARINADE_MSOL_MINT: Pubkey =
     anchor_lang::pubkey!("mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So");
@@ -343,6 +342,8 @@ pub struct MarinadeFinanceAccounts<'info> {
     pub payer: &'info AccountInfo<'info>,
     pub user_input: &'info AccountInfo<'info>,
     pub user_output: &'info AccountInfo<'info>,
+    pub input_mint: &'info AccountInfo<'info>,
+    pub associated_token_program: &'info AccountInfo<'info>,
     pub step: &'info [AccountInfo<'info>],
 }
 
@@ -351,29 +352,6 @@ fn swap_data(discriminator: [u8; 8], amount: u64) -> Vec<u8> {
     data.extend_from_slice(&discriminator);
     data.extend_from_slice(&amount.to_le_bytes());
     data
-}
-
-fn unwrap_wsol<'info>(accounts: &MarinadeFinanceAccounts<'info>, amount: u64) -> Result<()> {
-    let mut data = vec![TOKEN_UNWRAP_LAMPORTS_TAG, TOKEN_UNWRAP_LAMPORTS_EXACT];
-    data.extend_from_slice(&amount.to_le_bytes());
-    invoke(
-        &Instruction {
-            program_id: accounts.step[10].key(),
-            accounts: vec![
-                AccountMeta::new(accounts.user_input.key(), false),
-                AccountMeta::new(accounts.payer.key(), false),
-                AccountMeta::new_readonly(accounts.payer.key(), true),
-            ],
-            data,
-        },
-        &[
-            accounts.user_input.clone(),
-            accounts.payer.clone(),
-            accounts.payer.clone(),
-            accounts.step[10].clone(),
-        ],
-    )?;
-    Ok(())
 }
 
 fn invoke_deposit<'info>(accounts: &MarinadeFinanceAccounts<'info>, amount: u64) -> Result<()> {
@@ -462,8 +440,17 @@ pub fn marinade_finance_swap<'info>(
     );
     let pre_out = read_token_amount(accounts.user_output)?;
     if deposit {
-        unwrap_wsol(&accounts, amount)?;
+        let bridge = WsolBridgeAccounts {
+            payer: accounts.payer,
+            user_wsol: accounts.user_input,
+            wsol_mint: accounts.input_mint,
+            token_program: &accounts.step[10],
+            associated_token_program: accounts.associated_token_program,
+            system_program: &accounts.step[9],
+        };
+        let remaining_wsol = close_wsol_for_native(bridge, amount)?;
         invoke_deposit(&accounts, amount)?;
+        restore_wsol_after_native(bridge, remaining_wsol)?;
     } else {
         let pre_lamports = accounts.payer.lamports();
         invoke_liquid_unstake(&accounts, amount)?;

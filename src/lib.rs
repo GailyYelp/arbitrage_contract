@@ -118,6 +118,19 @@ mod tests {
             include_str!("protocal/aquifer.rs"),
         ),
         (
+            "src/protocal/boop_fun.rs",
+            include_str!("protocal/boop_fun.rs"),
+        ),
+        (
+            "src/protocal/dumpfun.rs",
+            include_str!("protocal/dumpfun.rs"),
+        ),
+        (
+            "src/protocal/marinade_finance.rs",
+            include_str!("protocal/marinade_finance.rs"),
+        ),
+        ("src/protocal/moonit.rs", include_str!("protocal/moonit.rs")),
+        (
             "src/protocal/metadao_futarchy.rs",
             include_str!("protocal/metadao_futarchy.rs"),
         ),
@@ -150,6 +163,14 @@ mod tests {
             include_str!("protocal/raydium_cpmm.rs"),
         ),
         (
+            "src/protocal/sega_cpmm.rs",
+            include_str!("protocal/sega_cpmm.rs"),
+        ),
+        (
+            "src/protocal/sugar_money.rs",
+            include_str!("protocal/sugar_money.rs"),
+        ),
+        (
             "src/protocal/raydium_launchpad.rs",
             include_str!("protocal/raydium_launchpad.rs"),
         ),
@@ -161,6 +182,15 @@ mod tests {
             "src/protocal/stabble_swap.rs",
             include_str!("protocal/stabble_swap.rs"),
         ),
+        (
+            "src/protocal/token_mill_v2.rs",
+            include_str!("protocal/token_mill_v2.rs"),
+        ),
+        (
+            "src/protocal/yeet_amm.rs",
+            include_str!("protocal/yeet_amm.rs"),
+        ),
+        ("src/protocal/wsol.rs", include_str!("protocal/wsol.rs")),
         ("src/state.rs", include_str!("state.rs")),
     ];
 
@@ -184,6 +214,18 @@ mod tests {
             "production source must use explicit Result handling instead of panic/unwrap/fallback helpers: {:?}",
             violations
         );
+    }
+
+    #[test]
+    fn native_sol_routes_do_not_reintroduce_nonexistent_partial_unwrap_instruction() {
+        for (path, source) in PRODUCTION_SOURCES {
+            let production = production_source_text(source);
+            assert!(
+                !production.contains("TOKEN_UNWRAP_LAMPORTS_TAG")
+                    && !production.contains("TOKEN_UNWRAP_LAMPORTS_EXACT"),
+                "{path} must use the classic SPL close/recreate WSOL bridge"
+            );
+        }
     }
 
     fn production_source_text(source: &str) -> &str {

@@ -8,6 +8,7 @@ use crate::protocal::{
     aquifer::AQUIFER_STEP_ACCOUNTS,
     binaryfi::BINARYFI_MIN_ACCOUNTS,
     bisonfi::BISONFI_STEP_ACCOUNTS,
+    bonfida_dex_v4::BONFIDA_DEX_V4_STEP_ACCOUNTS,
     bonk_swap::BONK_SWAP_MIN_ACCOUNTS,
     boop_fun::BOOP_FUN_STEP_ACCOUNTS,
     carrot::CARROT_STEP_ACCOUNTS,
@@ -15,9 +16,13 @@ use crate::protocal::{
         CREMA_CLMM_FIXED_STEP_ACCOUNTS, CREMA_CLMM_MAX_STEP_ACCOUNTS, CREMA_CLMM_MIN_STEP_ACCOUNTS,
     },
     cropper::CROPPER_STEP_ACCOUNTS,
+    cube::CUBE_STEP_ACCOUNTS,
     deriverse::DERIVERSE_STEP_ACCOUNTS,
+    dradex::DRADEX_STEP_ACCOUNTS,
+    dumpfun::DUMPFUN_STEP_ACCOUNTS,
     fluxbeam::FLUXBEAM_MIN_ACCOUNTS,
     gamma_swap::GAMMA_SWAP_MIN_ACCOUNTS,
+    gfx_ssl::{GFX_SSL_FIXED_STEP_ACCOUNTS, GFX_SSL_MAX_STEP_ACCOUNTS, GFX_SSL_MIN_STEP_ACCOUNTS},
     goonfi::GOONFI_MIN_ACCOUNTS,
     goonfi_v2::GOONFI_V2_MIN_ACCOUNTS,
     guacswap::GUACSWAP_MIN_ACCOUNTS,
@@ -30,10 +35,12 @@ use crate::protocal::{
     hylo_exchange::HYLO_EXCHANGE_STEP_ACCOUNTS,
     invariant::INVARIANT_MIN_ACCOUNTS,
     jupiter_lend_earn::JUPITER_LEND_EARN_STEP_ACCOUNTS,
+    jupiter_perpetuals::JUPITER_PERPETUALS_STEP_ACCOUNTS,
     kipseli::KIPSELI_STEP_ACCOUNTS,
     lemmingsfi::LEMMINGSFI_STEP_ACCOUNTS,
     lifinity_amm_v1::LIFINITY_AMM_V1_MIN_ACCOUNTS,
     lifinity_amm_v2::LIFINITY_AMM_V2_MIN_ACCOUNTS,
+    limo::LIMO_STEP_ACCOUNTS,
     m_swap::M_SWAP_STEP_ACCOUNTS,
     manifest::MANIFEST_MIN_ACCOUNTS,
     marcopolo::MARCOPOLO_STEP_ACCOUNTS,
@@ -60,6 +67,8 @@ use crate::protocal::{
     raydium_pool_v4::RAYDIUM_POOL_V4_MIN_ACCOUNTS,
     raydium_stable_swap::RAYDIUM_STABLE_SWAP_MIN_ACCOUNTS,
     riptide::RIPTIDE_STEP_ACCOUNTS,
+    rise::RISE_STEP_ACCOUNTS,
+    runner_rodeo::RUNNER_RODEO_STEP_ACCOUNTS,
     saber_add_decimals::SABER_ADD_DECIMALS_STEP_ACCOUNTS,
     sanctum_infinity::SANCTUM_INFINITY_STEP_ACCOUNTS,
     sanctum_router::SANCTUM_ROUTER_STEP_ACCOUNTS,
@@ -67,13 +76,17 @@ use crate::protocal::{
     scale_amm::{SCALE_AMM_BASE_STEP_ACCOUNTS, SCALE_AMM_MAX_STEP_ACCOUNTS},
     scale_vmm::{SCALE_VMM_BASE_STEP_ACCOUNTS, SCALE_VMM_MAX_STEP_ACCOUNTS},
     scorch::SCORCH_STEP_ACCOUNTS,
+    sega_cpmm::SEGA_CPMM_STEP_ACCOUNTS,
     serum_v3::SERUM_V3_STEP_ACCOUNTS,
     solayer_endoavs::SOLAYER_ENDOAVS_STEP_ACCOUNTS,
     solfi_v1::SOLFI_V1_MIN_ACCOUNTS,
     solfi_v2::SOLFI_V2_MIN_ACCOUNTS,
     stabble_swap::STABBLE_SWAP_MIN_ACCOUNTS,
+    sugar_money::SUGAR_MONEY_STEP_ACCOUNTS,
+    symmetry::SYMMETRY_STEP_ACCOUNTS,
     taurusfi::TAURUSFI_STEP_ACCOUNTS,
     tessera::TESSERA_MIN_ACCOUNTS,
+    token_mill_v2::TOKEN_MILL_V2_STEP_ACCOUNTS,
     trends::TRENDS_STEP_ACCOUNTS,
     vault_liquid_unstake::VAULT_LIQUID_UNSTAKE_STEP_ACCOUNTS,
     vertigo::VERTIGO_STEP_ACCOUNTS,
@@ -82,6 +95,7 @@ use crate::protocal::{
     whalestreet::WHALESTREET_MIN_ACCOUNTS,
     woofi_swap::WOOFI_SWAP_MIN_ACCOUNTS,
     xorca::XORCA_STEP_ACCOUNTS,
+    yeet_amm::YEET_AMM_STEP_ACCOUNTS,
 };
 use crate::state::{Protocol, SwapArbParams, REMAINING_ACCOUNTS_FIXED_PREFIX_LEN};
 
@@ -211,6 +225,13 @@ pub fn validate_step_account_flags<'info>(
             &[3, 4, 5, 6],
         ),
         Protocol::RaydiumCLMM => validate_variable_len_step_account_flags(
+            step_accounts,
+            RAYDIUM_CLMM_MIN_ACCOUNTS,
+            7,
+            &[0, 6],
+            &[2, 3, 4, 5],
+        ),
+        Protocol::SwapIoClmm => validate_variable_len_step_account_flags(
             step_accounts,
             RAYDIUM_CLMM_MIN_ACCOUNTS,
             7,
@@ -393,8 +414,82 @@ pub fn validate_step_account_flags<'info>(
         Protocol::MarinadeFinance => validate_fixed_len_step_account_flags(
             step_accounts,
             MARINADE_FINANCE_STEP_ACCOUNTS,
-            &[0, 5, 8, 9, 10],
+            &[0, 9, 10],
             &[1, 2, 3, 4, 6, 7],
+        ),
+        Protocol::Rise => validate_fixed_len_step_account_flags(
+            step_accounts,
+            RISE_STEP_ACCOUNTS,
+            &[0, 12],
+            &[1, 2, 3, 7, 9, 10, 11, 13, 14, 15],
+        ),
+        Protocol::Dradex => validate_fixed_len_step_account_flags(
+            step_accounts,
+            DRADEX_STEP_ACCOUNTS,
+            &[0, 11, 12],
+            &[1, 2, 3, 5, 6, 7, 8, 9],
+        ),
+        Protocol::BonfidaDexV4 => validate_fixed_len_step_account_flags(
+            step_accounts,
+            BONFIDA_DEX_V4_STEP_ACCOUNTS,
+            &[0],
+            &[1, 2, 3, 4, 5, 6, 7],
+        ),
+        Protocol::GfxSsl => validate_gfx_ssl_step_account_flags(step_accounts),
+        Protocol::DumpFun => validate_fixed_len_step_account_flags(
+            step_accounts,
+            DUMPFUN_STEP_ACCOUNTS,
+            &[0, 7, 8, 9],
+            &[1, 2, 3, 4, 5, 6],
+        ),
+        Protocol::JupiterPerpetuals => validate_fixed_len_step_account_flags(
+            step_accounts,
+            JUPITER_PERPETUALS_STEP_ACCOUNTS,
+            &[0, 12],
+            &[3, 4, 7, 8, 11],
+        ),
+        Protocol::TokenMillV2 => validate_fixed_len_step_account_flags(
+            step_accounts,
+            TOKEN_MILL_V2_STEP_ACCOUNTS,
+            &[0, 8],
+            &[2, 3, 4, 5, 6, 7],
+        ),
+        Protocol::YeetAmm => validate_fixed_len_step_account_flags(
+            step_accounts,
+            YEET_AMM_STEP_ACCOUNTS,
+            &[0, 7],
+            &[1, 3, 4, 5, 6],
+        ),
+        Protocol::Cube => validate_fixed_len_step_account_flags(
+            step_accounts,
+            CUBE_STEP_ACCOUNTS,
+            &[0],
+            &[1, 2, 3],
+        ),
+        Protocol::Limo => validate_limo_step_account_flags(step_accounts),
+        Protocol::Symmetry => validate_fixed_len_step_account_flags(
+            step_accounts,
+            SYMMETRY_STEP_ACCOUNTS,
+            &[0],
+            &[1, 3, 4, 5, 6, 7],
+        ),
+        Protocol::RunnerRodeo => validate_fixed_len_step_account_flags(
+            step_accounts,
+            RUNNER_RODEO_STEP_ACCOUNTS,
+            &[0, 11, 12],
+            &[3, 4, 5, 6, 7, 8],
+        ),
+        Protocol::SegaCpmm => validate_fixed_len_step_account_flags(
+            step_accounts,
+            SEGA_CPMM_STEP_ACCOUNTS,
+            &[0],
+            &[3, 4, 5, 6],
+        ),
+        Protocol::SugarMoney => validate_fixed_len_step_account_flags(
+            step_accounts,
+            SUGAR_MONEY_STEP_ACCOUNTS,
+            &[0, 6, 7, 8],
+            &[2, 3, 4, 5],
         ),
         Protocol::RaydiumLaunchPad => validate_fixed_len_step_account_flags(
             step_accounts,
@@ -470,7 +565,7 @@ pub fn validate_step_account_flags<'info>(
         Protocol::SarosDlmm => validate_fixed_len_step_account_flags(
             step_accounts,
             SAROS_DLMM_STEP_ACCOUNTS,
-            &[0, 2, 3, 8, 9, 10, 12, 13],
+            &[0, 8, 9, 10, 12],
             &[1, 4, 5, 6, 7, 11],
         ),
         Protocol::PerenaNumeraire => validate_fixed_len_step_account_flags(
@@ -500,7 +595,7 @@ pub fn validate_step_account_flags<'info>(
         Protocol::Omnipair => validate_fixed_len_step_account_flags(
             step_accounts,
             OMNIPAIR_STEP_ACCOUNTS,
-            &[0, 3, 6],
+            &[0],
             &[1, 2, 4, 5],
         ),
         Protocol::ScaleAmm => validate_scale_amm_step_account_flags(step_accounts),
@@ -508,7 +603,7 @@ pub fn validate_step_account_flags<'info>(
         Protocol::Virtuals => validate_fixed_len_step_account_flags(
             step_accounts,
             crate::protocal::virtuals::VIRTUALS_STEP_ACCOUNTS,
-            &[0, 2],
+            &[0],
             &[1, 3, 4, 5, 6],
         ),
         Protocol::Trends => validate_fixed_len_step_account_flags(
@@ -545,7 +640,7 @@ pub fn validate_step_account_flags<'info>(
         Protocol::SerumV3 => validate_fixed_len_step_account_flags(
             step_accounts,
             SERUM_V3_STEP_ACCOUNTS,
-            &[0, 9],
+            &[0, 8],
             &[1, 2, 3, 4, 5, 6, 7],
         ),
         Protocol::BonkSwap => validate_fixed_len_step_account_flags(
@@ -695,6 +790,62 @@ fn validate_fixed_len_step_account_flags<'info>(
         executable_readonly_indices,
         writable_indices,
     )
+}
+
+fn validate_limo_step_account_flags<'info>(step_accounts: &[AccountInfo<'info>]) -> Result<()> {
+    require!(
+        step_accounts.len() == LIMO_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    for (index, account) in step_accounts.iter().enumerate() {
+        require!(!account.is_signer, ArbitrageError::InvalidAccount);
+        match index {
+            0 | 8 | 13 => {
+                require!(account.executable, ArbitrageError::InvalidAccount);
+                require!(!account.is_writable, ArbitrageError::InvalidAccount);
+            }
+            1..=5 => {
+                require!(!account.executable, ArbitrageError::InvalidAccount);
+                require!(account.is_writable, ArbitrageError::InvalidAccount);
+            }
+            6 | 7 => {
+                let is_program_sentinel = account.key() == step_accounts[0].key();
+                require!(
+                    account.executable == is_program_sentinel,
+                    ArbitrageError::InvalidAccount
+                );
+                require!(
+                    account.is_writable != is_program_sentinel,
+                    ArbitrageError::InvalidAccount
+                );
+            }
+            9..=12 | 14 => {
+                require!(!account.executable, ArbitrageError::InvalidAccount);
+                require!(!account.is_writable, ArbitrageError::InvalidAccount);
+            }
+            _ => return Err(ArbitrageError::InvalidAccountCount.into()),
+        }
+    }
+    Ok(())
+}
+
+fn validate_gfx_ssl_step_account_flags<'info>(step_accounts: &[AccountInfo<'info>]) -> Result<()> {
+    require!(
+        (GFX_SSL_MIN_STEP_ACCOUNTS..=GFX_SSL_MAX_STEP_ACCOUNTS).contains(&step_accounts.len()),
+        ArbitrageError::InvalidAccountCount
+    );
+    validate_step_account_flags_by_index(
+        step_accounts,
+        GFX_SSL_FIXED_STEP_ACCOUNTS,
+        &[0],
+        &[2, 3, 4, 5, 6, 7, 8, 10],
+    )?;
+    for oracle in &step_accounts[GFX_SSL_FIXED_STEP_ACCOUNTS..] {
+        require!(!oracle.is_signer, ArbitrageError::InvalidAccount);
+        require!(!oracle.is_writable, ArbitrageError::InvalidAccount);
+        require!(!oracle.executable, ArbitrageError::InvalidAccount);
+    }
+    Ok(())
 }
 
 fn validate_orca_whirlpool_step_account_flags<'info>(
@@ -1273,6 +1424,31 @@ mod tests {
             .expect("Scale AMM dynamic account flags");
     }
 
+    #[test]
+    fn validate_step_account_flags_accepts_virtuals_mint_as_readonly_non_executable() {
+        let owner = Pubkey::new_unique();
+        let mut accounts = vec![
+            test_account(Pubkey::new_unique(), owner, false, false, true),
+            test_account(Pubkey::new_unique(), owner, false, true, false),
+            test_account(Pubkey::new_unique(), token::ID, false, false, false),
+            test_account(Pubkey::new_unique(), token::ID, false, true, false),
+            test_account(
+                Pubkey::new_unique(),
+                anchor_lang::system_program::ID,
+                false,
+                true,
+                false,
+            ),
+            test_account(Pubkey::new_unique(), token::ID, false, true, false),
+            test_account(Pubkey::new_unique(), token::ID, false, true, false),
+        ];
+
+        validate_step_account_flags(Protocol::Virtuals, &accounts)
+            .expect("Virtuals canonical account flags");
+        accounts[2] = test_account(Pubkey::new_unique(), token::ID, false, false, true);
+        assert!(validate_step_account_flags(Protocol::Virtuals, &accounts).is_err());
+    }
+
     fn step_account(is_writable: bool, executable: bool) -> AccountInfo<'static> {
         test_account(
             Pubkey::new_unique(),
@@ -1295,6 +1471,22 @@ mod tests {
         step_account(false, true)
     }
 
+    fn marinade_finance_step_accounts() -> Vec<AccountInfo<'static>> {
+        vec![
+            executable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            writable_step_account(),
+            writable_step_account(),
+            readonly_step_account(),
+            executable_step_account(),
+            executable_step_account(),
+        ]
+    }
+
     fn cpmm_step_accounts() -> Vec<AccountInfo<'static>> {
         vec![
             executable_step_account(),
@@ -1305,6 +1497,22 @@ mod tests {
             writable_step_account(),
             writable_step_account(),
         ]
+    }
+
+    fn saros_dlmm_step_accounts() -> Vec<AccountInfo<'static>> {
+        let executable = [0, 8, 9, 10, 12];
+        let writable = [1, 4, 5, 6, 7, 11];
+        (0..SAROS_DLMM_STEP_ACCOUNTS)
+            .map(|index| {
+                if executable.contains(&index) {
+                    executable_step_account()
+                } else if writable.contains(&index) {
+                    writable_step_account()
+                } else {
+                    readonly_step_account()
+                }
+            })
+            .collect()
     }
 
     fn clmm_step_accounts() -> Vec<AccountInfo<'static>> {
@@ -1876,6 +2084,161 @@ mod tests {
         ]
     }
 
+    fn rise_step_accounts() -> Vec<AccountInfo<'static>> {
+        let executable = [0, 12];
+        let writable = [1, 2, 3, 7, 9, 10, 11, 13, 14, 15];
+        (0..RISE_STEP_ACCOUNTS)
+            .map(|index| {
+                if executable.contains(&index) {
+                    executable_step_account()
+                } else if writable.contains(&index) {
+                    writable_step_account()
+                } else {
+                    readonly_step_account()
+                }
+            })
+            .collect()
+    }
+
+    fn dradex_step_accounts() -> Vec<AccountInfo<'static>> {
+        let executable = [0, 11, 12];
+        let writable = [1, 2, 3, 5, 6, 7, 8, 9];
+        (0..DRADEX_STEP_ACCOUNTS)
+            .map(|index| {
+                if executable.contains(&index) {
+                    executable_step_account()
+                } else if writable.contains(&index) {
+                    writable_step_account()
+                } else {
+                    readonly_step_account()
+                }
+            })
+            .collect()
+    }
+
+    fn bonfida_dex_v4_step_accounts() -> Vec<AccountInfo<'static>> {
+        (0..BONFIDA_DEX_V4_STEP_ACCOUNTS)
+            .map(|index| {
+                if index == 0 {
+                    executable_step_account()
+                } else if index <= 7 {
+                    writable_step_account()
+                } else {
+                    readonly_step_account()
+                }
+            })
+            .collect()
+    }
+
+    fn gfx_ssl_step_accounts() -> Vec<AccountInfo<'static>> {
+        let writable = [2, 3, 4, 5, 6, 7, 8, 10];
+        (0..GFX_SSL_MIN_STEP_ACCOUNTS)
+            .map(|index| {
+                if index == 0 {
+                    executable_step_account()
+                } else if writable.contains(&index) {
+                    writable_step_account()
+                } else {
+                    readonly_step_account()
+                }
+            })
+            .collect()
+    }
+
+    fn dumpfun_step_accounts() -> Vec<AccountInfo<'static>> {
+        let executable = [0, 7, 8, 9];
+        let writable = [1, 2, 3, 4, 5, 6];
+        (0..DUMPFUN_STEP_ACCOUNTS)
+            .map(|index| {
+                if executable.contains(&index) {
+                    executable_step_account()
+                } else if writable.contains(&index) {
+                    writable_step_account()
+                } else {
+                    readonly_step_account()
+                }
+            })
+            .collect()
+    }
+
+    fn jupiter_perpetuals_step_accounts() -> Vec<AccountInfo<'static>> {
+        let executable = [0, 12];
+        let writable = [3, 4, 7, 8, 11];
+        (0..JUPITER_PERPETUALS_STEP_ACCOUNTS)
+            .map(|index| {
+                if executable.contains(&index) {
+                    executable_step_account()
+                } else if writable.contains(&index) {
+                    writable_step_account()
+                } else {
+                    readonly_step_account()
+                }
+            })
+            .collect()
+    }
+
+    fn token_mill_v2_step_accounts() -> Vec<AccountInfo<'static>> {
+        let executable = [0, 8];
+        let writable = [2, 3, 4, 5, 6, 7];
+        (0..TOKEN_MILL_V2_STEP_ACCOUNTS)
+            .map(|index| {
+                if executable.contains(&index) {
+                    executable_step_account()
+                } else if writable.contains(&index) {
+                    writable_step_account()
+                } else {
+                    readonly_step_account()
+                }
+            })
+            .collect()
+    }
+
+    fn yeet_amm_step_accounts() -> Vec<AccountInfo<'static>> {
+        let executable = [0, 7];
+        let writable = [1, 3, 4, 5, 6];
+        (0..YEET_AMM_STEP_ACCOUNTS)
+            .map(|index| {
+                if executable.contains(&index) {
+                    executable_step_account()
+                } else if writable.contains(&index) {
+                    writable_step_account()
+                } else {
+                    readonly_step_account()
+                }
+            })
+            .collect()
+    }
+
+    fn sega_cpmm_step_accounts() -> Vec<AccountInfo<'static>> {
+        (0..SEGA_CPMM_STEP_ACCOUNTS)
+            .map(|index| {
+                if index == 0 {
+                    executable_step_account()
+                } else if [3, 4, 5, 6].contains(&index) {
+                    writable_step_account()
+                } else {
+                    readonly_step_account()
+                }
+            })
+            .collect()
+    }
+
+    fn sugar_money_step_accounts() -> Vec<AccountInfo<'static>> {
+        let executable = [0, 6, 7, 8];
+        let writable = [2, 3, 4, 5];
+        (0..SUGAR_MONEY_STEP_ACCOUNTS)
+            .map(|index| {
+                if executable.contains(&index) {
+                    executable_step_account()
+                } else if writable.contains(&index) {
+                    writable_step_account()
+                } else {
+                    readonly_step_account()
+                }
+            })
+            .collect()
+    }
+
     fn vertigo_step_accounts() -> Vec<AccountInfo<'static>> {
         vec![
             executable_step_account(),
@@ -2278,6 +2641,43 @@ mod tests {
         let accounts = cpmm_step_accounts();
 
         assert!(validate_step_account_flags(Protocol::RaydiumCPMM, &accounts).is_ok());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_real_saros_dlmm_flags() {
+        let accounts = saros_dlmm_step_accounts();
+        assert!(validate_step_account_flags(Protocol::SarosDlmm, &accounts).is_ok());
+
+        let mut executable_mint = saros_dlmm_step_accounts();
+        executable_mint[2].executable = true;
+        assert!(validate_step_account_flags(Protocol::SarosDlmm, &executable_mint).is_err());
+
+        let mut executable_event_authority = saros_dlmm_step_accounts();
+        executable_event_authority[13].executable = true;
+        assert!(
+            validate_step_account_flags(Protocol::SarosDlmm, &executable_event_authority).is_err()
+        );
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_non_executable_marinade_authority_pdas() {
+        let accounts = marinade_finance_step_accounts();
+        assert!(validate_step_account_flags(Protocol::MarinadeFinance, &accounts).is_ok());
+
+        let mut executable_msol_leg_authority = marinade_finance_step_accounts();
+        executable_msol_leg_authority[5].executable = true;
+        assert!(validate_step_account_flags(
+            Protocol::MarinadeFinance,
+            &executable_msol_leg_authority,
+        )
+        .is_err());
+
+        let mut executable_mint_authority = marinade_finance_step_accounts();
+        executable_mint_authority[8].executable = true;
+        assert!(
+            validate_step_account_flags(Protocol::MarinadeFinance, &executable_mint_authority,)
+                .is_err()
+        );
     }
 
     #[test]
@@ -3068,6 +3468,188 @@ mod tests {
         let mut readonly_base_mint = wavebreak_step_accounts();
         readonly_base_mint[7].is_writable = false;
         assert!(validate_step_account_flags(Protocol::Wavebreak, &readonly_base_mint).is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_real_rise_accounts() {
+        let accounts = rise_step_accounts();
+        assert!(validate_step_account_flags(Protocol::Rise, &accounts).is_ok());
+
+        let mut executable_tenant = rise_step_accounts();
+        executable_tenant[4].executable = true;
+        assert!(validate_step_account_flags(Protocol::Rise, &executable_tenant).is_err());
+
+        let mut non_executable_mayflower = rise_step_accounts();
+        non_executable_mayflower[12].executable = false;
+        assert!(validate_step_account_flags(Protocol::Rise, &non_executable_mayflower).is_err());
+
+        let mut readonly_market = rise_step_accounts();
+        readonly_market[2].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::Rise, &readonly_market).is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_dradex_accounts() {
+        let accounts = dradex_step_accounts();
+        assert!(validate_step_account_flags(Protocol::Dradex, &accounts).is_ok());
+
+        let mut readonly_market = dradex_step_accounts();
+        readonly_market[2].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::Dradex, &readonly_market).is_err());
+
+        let mut non_executable_logger = dradex_step_accounts();
+        non_executable_logger[12].executable = false;
+        assert!(validate_step_account_flags(Protocol::Dradex, &non_executable_logger).is_err());
+
+        let mut signer_market_user = dradex_step_accounts();
+        signer_market_user[5].is_signer = true;
+        assert!(validate_step_account_flags(Protocol::Dradex, &signer_market_user).is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_bonfida_dex_v4_accounts() {
+        let accounts = bonfida_dex_v4_step_accounts();
+        assert!(validate_step_account_flags(Protocol::BonfidaDexV4, &accounts).is_ok());
+
+        let mut readonly_market = bonfida_dex_v4_step_accounts();
+        readonly_market[1].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::BonfidaDexV4, &readonly_market).is_err());
+
+        let mut signer_authority = bonfida_dex_v4_step_accounts();
+        signer_authority[8].is_signer = true;
+        assert!(validate_step_account_flags(Protocol::BonfidaDexV4, &signer_authority).is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_gfx_ssl_accounts() {
+        let accounts = gfx_ssl_step_accounts();
+        assert!(validate_step_account_flags(Protocol::GfxSsl, &accounts).is_ok());
+
+        let mut readonly_pair = gfx_ssl_step_accounts();
+        readonly_pair[2].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::GfxSsl, &readonly_pair).is_err());
+
+        let mut writable_oracle = gfx_ssl_step_accounts();
+        writable_oracle[GFX_SSL_FIXED_STEP_ACCOUNTS].is_writable = true;
+        assert!(validate_step_account_flags(Protocol::GfxSsl, &writable_oracle).is_err());
+
+        let mut missing_oracle = gfx_ssl_step_accounts();
+        missing_oracle.pop();
+        assert!(validate_step_account_flags(Protocol::GfxSsl, &missing_oracle).is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_dumpfun_accounts() {
+        let accounts = dumpfun_step_accounts();
+        assert!(validate_step_account_flags(Protocol::DumpFun, &accounts).is_ok());
+
+        let mut readonly_authority = dumpfun_step_accounts();
+        readonly_authority[2].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::DumpFun, &readonly_authority).is_err());
+
+        let mut executable_rent = dumpfun_step_accounts();
+        executable_rent[10].executable = true;
+        assert!(validate_step_account_flags(Protocol::DumpFun, &executable_rent).is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_jupiter_perpetuals_accounts() {
+        let accounts = jupiter_perpetuals_step_accounts();
+        assert!(validate_step_account_flags(Protocol::JupiterPerpetuals, &accounts).is_ok());
+
+        let mut readonly_custody = jupiter_perpetuals_step_accounts();
+        readonly_custody[4].is_writable = false;
+        assert!(
+            validate_step_account_flags(Protocol::JupiterPerpetuals, &readonly_custody).is_err()
+        );
+
+        let mut writable_oracle = jupiter_perpetuals_step_accounts();
+        writable_oracle[5].is_writable = true;
+        assert!(
+            validate_step_account_flags(Protocol::JupiterPerpetuals, &writable_oracle).is_err()
+        );
+
+        let mut executable_oracle = jupiter_perpetuals_step_accounts();
+        executable_oracle[10].executable = true;
+        assert!(
+            validate_step_account_flags(Protocol::JupiterPerpetuals, &executable_oracle).is_err()
+        );
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_token_mill_v2_accounts() {
+        let accounts = token_mill_v2_step_accounts();
+        assert!(validate_step_account_flags(Protocol::TokenMillV2, &accounts).is_ok());
+
+        let mut readonly_market = token_mill_v2_step_accounts();
+        readonly_market[2].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::TokenMillV2, &readonly_market).is_err());
+
+        let mut executable_event_authority = token_mill_v2_step_accounts();
+        executable_event_authority[9].executable = true;
+        assert!(
+            validate_step_account_flags(Protocol::TokenMillV2, &executable_event_authority)
+                .is_err()
+        );
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_yeet_amm_accounts() {
+        let accounts = yeet_amm_step_accounts();
+        assert!(validate_step_account_flags(Protocol::YeetAmm, &accounts).is_ok());
+
+        let mut readonly_pool = yeet_amm_step_accounts();
+        readonly_pool[1].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::YeetAmm, &readonly_pool).is_err());
+
+        let mut writable_authority = yeet_amm_step_accounts();
+        writable_authority[2].is_writable = true;
+        assert!(validate_step_account_flags(Protocol::YeetAmm, &writable_authority).is_err());
+
+        let mut non_executable_token_program = yeet_amm_step_accounts();
+        non_executable_token_program[7].executable = false;
+        assert!(
+            validate_step_account_flags(Protocol::YeetAmm, &non_executable_token_program).is_err()
+        );
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_sega_cpmm_accounts() {
+        let accounts = sega_cpmm_step_accounts();
+        assert!(validate_step_account_flags(Protocol::SegaCpmm, &accounts).is_ok());
+
+        let mut readonly_pool = sega_cpmm_step_accounts();
+        readonly_pool[3].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::SegaCpmm, &readonly_pool).is_err());
+
+        let mut writable_authority = sega_cpmm_step_accounts();
+        writable_authority[1].is_writable = true;
+        assert!(validate_step_account_flags(Protocol::SegaCpmm, &writable_authority).is_err());
+
+        let mut non_executable_program = sega_cpmm_step_accounts();
+        non_executable_program[0].executable = false;
+        assert!(validate_step_account_flags(Protocol::SegaCpmm, &non_executable_program).is_err());
+    }
+
+    #[test]
+    fn validate_step_account_flags_accepts_sugar_money_accounts() {
+        let accounts = sugar_money_step_accounts();
+        assert!(validate_step_account_flags(Protocol::SugarMoney, &accounts).is_ok());
+
+        let mut readonly_curve = sugar_money_step_accounts();
+        readonly_curve[2].is_writable = false;
+        assert!(validate_step_account_flags(Protocol::SugarMoney, &readonly_curve).is_err());
+
+        let mut writable_state = sugar_money_step_accounts();
+        writable_state[1].is_writable = true;
+        assert!(validate_step_account_flags(Protocol::SugarMoney, &writable_state).is_err());
+
+        let mut non_executable_token_program = sugar_money_step_accounts();
+        non_executable_token_program[6].executable = false;
+        assert!(
+            validate_step_account_flags(Protocol::SugarMoney, &non_executable_token_program)
+                .is_err()
+        );
     }
 
     #[test]

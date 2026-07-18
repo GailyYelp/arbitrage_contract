@@ -20,6 +20,16 @@ pub const BYREAL_CLMM_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("REALQqNEomY6cQGZJUGwywTBD2UmDT32rZcNnfxQ5N2");
 pub const PANCAKE_SWAP_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("HpNfyc2Saw7RKkQd8nEL4khUcuPhQ7WwY1B2qjx8jxFq");
+pub const SWAP_IO_CLMM_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("SWPammPnp7L9qFgV436u3CSPmcxU6ZQm6ttawzDTRuw");
+pub const CUBE_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("8iQtGj9mcUfFUGaiCpPy89swC3s8YTC8FhVZWfgeZhwu");
+pub const LIMO_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("LiMoM9rMhrdYrfzUCxQppvxCSG1FcrUK9G8uLq4A1GF");
+pub const SYMMETRY_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("2KehYt3KsEQR53jYcxjbQp2d2kCp4AkuQW68atufRwSr");
+pub const RUNNER_RODEO_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("runnrXXdsSRkdueCRYxKDvSWfv6nAnrG5dcM29qj1HA");
 pub const STABBLE_CLMM_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("6dMXqGZ3ga2dikrYS9ovDXgHGh5RUsb2RTUj6hrQXhk6");
 pub const STABBLE_STABLE_SWAP_PROGRAM_ID: Pubkey =
@@ -66,6 +76,36 @@ pub const VIRTUALS_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("5U3EU2ubXtK84QcRjWVmYt9RaDyA8gKxdUrPFXmZyaki");
 pub const TRENDS_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("CURVEmPpijXDTNdqrA9PGP1io2rkgiVXH26xdXVGLLfz");
+pub const RISE_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("RiseZSHaLdj7pfn1tisUoSdG2i3QcVz9sQKuaRG9rar");
+pub const RISE_PROGRAM_ID_DEVNET: Pubkey =
+    anchor_lang::pubkey!("7gDn1L2Bmg53royeUgvZtWujfvxS9TmpchtBToP9zDhB");
+pub const DRADEX_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("dp2waEWSBy5yKmq65ergoU3G6qRLmqa6K7We4rZSKph");
+pub const BONFIDA_DEX_V4_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("FEYrapVp9zfXNin7SR31Wv6BmTYDQYzsyK4aSxWgtRgf");
+pub const GFX_SSL_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("7WduLbRfYhTJktjLw5FDEyrqoEv61aTTCuGAetgLjzN5");
+pub const GFX_SSL_CONTROLLER_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("8KJx48PYGHVC9fxzRRtYp4x4CM2HyYCm2EjVuAP4vvrx");
+pub const GFX_SSL_CONTROLLER: Pubkey =
+    anchor_lang::pubkey!("8CxKnuJeoeQXFwiG6XiGY2akBjvJA5k3bE52BfnuEmNQ");
+pub const DUMPFUN_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("DumpFunGAgW6kPHzWMA3Nnqecyrd6SGnLZvNGp2aHwEa");
+pub const JUPITER_PERPETUALS_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("PERPHjGBqRHArX4DySjwM6UJHiR3sWAatqfdBS2qQJu");
+pub const TOKEN_MILL_V2_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("JoeGXemoPqPeGPEXA3Z3UbjoPoGqqfbg8PD58M7Rqj2");
+pub const YEET_AMM_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("yeetaecvxpd7DFzZAYTEYracRt1WYJ7DfMVjEeEt2Cp");
+pub const YEET_AMM_PROGRAM_ID_DEVNET: Pubkey =
+    anchor_lang::pubkey!("yeetMcJ7nBfMZiQV8ns4h5m3WeVekT1ySq27bMWWfio");
+pub const SEGA_CPMM_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("SegaXNnoXYTZiqUt9Xn2XqGcL56b25yzXLuJSpadcMu");
+pub const SUGAR_MONEY_PROGRAM_ID: Pubkey =
+    anchor_lang::pubkey!("deus4Bvftd5QKcEkE5muQaWGWDoma8GrySvPFrBPjhS");
+pub const SUGAR_MONEY_PROGRAM_ID_DEVNET: Pubkey =
+    anchor_lang::pubkey!("Dx4L3VUfwKEkmjJatoEFoYB6FG12Gb5D6iAHkxdeMe5f");
 pub const RAYDIUM_STABLE_SWAP_PROGRAM_ID: Pubkey =
     anchor_lang::pubkey!("5quBtoiQqxF9Jv6KYKctB59NT3gtJD2Y65kdnB1Uev3h");
 pub const RAYDIUM_STABLE_SWAP_PROGRAM_ID_DEVNET: Pubkey =
@@ -345,6 +385,11 @@ pub fn expected_protocol_program_id(protocol: Protocol) -> Pubkey {
         Protocol::RaydiumCLMM => raydium_clmm_program_id(),
         Protocol::ByrealCLMM => BYREAL_CLMM_PROGRAM_ID,
         Protocol::PancakeSwap => PANCAKE_SWAP_PROGRAM_ID,
+        Protocol::SwapIoClmm => SWAP_IO_CLMM_PROGRAM_ID,
+        Protocol::Cube => CUBE_PROGRAM_ID,
+        Protocol::Limo => LIMO_PROGRAM_ID,
+        Protocol::Symmetry => SYMMETRY_PROGRAM_ID,
+        Protocol::RunnerRodeo => RUNNER_RODEO_PROGRAM_ID,
         Protocol::StabbleCLMM => STABBLE_CLMM_PROGRAM_ID,
         Protocol::StabbleStableSwap => STABBLE_STABLE_SWAP_PROGRAM_ID,
         Protocol::StabbleWeightedSwap => STABBLE_WEIGHTED_SWAP_PROGRAM_ID,
@@ -429,6 +474,16 @@ pub fn expected_protocol_program_id(protocol: Protocol) -> Pubkey {
         Protocol::Vertigo => VERTIGO_PROGRAM_ID,
         Protocol::MarcoPolo => MARCOPOLO_PROGRAM_ID,
         Protocol::MarinadeFinance => MARINADE_FINANCE_PROGRAM_ID,
+        Protocol::Rise => rise_program_id(),
+        Protocol::Dradex => DRADEX_PROGRAM_ID,
+        Protocol::BonfidaDexV4 => BONFIDA_DEX_V4_PROGRAM_ID,
+        Protocol::GfxSsl => GFX_SSL_PROGRAM_ID,
+        Protocol::DumpFun => DUMPFUN_PROGRAM_ID,
+        Protocol::JupiterPerpetuals => JUPITER_PERPETUALS_PROGRAM_ID,
+        Protocol::TokenMillV2 => TOKEN_MILL_V2_PROGRAM_ID,
+        Protocol::YeetAmm => yeet_amm_program_id(),
+        Protocol::SegaCpmm => SEGA_CPMM_PROGRAM_ID,
+        Protocol::SugarMoney => sugar_money_program_id(),
         Protocol::Phoenix => PHOENIX_PROGRAM_ID,
         Protocol::LifinityAmmV2 => LIFINITY_AMM_V2_PROGRAM_ID,
         Protocol::LifinityAmmV1 => LIFINITY_AMM_V1_PROGRAM_ID,
@@ -446,6 +501,11 @@ pub fn expected_fixed_accounts(protocol: Protocol) -> &'static [FixedAccountExpe
         Protocol::RaydiumCLMM => RAYDIUM_CLMM_FIXED_ACCOUNTS,
         Protocol::ByrealCLMM => BYREAL_CLMM_FIXED_ACCOUNTS,
         Protocol::PancakeSwap => PANCAKE_SWAP_FIXED_ACCOUNTS,
+        Protocol::SwapIoClmm => RAYDIUM_CLMM_FIXED_ACCOUNTS,
+        Protocol::Cube => NO_FIXED_ACCOUNTS,
+        Protocol::Symmetry => NO_FIXED_ACCOUNTS,
+        Protocol::RunnerRodeo => NO_FIXED_ACCOUNTS,
+        Protocol::Limo => NO_FIXED_ACCOUNTS,
         Protocol::StabbleCLMM => STABBLE_CLMM_FIXED_ACCOUNTS,
         Protocol::StabbleStableSwap => NO_FIXED_ACCOUNTS,
         Protocol::StabbleWeightedSwap => NO_FIXED_ACCOUNTS,
@@ -530,6 +590,16 @@ pub fn expected_fixed_accounts(protocol: Protocol) -> &'static [FixedAccountExpe
         Protocol::Vertigo => NO_FIXED_ACCOUNTS,
         Protocol::MarcoPolo => NO_FIXED_ACCOUNTS,
         Protocol::MarinadeFinance => NO_FIXED_ACCOUNTS,
+        Protocol::Rise => NO_FIXED_ACCOUNTS,
+        Protocol::Dradex => NO_FIXED_ACCOUNTS,
+        Protocol::BonfidaDexV4 => NO_FIXED_ACCOUNTS,
+        Protocol::GfxSsl => NO_FIXED_ACCOUNTS,
+        Protocol::DumpFun => NO_FIXED_ACCOUNTS,
+        Protocol::JupiterPerpetuals => NO_FIXED_ACCOUNTS,
+        Protocol::TokenMillV2 => NO_FIXED_ACCOUNTS,
+        Protocol::YeetAmm => NO_FIXED_ACCOUNTS,
+        Protocol::SegaCpmm => NO_FIXED_ACCOUNTS,
+        Protocol::SugarMoney => NO_FIXED_ACCOUNTS,
         Protocol::Phoenix => PHOENIX_FIXED_ACCOUNTS,
         Protocol::LifinityAmmV2 => LIFINITY_AMM_V2_FIXED_ACCOUNTS,
         Protocol::LifinityAmmV1 => LIFINITY_AMM_V1_FIXED_ACCOUNTS,
@@ -543,6 +613,36 @@ pub fn expected_fixed_accounts(protocol: Protocol) -> &'static [FixedAccountExpe
 #[cfg(all(feature = "devnet", not(feature = "flex")))]
 fn raydium_cpmm_program_id() -> Pubkey {
     RAYDIUM_CPMM_PROGRAM_ID_DEVNET
+}
+
+#[cfg(feature = "devnet")]
+pub const fn rise_program_id() -> Pubkey {
+    RISE_PROGRAM_ID_DEVNET
+}
+
+#[cfg(not(feature = "devnet"))]
+pub const fn rise_program_id() -> Pubkey {
+    RISE_PROGRAM_ID
+}
+
+#[cfg(feature = "devnet")]
+pub const fn yeet_amm_program_id() -> Pubkey {
+    YEET_AMM_PROGRAM_ID_DEVNET
+}
+
+#[cfg(feature = "devnet")]
+pub const fn sugar_money_program_id() -> Pubkey {
+    SUGAR_MONEY_PROGRAM_ID_DEVNET
+}
+
+#[cfg(not(feature = "devnet"))]
+pub const fn sugar_money_program_id() -> Pubkey {
+    SUGAR_MONEY_PROGRAM_ID
+}
+
+#[cfg(not(feature = "devnet"))]
+pub const fn yeet_amm_program_id() -> Pubkey {
+    YEET_AMM_PROGRAM_ID
 }
 
 #[cfg(all(not(feature = "flex"), feature = "devnet"))]
@@ -1051,6 +1151,10 @@ mod tests {
         assert_eq!(
             expected_protocol_program_id(Protocol::WoofiSwap),
             WOOFI_SWAP_PROGRAM_ID
+        );
+        assert_eq!(
+            expected_protocol_program_id(Protocol::DumpFun),
+            DUMPFUN_PROGRAM_ID
         );
     }
 

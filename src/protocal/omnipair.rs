@@ -184,15 +184,19 @@ pub fn validate_omnipair_semantic_accounts<'info>(
     let reserve1_bump = *pair_data
         .get(reserve_offset + 197)
         .ok_or(ArbitrageError::InvalidAccount)?;
+    let expected_reserve0 = cash_reserve0
+        .checked_add(total_debt0)
+        .ok_or(ArbitrageError::MathOverflow)?;
+    let expected_reserve1 = cash_reserve1
+        .checked_add(total_debt1)
+        .ok_or(ArbitrageError::MathOverflow)?;
     require!(
         reserve0 > 0
             && reserve1 > 0
-            && reserve0 == cash_reserve0
-            && reserve1 == cash_reserve1
-            && total_debt0 == 0
-            && total_debt1 == 0
-            && total_debt0_shares == 0
-            && total_debt1_shares == 0
+            && reserve0 == expected_reserve0
+            && reserve1 == expected_reserve1
+            && ((total_debt0 == 0) == (total_debt0_shares == 0))
+            && ((total_debt1 == 0) == (total_debt1_shares == 0))
             && total_supply > 0
             && version == 1,
         ArbitrageError::InvalidAccount
@@ -291,10 +295,14 @@ fn validate_rate_model(account: &AccountInfo<'_>) -> Result<()> {
     require!(
         exp_rate > 0
             && target_start < target_end
+            && target_start >= 10_000_000
             && target_end <= 1_000_000_000
             && (3_600_000..=2_592_000_000).contains(&half_life)
+            && min_rate <= 10_000_000_000
+            && (max_rate == 0 || max_rate <= 10_000_000_000)
+            && (1_000_000..=1_000_000_000).contains(&initial_rate)
             && initial_rate >= min_rate
-            && (max_rate == 0 || initial_rate <= max_rate),
+            && (max_rate == 0 || (initial_rate <= max_rate && min_rate <= max_rate)),
         ArbitrageError::InvalidAccount
     );
     Ok(())
@@ -591,7 +599,7 @@ mod tests {
     }
 
     #[test]
-    fn semantic_validation_accepts_both_directions_and_rejects_debt() {
+    fn semantic_validation_accepts_consistent_debt_and_rejects_broken_invariants() {
         let (steps, mint0, mint1) = fixture();
         let token_program = account(
             anchor_spl::token::ID,
@@ -601,14 +609,40 @@ mod tests {
             true,
             vec![],
         );
+        crate::instructions::accounts::validate_step_account_flags(
+            crate::state::Protocol::Omnipair,
+            &steps,
+        )
+        .expect("Omnipair route account flags");
         validate_omnipair_semantic_accounts(&steps, 0, &mint0, &mint1, &token_program)
             .expect("token0 to token1");
         validate_omnipair_semantic_accounts(&steps, 1, &mint1, &mint0, &token_program)
             .expect("token1 to token0");
 
         {
+            let mut data = steps[2].try_borrow_mut_data().expect("rate model data");
+            data[16..24].copy_from_slice(&0_u64.to_le_bytes());
+        }
+        assert!(
+            validate_omnipair_semantic_accounts(&steps, 0, &mint0, &mint1, &token_program).is_err()
+        );
+        {
+            let mut data = steps[2].try_borrow_mut_data().expect("rate model data");
+            data[16..24].copy_from_slice(&300_000_000_u64.to_le_bytes());
+        }
+
+        {
             let mut data = steps[1].try_borrow_mut_data().expect("pair data");
+            data[147..147 + 8].copy_from_slice(&5_184_886_321_904_u64.to_le_bytes());
             data[147 + 88..147 + 96].copy_from_slice(&1_u64.to_le_bytes());
+            data[147 + 104..147 + 120].copy_from_slice(&1_000_000_u128.to_le_bytes());
+        }
+        validate_omnipair_semantic_accounts(&steps, 0, &mint0, &mint1, &token_program)
+            .expect("consistent debt state");
+
+        {
+            let mut data = steps[1].try_borrow_mut_data().expect("pair data");
+            data[147 + 104..147 + 120].fill(0);
         }
         assert!(
             validate_omnipair_semantic_accounts(&steps, 0, &mint0, &mint1, &token_program).is_err()

@@ -8,13 +8,12 @@ use anchor_lang::solana_program::{
 use crate::{
     errors::ArbitrageError,
     instructions::types::{read_token_amount, token_balance_delta, SwapResult},
+    protocal::wsol::{close_wsol_for_native, restore_wsol_after_native, WsolBridgeAccounts},
 };
 
 pub const BOOP_FUN_STEP_ACCOUNTS: usize = 10;
 pub const BOOP_FUN_BUY_DISCRIMINATOR: [u8; 8] = [138, 127, 14, 91, 38, 87, 115, 105];
 pub const BOOP_FUN_SELL_DISCRIMINATOR: [u8; 8] = [109, 61, 40, 187, 230, 176, 135, 174];
-const TOKEN_UNWRAP_LAMPORTS_TAG: u8 = 45;
-const TOKEN_UNWRAP_LAMPORTS_EXACT: u8 = 1;
 
 #[derive(Clone)]
 pub struct BoopFunAccounts<'info> {
@@ -23,6 +22,7 @@ pub struct BoopFunAccounts<'info> {
     pub user_output: &'info AccountInfo<'info>,
     pub input_mint: &'info AccountInfo<'info>,
     pub output_mint: &'info AccountInfo<'info>,
+    pub associated_token_program: &'info AccountInfo<'info>,
     pub step: &'info [AccountInfo<'info>],
 }
 
@@ -32,29 +32,6 @@ fn trade_data(discriminator: [u8; 8], amount: u64, min_output: u64) -> Vec<u8> {
     data.extend_from_slice(&amount.to_le_bytes());
     data.extend_from_slice(&min_output.to_le_bytes());
     data
-}
-
-fn unwrap_wsol<'info>(accounts: &BoopFunAccounts<'info>, amount: u64) -> Result<()> {
-    let mut data = vec![TOKEN_UNWRAP_LAMPORTS_TAG, TOKEN_UNWRAP_LAMPORTS_EXACT];
-    data.extend_from_slice(&amount.to_le_bytes());
-    invoke(
-        &Instruction {
-            program_id: accounts.step[8].key(),
-            accounts: vec![
-                AccountMeta::new(accounts.user_input.key(), false),
-                AccountMeta::new(accounts.payer.key(), false),
-                AccountMeta::new_readonly(accounts.payer.key(), true),
-            ],
-            data,
-        },
-        &[
-            accounts.user_input.clone(),
-            accounts.payer.clone(),
-            accounts.payer.clone(),
-            accounts.step[8].clone(),
-        ],
-    )?;
-    Ok(())
 }
 
 fn invoke_boop_fun<'info>(accounts: &BoopFunAccounts<'info>, amount: u64, buy: bool) -> Result<()> {
@@ -149,8 +126,17 @@ pub fn boop_fun_swap<'info>(
     );
     let pre_out = read_token_amount(accounts.user_output)?;
     if buy {
-        unwrap_wsol(&accounts, amount)?;
+        let bridge = WsolBridgeAccounts {
+            payer: accounts.payer,
+            user_wsol: accounts.user_input,
+            wsol_mint: accounts.input_mint,
+            token_program: &accounts.step[8],
+            associated_token_program: accounts.associated_token_program,
+            system_program: &accounts.step[7],
+        };
+        let remaining_wsol = close_wsol_for_native(bridge, amount)?;
         invoke_boop_fun(&accounts, amount, true)?;
+        restore_wsol_after_native(bridge, remaining_wsol)?;
     } else {
         let pre_lamports = accounts.payer.lamports();
         invoke_boop_fun(&accounts, amount, false)?;

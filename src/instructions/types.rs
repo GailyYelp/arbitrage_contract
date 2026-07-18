@@ -707,6 +707,24 @@ pub fn validate_token_account_for_mint_and_authority<'info>(
     Ok(())
 }
 
+pub fn validate_token_account_for_mint_and_authority_key<'info>(
+    token_account: &AccountInfo<'info>,
+    mint: &AccountInfo<'info>,
+    expected_token_program: &AccountInfo<'info>,
+    expected_authority: Pubkey,
+) -> Result<()> {
+    validate_token_account_for_mint(token_account, mint, expected_token_program)?;
+
+    let data = token_account.try_borrow_data()?;
+    let token_account_authority = read_token_owner_from_data(&data)?;
+    require_keys_eq!(
+        token_account_authority,
+        expected_authority,
+        ArbitrageError::InvalidAccount
+    );
+    Ok(())
+}
+
 pub fn validate_raydium_pool_v4_authority<'info>(
     program: &AccountInfo<'info>,
     pool_state: &AccountInfo<'info>,

@@ -204,18 +204,18 @@ pub fn validate_virtuals_semantic_accounts<'info>(
         associated_token_address(step[1].key(), VIRTUALS_MINT, token_program.key()),
         ArbitrageError::InvalidAccount
     );
-    validate_token_account_for_mint_and_authority(&step[3], &step[2], &step[1], token_program)?;
+    validate_token_account_for_mint_and_authority(&step[3], &step[2], token_program, &step[1])?;
     validate_token_account_for_mint_and_authority(
         &step[5],
         out_or_in_virtuals(direction, in_mint, out_mint),
-        &step[4],
         token_program,
+        &step[4],
     )?;
     validate_token_account_for_mint_and_authority(
         &step[6],
         out_or_in_virtuals(direction, in_mint, out_mint),
-        &step[1],
         token_program,
+        &step[1],
     )?;
     let virtuals_reserve = read_token_amount(&step[6])?;
     require!(
@@ -270,19 +270,17 @@ fn quote_buy_exact_in(
         .checked_mul(100)
         .and_then(|value| value.checked_add((amount_in % 101).min(99)))
         .ok_or(ArbitrageError::MathOverflow)?;
+    let total_cost = net
+        .checked_add(net / 100)
+        .ok_or(ArbitrageError::MathOverflow)?;
+    let post_virtuals = actual_virtuals
+        .checked_add(net)
+        .ok_or(ArbitrageError::MathOverflow)?;
     require!(
-        net > 0
-            && net
-                .checked_add(net / 100)
-                .is_some_and(|cost| cost <= amount_in),
+        net > 0 && total_cost <= amount_in,
         ArbitrageError::InvalidAmount
     );
-    require!(
-        actual_virtuals
-            .checked_add(net)
-            .is_some_and(|value| value < graduation_x),
-        ArbitrageError::InvalidAmount
-    );
+    require!(post_virtuals < graduation_x, ArbitrageError::InvalidAmount);
     let n = u128::from(net)
         .checked_add(1)
         .ok_or(ArbitrageError::MathOverflow)?;
@@ -322,7 +320,38 @@ fn read_u64(data: &[u8], offset: usize) -> Result<u64> {
 
 #[cfg(test)]
 mod tests {
-    use super::{swap_data, BUY_DISCRIMINATOR, SELL_DISCRIMINATOR};
+    use super::*;
+
+    fn test_account(
+        key: Pubkey,
+        owner: Pubkey,
+        is_writable: bool,
+        executable: bool,
+        data: Vec<u8>,
+    ) -> AccountInfo<'static> {
+        let key = Box::leak(Box::new(key));
+        let owner = Box::leak(Box::new(owner));
+        let lamports = Box::leak(Box::new(0_u64));
+        let data = Box::leak(data.into_boxed_slice());
+        AccountInfo::new(
+            key,
+            false,
+            is_writable,
+            lamports,
+            data,
+            owner,
+            executable,
+            0,
+        )
+    }
+
+    fn token_data(mint: Pubkey, owner: Pubkey, amount: u64) -> Vec<u8> {
+        let mut data = vec![0u8; 165];
+        data[0..32].copy_from_slice(mint.as_ref());
+        data[32..64].copy_from_slice(owner.as_ref());
+        data[64..72].copy_from_slice(&amount.to_le_bytes());
+        data
+    }
 
     #[test]
     fn buy_exact_input_inverse_matches_confirmed_event() {
@@ -348,5 +377,102 @@ mod tests {
         assert_eq!(&sell[..8], &SELL_DISCRIMINATOR);
         amount.copy_from_slice(&sell[8..16]);
         assert_eq!(u64::from_le_bytes(amount), 2_051_832_376_587);
+    }
+
+    #[test]
+    fn semantic_validation_binds_token_program_before_authority_in_both_directions() {
+        let token_program_key = anchor_spl::token::ID;
+        let token_mint = Pubkey::new_unique();
+        let (pool, bump) =
+            Pubkey::find_program_address(&[b"vpool", token_mint.as_ref()], &VIRTUALS_PROGRAM_ID);
+        let token_vault = associated_token_address(pool, token_mint, token_program_key);
+        let pool_virtuals_vault = associated_token_address(pool, VIRTUALS_MINT, token_program_key);
+        let platform_vault =
+            associated_token_address(PLATFORM_PROTOTYPE, VIRTUALS_MINT, token_program_key);
+        let mut pool_data = vec![0u8; POOL_ACCOUNT_LEN];
+        pool_data[..8].copy_from_slice(&POOL_DISCRIMINATOR);
+        pool_data[40..72].copy_from_slice(token_mint.as_ref());
+        pool_data[72..80].copy_from_slice(&6_000_000_000_000_u64.to_le_bytes());
+        pool_data[80..88].copy_from_slice(&125_000_000_000_000_u64.to_le_bytes());
+        pool_data[88] = 1;
+        pool_data[89] = bump;
+        let step = vec![
+            test_account(
+                VIRTUALS_PROGRAM_ID,
+                Pubkey::new_unique(),
+                false,
+                true,
+                Vec::new(),
+            ),
+            test_account(pool, VIRTUALS_PROGRAM_ID, true, false, pool_data),
+            test_account(token_mint, token_program_key, false, false, vec![0; 82]),
+            test_account(
+                token_vault,
+                token_program_key,
+                true,
+                false,
+                token_data(token_mint, pool, 896_617_758_028_087),
+            ),
+            test_account(
+                PLATFORM_PROTOTYPE,
+                anchor_lang::system_program::ID,
+                true,
+                false,
+                Vec::new(),
+            ),
+            test_account(
+                platform_vault,
+                token_program_key,
+                true,
+                false,
+                token_data(VIRTUALS_MINT, PLATFORM_PROTOTYPE, 1),
+            ),
+            test_account(
+                pool_virtuals_vault,
+                token_program_key,
+                true,
+                false,
+                token_data(VIRTUALS_MINT, pool, 691_814_818_753),
+            ),
+        ];
+        let virtuals_mint =
+            test_account(VIRTUALS_MINT, token_program_key, false, false, vec![0; 82]);
+        let token_mint_account =
+            test_account(token_mint, token_program_key, false, false, vec![0; 82]);
+        let token_program = test_account(
+            token_program_key,
+            Pubkey::new_unique(),
+            false,
+            true,
+            Vec::new(),
+        );
+        let system_program = test_account(
+            anchor_lang::system_program::ID,
+            Pubkey::new_unique(),
+            false,
+            true,
+            Vec::new(),
+        );
+
+        validate_virtuals_semantic_accounts(
+            &step,
+            0,
+            FEE_BPS,
+            &virtuals_mint,
+            &token_mint_account,
+            &token_program,
+            &system_program,
+        )
+        .expect("validate Virtuals buy");
+        validate_virtuals_semantic_accounts(
+            &step,
+            1,
+            FEE_BPS,
+            &token_mint_account,
+            &virtuals_mint,
+            &token_program,
+            &system_program,
+        )
+        .expect("validate Virtuals sell");
     }
 }

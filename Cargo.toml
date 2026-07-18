@@ -19,7 +19,7 @@ default = []
 # devnet: 使用 devnet 固定地址（如 Raydium CPMM authority），其余保持与客户端传入一致
 devnet = []
 flex = []
-idl-build = ["anchor-lang/idl-build"]
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 
 [profile.release]
 overflow-checks = true

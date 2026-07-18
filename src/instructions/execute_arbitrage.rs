@@ -41,6 +41,10 @@ use crate::protocal::{
     bisonfi::{
         bisonfi_swap, validate_bisonfi_semantic_accounts, BisonFiAccounts, BISONFI_STEP_ACCOUNTS,
     },
+    bonfida_dex_v4::{
+        bonfida_dex_v4_swap, validate_bonfida_dex_v4_semantic_accounts, BonfidaDexV4Accounts,
+        BONFIDA_DEX_V4_STEP_ACCOUNTS,
+    },
     bonk_swap::{bonk_swap, BonkSwapAccounts, BONK_SWAP_MIN_ACCOUNTS},
     boop_fun::{boop_fun_swap, BoopFunAccounts, BOOP_FUN_STEP_ACCOUNTS},
     carrot::{
@@ -53,9 +57,16 @@ use crate::protocal::{
     cropper::{
         cropper_swap, validate_cropper_semantic_accounts, CropperAccounts, CROPPER_STEP_ACCOUNTS,
     },
+    cube::{cube_swap, validate_cube_semantic_accounts, CubeAccounts, CUBE_STEP_ACCOUNTS},
     deriverse::{
         deriverse_swap, validate_deriverse_semantic_accounts, DeriverseAccounts,
         DERIVERSE_STEP_ACCOUNTS,
+    },
+    dradex::{
+        dradex_swap, validate_dradex_semantic_accounts, DradexAccounts, DRADEX_STEP_ACCOUNTS,
+    },
+    dumpfun::{
+        dumpfun_swap, validate_dumpfun_semantic_accounts, DumpFunAccounts, DUMPFUN_STEP_ACCOUNTS,
     },
     fluxbeam::{fluxbeam_swap, FluxBeamAccounts, FLUXBEAM_MIN_ACCOUNTS},
     fusionamm::{
@@ -64,6 +75,10 @@ use crate::protocal::{
     },
     gamma_swap::{gamma_swap_base_input, GammaSwapAccounts, GAMMA_SWAP_MIN_ACCOUNTS},
     gavel::{gavel_swap, validate_gavel_semantic_accounts, GavelAccounts, GAVEL_STEP_ACCOUNTS},
+    gfx_ssl::{
+        gfx_ssl_swap, validate_gfx_ssl_semantic_accounts, GfxSslAccounts,
+        GFX_SSL_MAX_STEP_ACCOUNTS, GFX_SSL_MIN_STEP_ACCOUNTS,
+    },
     goonfi::{goonfi_swap, GoonfiAccounts, GOONFI_MIN_ACCOUNTS},
     goonfi_v2::{goonfi_v2_swap, GoonfiV2Accounts, GOONFI_V2_MIN_ACCOUNTS},
     guacswap::{
@@ -93,6 +108,10 @@ use crate::protocal::{
         jupiter_lend_earn_swap, validate_jupiter_lend_earn_semantic_accounts,
         JupiterLendEarnAccounts, JUPITER_LEND_EARN_STEP_ACCOUNTS,
     },
+    jupiter_perpetuals::{
+        jupiter_perpetuals_swap, validate_jupiter_perpetuals_semantic_accounts,
+        JupiterPerpetualsAccounts, JUPITER_PERPETUALS_STEP_ACCOUNTS,
+    },
     kipseli::{
         kipseli_swap, validate_kipseli_semantic_accounts, KipseliAccounts, KIPSELI_STEP_ACCOUNTS,
     },
@@ -106,6 +125,7 @@ use crate::protocal::{
     lifinity_amm_v2::{
         lifinity_amm_v2_swap, LifinityAmmV2SwapAccounts, LIFINITY_AMM_V2_MIN_ACCOUNTS,
     },
+    limo::{limo_take_order, validate_limo_semantic_accounts, LimoAccounts, LIMO_STEP_ACCOUNTS},
     m_swap::{m_swap, validate_m_swap_semantic_accounts, MSwapAccounts, M_SWAP_STEP_ACCOUNTS},
     manifest::{manifest_swap, ManifestSwapAccounts, MANIFEST_MIN_ACCOUNTS},
     marcopolo::{
@@ -165,6 +185,11 @@ use crate::protocal::{
     riptide::{
         riptide_swap, validate_riptide_semantic_accounts, RiptideAccounts, RIPTIDE_STEP_ACCOUNTS,
     },
+    rise::{rise_swap, validate_rise_semantic_accounts, RiseAccounts, RISE_STEP_ACCOUNTS},
+    runner_rodeo::{
+        runner_rodeo_swap, validate_runner_rodeo_semantic_accounts, RunnerRodeoAccounts,
+        RUNNER_RODEO_STEP_ACCOUNTS,
+    },
     saber_add_decimals::{
         saber_add_decimals_swap, validate_saber_add_decimals_semantic_accounts,
         SaberAddDecimalsAccounts, SABER_ADD_DECIMALS_STEP_ACCOUNTS,
@@ -185,6 +210,10 @@ use crate::protocal::{
     scorch::{
         scorch_swap, validate_scorch_semantic_accounts, ScorchAccounts, SCORCH_STEP_ACCOUNTS,
     },
+    sega_cpmm::{
+        sega_cpmm_swap, validate_sega_cpmm_semantic_accounts, SegaCpmmAccounts,
+        SEGA_CPMM_STEP_ACCOUNTS,
+    },
     sencha_swap::{sencha_swap, SenchaSwapAccounts, SENCHA_SWAP_MIN_ACCOUNTS},
     serum_v3::{
         serum_v3_swap, validate_serum_v3_semantic_accounts, SerumV3Accounts, SERUM_V3_STEP_ACCOUNTS,
@@ -196,11 +225,23 @@ use crate::protocal::{
     solfi_v1::{solfi_v1_swap, SolfiV1Accounts, SOLFI_V1_MIN_ACCOUNTS},
     solfi_v2::{solfi_v2_swap, SolfiV2Accounts, SOLFI_V2_MIN_ACCOUNTS},
     stabble_swap::{stabble_swap_v2, StabbleSwapAccounts, STABBLE_SWAP_MIN_ACCOUNTS},
+    sugar_money::{
+        sugar_money_swap, validate_sugar_money_semantic_accounts, SugarMoneyAccounts,
+        SUGAR_MONEY_STEP_ACCOUNTS,
+    },
+    symmetry::{
+        symmetry_swap, validate_symmetry_semantic_accounts, SymmetryAccounts,
+        SYMMETRY_STEP_ACCOUNTS,
+    },
     taurusfi::{
         taurusfi_swap, validate_taurusfi_semantic_accounts, TaurusFiAccounts,
         TAURUSFI_STEP_ACCOUNTS,
     },
     tessera::{tessera_swap, TesseraAccounts, TESSERA_MIN_ACCOUNTS},
+    token_mill_v2::{
+        token_mill_v2_swap, validate_token_mill_v2_semantic_accounts, TokenMillV2Accounts,
+        TOKEN_MILL_V2_STEP_ACCOUNTS,
+    },
     trends::{trends_swap, validate_trends_semantic_accounts, TrendsAccounts},
     vault_liquid_unstake::{
         validate_vault_liquid_unstake_semantic_accounts, vault_liquid_unstake_swap,
@@ -220,6 +261,9 @@ use crate::protocal::{
     xorca::{
         validate_xorca_amount, validate_xorca_semantic_accounts, xorca_swap, XOrcaAccounts,
         XORCA_STEP_ACCOUNTS,
+    },
+    yeet_amm::{
+        validate_yeet_amm_semantic_accounts, yeet_amm_swap, YeetAmmAccounts, YEET_AMM_STEP_ACCOUNTS,
     },
 };
 use crate::state::Protocol;
@@ -331,6 +375,7 @@ pub fn execute_arbitrage<'info>(
                 raydium_cpmm_swap(account_infos, current_amount, step.min_output_amount)
             }),
             Protocol::RaydiumCLMM
+            | Protocol::SwapIoClmm
             | Protocol::ByrealCLMM
             | Protocol::PancakeSwap
             | Protocol::StabbleCLMM => execute_isolated_step(|| {
@@ -884,8 +929,245 @@ pub fn execute_arbitrage<'info>(
                     out_mint_program_ai,
                     token_program,
                     system_program,
+                    associated_token_program,
                     direction,
                     current_amount,
+                )
+            }),
+            Protocol::Rise => execute_isolated_step(|| {
+                execute_rise_step(
+                    step_slice,
+                    payer,
+                    user_in_ai,
+                    user_out_ai,
+                    in_mint_ai,
+                    out_mint_ai,
+                    in_mint_program_ai,
+                    out_mint_program_ai,
+                    token_program,
+                    direction,
+                    step.fee_rate,
+                    current_amount,
+                )
+            }),
+            Protocol::Dradex => execute_isolated_step(|| {
+                execute_dradex_step(
+                    step_slice,
+                    payer,
+                    user_in_ai,
+                    user_out_ai,
+                    in_mint_ai,
+                    out_mint_ai,
+                    in_mint_program_ai,
+                    out_mint_program_ai,
+                    token_program,
+                    direction,
+                    step.fee_rate,
+                    current_amount,
+                    step.min_output_amount,
+                )
+            }),
+            Protocol::BonfidaDexV4 => execute_isolated_step(|| {
+                execute_bonfida_dex_v4_step(
+                    step_slice,
+                    payer,
+                    user_in_ai,
+                    user_out_ai,
+                    in_mint_ai,
+                    out_mint_ai,
+                    in_mint_program_ai,
+                    out_mint_program_ai,
+                    token_program,
+                    system_program,
+                    direction,
+                    step.fee_rate,
+                    current_amount,
+                    step.min_output_amount,
+                )
+            }),
+            Protocol::GfxSsl => execute_isolated_step(|| {
+                execute_gfx_ssl_step(
+                    step_slice,
+                    payer,
+                    user_in_ai,
+                    user_out_ai,
+                    in_mint_ai,
+                    out_mint_ai,
+                    in_mint_program_ai,
+                    out_mint_program_ai,
+                    token_program,
+                    direction,
+                    step.fee_rate,
+                    current_amount,
+                    step.min_output_amount,
+                )
+            }),
+            Protocol::DumpFun => execute_isolated_step(|| {
+                execute_dumpfun_step(
+                    step_slice,
+                    payer,
+                    user_in_ai,
+                    user_out_ai,
+                    in_mint_ai,
+                    out_mint_ai,
+                    in_mint_program_ai,
+                    out_mint_program_ai,
+                    token_program,
+                    direction,
+                    step.fee_rate,
+                    current_amount,
+                    step.min_output_amount,
+                )
+            }),
+            Protocol::JupiterPerpetuals => execute_isolated_step(|| {
+                execute_jupiter_perpetuals_step(
+                    step_slice,
+                    payer,
+                    user_in_ai,
+                    user_out_ai,
+                    in_mint_ai,
+                    out_mint_ai,
+                    in_mint_program_ai,
+                    out_mint_program_ai,
+                    token_program,
+                    direction,
+                    step.fee_rate,
+                    current_amount,
+                    step.min_output_amount,
+                )
+            }),
+            Protocol::TokenMillV2 => execute_isolated_step(|| {
+                execute_token_mill_v2_step(
+                    step_slice,
+                    payer,
+                    user_in_ai,
+                    user_out_ai,
+                    in_mint_ai,
+                    out_mint_ai,
+                    in_mint_program_ai,
+                    out_mint_program_ai,
+                    token_program,
+                    direction,
+                    step.fee_rate,
+                    current_amount,
+                    step.min_output_amount,
+                )
+            }),
+            Protocol::YeetAmm => execute_isolated_step(|| {
+                execute_yeet_amm_step(
+                    step_slice,
+                    payer,
+                    user_in_ai,
+                    user_out_ai,
+                    in_mint_ai,
+                    out_mint_ai,
+                    in_mint_program_ai,
+                    out_mint_program_ai,
+                    token_program,
+                    direction,
+                    step.fee_rate,
+                    current_amount,
+                    step.min_output_amount,
+                )
+            }),
+            Protocol::Cube => execute_isolated_step(|| {
+                execute_cube_step(
+                    step_slice,
+                    payer,
+                    user_in_ai,
+                    user_out_ai,
+                    in_mint_ai,
+                    out_mint_ai,
+                    in_mint_program_ai,
+                    out_mint_program_ai,
+                    direction,
+                    step.fee_rate,
+                    current_amount,
+                    step.min_output_amount,
+                )
+            }),
+            Protocol::Limo => execute_isolated_step(|| {
+                execute_limo_step(
+                    step_slice,
+                    payer,
+                    user_in_ai,
+                    user_out_ai,
+                    in_mint_ai,
+                    out_mint_ai,
+                    in_mint_program_ai,
+                    out_mint_program_ai,
+                    direction,
+                    step.fee_rate,
+                    current_amount,
+                    step.min_output_amount,
+                )
+            }),
+            Protocol::Symmetry => execute_isolated_step(|| {
+                execute_symmetry_step(
+                    step_slice,
+                    payer,
+                    user_in_ai,
+                    user_out_ai,
+                    in_mint_ai,
+                    out_mint_ai,
+                    in_mint_program_ai,
+                    out_mint_program_ai,
+                    direction,
+                    step.fee_rate,
+                    current_amount,
+                    step.min_output_amount,
+                )
+            }),
+            Protocol::RunnerRodeo => execute_isolated_step(|| {
+                execute_runner_rodeo_step(
+                    step_slice,
+                    payer,
+                    system_program,
+                    user_in_ai,
+                    user_out_ai,
+                    in_mint_ai,
+                    out_mint_ai,
+                    in_mint_program_ai,
+                    out_mint_program_ai,
+                    direction,
+                    step.fee_rate,
+                    current_amount,
+                    step.min_output_amount,
+                )
+            }),
+            Protocol::SegaCpmm => execute_isolated_step(|| {
+                execute_sega_cpmm_step(
+                    step_slice,
+                    payer,
+                    user_in_ai,
+                    user_out_ai,
+                    in_mint_ai,
+                    out_mint_ai,
+                    in_mint_program_ai,
+                    out_mint_program_ai,
+                    direction,
+                    step.fee_rate,
+                    current_amount,
+                    step.min_output_amount,
+                )
+            }),
+            Protocol::SugarMoney => execute_isolated_step(|| {
+                execute_sugar_money_step(
+                    step_slice,
+                    payer,
+                    user_in_ai,
+                    user_out_ai,
+                    in_mint_ai,
+                    out_mint_ai,
+                    in_mint_program_ai,
+                    out_mint_program_ai,
+                    token_program,
+                    associated_token_program,
+                    system_program,
+                    direction,
+                    step.fee_rate,
+                    current_amount,
+                    step.min_output_amount,
                 )
             }),
             Protocol::RaydiumLaunchPad => execute_isolated_step(|| {
@@ -2239,7 +2521,6 @@ pub fn execute_arbitrage<'info>(
                         payer,
                         base_vault: &step_slice[6],
                         quote_vault: &step_slice[7],
-                        vault_signer: &step_slice[8],
                         token_program,
                     },
                     current_amount,
@@ -4250,6 +4531,7 @@ fn execute_marinade_finance_step<'info>(
     out_mint_program_ai: &'info AccountInfo<'info>,
     token_program: &'info AccountInfo<'info>,
     system_program: &'info AccountInfo<'info>,
+    associated_token_program: &'info AccountInfo<'info>,
     direction: u8,
     current_amount: u64,
 ) -> Result<SwapResult> {
@@ -4280,10 +4562,783 @@ fn execute_marinade_finance_step<'info>(
             payer,
             user_input: user_in_ai,
             user_output: user_out_ai,
+            input_mint: in_mint_ai,
+            associated_token_program,
             step: step_slice,
         },
         current_amount,
         direction == 0,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_rise_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    token_program: &'info AccountInfo<'info>,
+    direction: u8,
+    fee_rate: u16,
+    current_amount: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == RISE_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    require_keys_eq!(
+        in_mint_program_ai.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        out_mint_program_ai.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    validate_rise_semantic_accounts(
+        step_slice,
+        direction,
+        fee_rate,
+        in_mint_ai,
+        out_mint_ai,
+        token_program,
+    )?;
+    rise_swap(
+        RiseAccounts {
+            payer,
+            user_input: user_in_ai,
+            user_output: user_out_ai,
+            input_mint: in_mint_ai,
+            output_mint: out_mint_ai,
+            token_program,
+            step: step_slice,
+        },
+        current_amount,
+        1,
+        direction,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_dradex_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    token_program: &'info AccountInfo<'info>,
+    direction: u8,
+    fee_rate: u16,
+    current_amount: u64,
+    min_amount_out: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == DRADEX_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    require_keys_eq!(
+        in_mint_program_ai.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        out_mint_program_ai.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    validate_dradex_semantic_accounts(
+        step_slice,
+        payer,
+        direction,
+        fee_rate,
+        in_mint_ai,
+        out_mint_ai,
+        token_program,
+    )?;
+    dradex_swap(
+        DradexAccounts {
+            payer,
+            user_input: user_in_ai,
+            user_output: user_out_ai,
+            input_mint: in_mint_ai,
+            output_mint: out_mint_ai,
+            token_program,
+            step: step_slice,
+        },
+        current_amount,
+        min_amount_out,
+        direction,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_bonfida_dex_v4_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    token_program: &'info AccountInfo<'info>,
+    system_program: &'info AccountInfo<'info>,
+    direction: u8,
+    fee_rate: u16,
+    current_amount: u64,
+    min_amount_out: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == BONFIDA_DEX_V4_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    require_keys_eq!(
+        in_mint_program_ai.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        out_mint_program_ai.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    validate_bonfida_dex_v4_semantic_accounts(
+        step_slice,
+        direction,
+        fee_rate,
+        in_mint_ai,
+        out_mint_ai,
+        token_program,
+    )?;
+    bonfida_dex_v4_swap(
+        BonfidaDexV4Accounts {
+            payer,
+            user_input: user_in_ai,
+            user_output: user_out_ai,
+            token_program,
+            system_program,
+            step: step_slice,
+        },
+        current_amount,
+        min_amount_out,
+        direction,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_gfx_ssl_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    token_program: &'info AccountInfo<'info>,
+    direction: u8,
+    fee_rate: u16,
+    current_amount: u64,
+    min_amount_out: u64,
+) -> Result<SwapResult> {
+    require!(
+        (GFX_SSL_MIN_STEP_ACCOUNTS..=GFX_SSL_MAX_STEP_ACCOUNTS).contains(&step_slice.len()),
+        ArbitrageError::InvalidAccountCount
+    );
+    require_keys_eq!(
+        in_mint_program_ai.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        out_mint_program_ai.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    validate_gfx_ssl_semantic_accounts(
+        step_slice,
+        direction,
+        fee_rate,
+        in_mint_ai,
+        out_mint_ai,
+        token_program,
+    )?;
+    gfx_ssl_swap(
+        GfxSslAccounts {
+            payer,
+            user_input: user_in_ai,
+            user_output: user_out_ai,
+            token_program,
+            step: step_slice,
+        },
+        current_amount,
+        min_amount_out,
+        direction,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_dumpfun_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    token_program: &'info AccountInfo<'info>,
+    direction: u8,
+    fee_rate: u16,
+    current_amount: u64,
+    min_amount_out: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == DUMPFUN_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    require_keys_eq!(
+        in_mint_program_ai.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        out_mint_program_ai.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    validate_dumpfun_semantic_accounts(
+        step_slice,
+        direction,
+        fee_rate,
+        in_mint_ai,
+        out_mint_ai,
+        token_program,
+    )?;
+    dumpfun_swap(
+        DumpFunAccounts {
+            payer,
+            user_input: user_in_ai,
+            user_output: user_out_ai,
+            input_mint: in_mint_ai,
+            output_mint: out_mint_ai,
+            step: step_slice,
+        },
+        current_amount,
+        min_amount_out,
+        direction,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_jupiter_perpetuals_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    token_program: &'info AccountInfo<'info>,
+    direction: u8,
+    fee_rate: u16,
+    current_amount: u64,
+    min_amount_out: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == JUPITER_PERPETUALS_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    require_keys_eq!(
+        in_mint_program_ai.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        out_mint_program_ai.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    validate_jupiter_perpetuals_semantic_accounts(
+        step_slice,
+        direction,
+        fee_rate,
+        in_mint_ai,
+        out_mint_ai,
+        token_program,
+    )?;
+    jupiter_perpetuals_swap(
+        JupiterPerpetualsAccounts {
+            payer,
+            user_input: user_in_ai,
+            user_output: user_out_ai,
+            input_mint: in_mint_ai,
+            output_mint: out_mint_ai,
+            token_program,
+            step: step_slice,
+        },
+        current_amount,
+        min_amount_out,
+        direction,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_token_mill_v2_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    token_program: &'info AccountInfo<'info>,
+    direction: u8,
+    fee_rate: u16,
+    current_amount: u64,
+    min_amount_out: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == TOKEN_MILL_V2_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    require_keys_eq!(
+        in_mint_program_ai.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    require_keys_eq!(
+        out_mint_program_ai.key(),
+        token_program.key(),
+        ArbitrageError::InvalidAccount
+    );
+    validate_token_mill_v2_semantic_accounts(
+        step_slice,
+        direction,
+        fee_rate,
+        in_mint_ai,
+        out_mint_ai,
+        token_program,
+    )?;
+    let (user_token0, user_token1) = if direction == 0 {
+        (user_in_ai, user_out_ai)
+    } else {
+        (user_out_ai, user_in_ai)
+    };
+    token_mill_v2_swap(
+        TokenMillV2Accounts {
+            payer,
+            user_token0,
+            user_token1,
+            output_token_account: user_out_ai,
+            step: step_slice,
+        },
+        current_amount,
+        min_amount_out,
+        direction,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_yeet_amm_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    token_program: &'info AccountInfo<'info>,
+    direction: u8,
+    fee_rate: u16,
+    current_amount: u64,
+    min_amount_out: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == YEET_AMM_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    let (quoted_reserve_a, quoted_reserve_b) = validate_yeet_amm_semantic_accounts(
+        step_slice,
+        direction,
+        fee_rate,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+        token_program,
+    )?;
+    yeet_amm_swap(
+        YeetAmmAccounts {
+            payer,
+            user_input: user_in_ai,
+            user_output: user_out_ai,
+            input_mint: in_mint_ai,
+            output_mint: out_mint_ai,
+            output_token_account: user_out_ai,
+            step: step_slice,
+        },
+        current_amount,
+        min_amount_out,
+        quoted_reserve_a,
+        quoted_reserve_b,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_cube_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    direction: u8,
+    fee_rate: u16,
+    current_amount: u64,
+    min_amount_out: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == CUBE_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    let (input_index, output_index) = validate_cube_semantic_accounts(
+        step_slice,
+        direction,
+        fee_rate,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+    )?;
+    cube_swap(
+        CubeAccounts {
+            payer,
+            user_input: user_in_ai,
+            user_output: user_out_ai,
+            input_mint: in_mint_ai,
+            output_mint: out_mint_ai,
+            input_token_program: in_mint_program_ai,
+            output_token_program: out_mint_program_ai,
+            step: step_slice,
+        },
+        current_amount,
+        min_amount_out,
+        input_index,
+        output_index,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_limo_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    direction: u8,
+    fee_rate: u16,
+    current_amount: u64,
+    min_amount_out: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == LIMO_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    let (initial_input_amount, expected_output_amount, remaining_input_amount) =
+        validate_limo_semantic_accounts(
+            step_slice,
+            direction,
+            fee_rate,
+            in_mint_ai,
+            out_mint_ai,
+            in_mint_program_ai,
+            out_mint_program_ai,
+        )?;
+    limo_take_order(
+        LimoAccounts {
+            payer,
+            user_input: user_in_ai,
+            user_output: user_out_ai,
+            input_mint: in_mint_ai,
+            output_mint: out_mint_ai,
+            input_token_program: in_mint_program_ai,
+            output_token_program: out_mint_program_ai,
+            step: step_slice,
+        },
+        current_amount,
+        min_amount_out,
+        initial_input_amount,
+        expected_output_amount,
+        remaining_input_amount,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_symmetry_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    direction: u8,
+    fee_rate: u16,
+    current_amount: u64,
+    min_amount_out: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == SYMMETRY_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    let validation = validate_symmetry_semantic_accounts(
+        step_slice,
+        direction,
+        fee_rate,
+        current_amount,
+        min_amount_out,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+    )?;
+    symmetry_swap(
+        SymmetryAccounts {
+            payer,
+            user_input: user_in_ai,
+            user_output: user_out_ai,
+            input_token_program: in_mint_program_ai,
+            step: step_slice,
+        },
+        current_amount,
+        min_amount_out,
+        validation,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_runner_rodeo_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    system_program: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    direction: u8,
+    fee_rate: u16,
+    current_amount: u64,
+    min_amount_out: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == RUNNER_RODEO_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    let validation = validate_runner_rodeo_semantic_accounts(
+        step_slice,
+        direction,
+        fee_rate,
+        current_amount,
+        min_amount_out,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+    )?;
+    runner_rodeo_swap(
+        RunnerRodeoAccounts {
+            payer,
+            user_input: user_in_ai,
+            user_output: user_out_ai,
+            system_program,
+            step: step_slice,
+        },
+        current_amount,
+        min_amount_out,
+        validation,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_sega_cpmm_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    direction: u8,
+    fee_rate: u16,
+    current_amount: u64,
+    min_amount_out: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == SEGA_CPMM_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    validate_token_account_for_mint_and_authority(
+        &step_slice[4],
+        in_mint_ai,
+        in_mint_program_ai,
+        &step_slice[1],
+    )?;
+    validate_token_account_for_mint_and_authority(
+        &step_slice[5],
+        out_mint_ai,
+        out_mint_program_ai,
+        &step_slice[1],
+    )?;
+    validate_sega_cpmm_semantic_accounts(
+        step_slice,
+        direction,
+        fee_rate,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+    )?;
+    sega_cpmm_swap(
+        SegaCpmmAccounts {
+            program: &step_slice[0],
+            payer,
+            authority: &step_slice[1],
+            amm_config: &step_slice[2],
+            pool_state: &step_slice[3],
+            input_token_account: user_in_ai,
+            output_token_account: user_out_ai,
+            input_vault: &step_slice[4],
+            output_vault: &step_slice[5],
+            input_token_program: in_mint_program_ai,
+            output_token_program: out_mint_program_ai,
+            input_mint: in_mint_ai,
+            output_mint: out_mint_ai,
+            observation_state: &step_slice[6],
+        },
+        current_amount,
+        min_amount_out,
+    )
+}
+
+#[inline(never)]
+#[allow(clippy::too_many_arguments)]
+fn execute_sugar_money_step<'info>(
+    step_slice: &'info [AccountInfo<'info>],
+    payer: &'info AccountInfo<'info>,
+    user_in_ai: &'info AccountInfo<'info>,
+    user_out_ai: &'info AccountInfo<'info>,
+    in_mint_ai: &'info AccountInfo<'info>,
+    out_mint_ai: &'info AccountInfo<'info>,
+    in_mint_program_ai: &'info AccountInfo<'info>,
+    out_mint_program_ai: &'info AccountInfo<'info>,
+    token_program: &'info AccountInfo<'info>,
+    associated_token_program: &'info AccountInfo<'info>,
+    system_program: &'info AccountInfo<'info>,
+    direction: u8,
+    fee_rate: u16,
+    current_amount: u64,
+    min_amount_out: u64,
+) -> Result<SwapResult> {
+    require!(
+        step_slice.len() == SUGAR_MONEY_STEP_ACCOUNTS,
+        ArbitrageError::InvalidAccountCount
+    );
+    require_keys_eq!(
+        step_slice[7].key(),
+        associated_token_program.key(),
+        ArbitrageError::InvalidProgramId
+    );
+    require_keys_eq!(
+        step_slice[8].key(),
+        system_program.key(),
+        ArbitrageError::InvalidProgramId
+    );
+    let buy = match direction {
+        0 => {
+            require_keys_eq!(
+                in_mint_program_ai.key(),
+                token_program.key(),
+                ArbitrageError::InvalidProgramId
+            );
+            require_keys_eq!(
+                out_mint_program_ai.key(),
+                step_slice[6].key(),
+                ArbitrageError::InvalidProgramId
+            );
+            true
+        }
+        1 => {
+            require_keys_eq!(
+                in_mint_program_ai.key(),
+                step_slice[6].key(),
+                ArbitrageError::InvalidProgramId
+            );
+            require_keys_eq!(
+                out_mint_program_ai.key(),
+                token_program.key(),
+                ArbitrageError::InvalidProgramId
+            );
+            false
+        }
+        _ => return err!(ArbitrageError::InvalidInstructionData),
+    };
+    validate_sugar_money_semantic_accounts(
+        step_slice,
+        direction,
+        fee_rate,
+        in_mint_ai,
+        out_mint_ai,
+        in_mint_program_ai,
+        out_mint_program_ai,
+    )?;
+    sugar_money_swap(
+        SugarMoneyAccounts {
+            payer,
+            user_input: user_in_ai,
+            user_output: user_out_ai,
+            input_mint: in_mint_ai,
+            output_mint: out_mint_ai,
+            wsol_token_program: token_program,
+            associated_token_program,
+            step: step_slice,
+        },
+        current_amount,
+        min_amount_out,
+        buy,
     )
 }
 
@@ -4334,6 +5389,7 @@ fn execute_moonit_step<'info>(
             user_output: user_out_ai,
             input_mint: in_mint_ai,
             output_mint: out_mint_ai,
+            associated_token_program,
             step: step_slice,
         },
         current_amount,
@@ -4388,6 +5444,7 @@ fn execute_boop_fun_step<'info>(
             user_output: user_out_ai,
             input_mint: in_mint_ai,
             output_mint: out_mint_ai,
+            associated_token_program,
             step: step_slice,
         },
         current_amount,
